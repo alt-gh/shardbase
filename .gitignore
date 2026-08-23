@@ -1,0 +1,86 @@
+# =============================================================================
+# ShardBase
+# =============================================================================
+
+# Local databases
+/app/Db/*
+!/app/Db/.gitkeep
+
+# Local inbox / unclassified captures
+/app/Inbox/*
+!/app/Inbox/.gitkeep
+
+
+# =============================================================================
+# Obsidian
+# =============================================================================
+
+# Obsidian configuration and workspace files
+.obsidian/
+
+
+# =============================================================================
+# Python
+# =============================================================================
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tool and test caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+
+
+# =============================================================================
+# Operating System
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+
+# =============================================================================
+# Editors
+# =============================================================================
+
+# JetBrains IDEs
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+
+# =============================================================================
+# Temporary Files
+# =============================================================================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
