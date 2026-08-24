@@ -13,8 +13,9 @@ completion_rule: A topic is not complete merely because it has text; its value s
 ## 1. Existing Foundation Snapshot
 
 project_name: ShardBase
-current_definition: A structured Markdown database framework designed for Obsidian and AI-assisted knowledge management.
+current_definition: A privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth.
 current_goal: Let a knowledge base grow without losing lineage, portability, readability, or control.
+product_identity_status: accepted
 structural_model: Pool → Core → Shard → Pebble
 primary_agent: Shard
 architectural_source_of_truth: app/Docs/Shard - System Specification.md
@@ -31,20 +32,145 @@ foundation_completion_status: incomplete
 
 ### Product Identity
 
-what_is_shardbase: 
+what_is_shardbase:
+  - ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to become a personal digital brain and source of truth.
+  - ShardBase targets Obsidian as its primary knowledge environment while keeping its core data in human-readable Markdown and YAML so it remains readable and editable independently of Obsidian.
+  - ShardBase organizes knowledge through metadata, relationships, links, search, views, and AI-assisted interaction rather than requiring users to navigate their knowledge primarily through folder structures.
+  - ShardBase-created notes are designed to form an interconnected web of information through structural and semantic YAML metadata, document content, wikilinks, and compatible visualization and query tools.
+  - Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, but the underlying database must never depend on Dataview for its meaning or structural integrity.
+  - ShardBase may use scripts and other tooling to provide additional functionality, but its core knowledge must remain understandable without those tools.
+  - ShardBase can support multiple AI agents, with Shard serving as its canonical primary architectural and database agent.
+  - ShardBase is modular and extensible. Users can add databases, notes, relationships, views, and functionality over time, allowing their ShardBase vault to grow alongside them across many subjects and areas of life.
+  - Privacy is an explicit ShardBase design objective rather than merely a side effect of local Markdown storage.
+  - The user owns and controls their core data. ShardBase should not require that data to leave the user's local environment.
+  - External synchronization, backup, cloud storage, publishing, or sharing services such as iCloud or Obsidian Sync are choices made by the user and are separate from ShardBase's core operation.
+  - ShardBase should eventually understand the intended visibility of information so private knowledge can remain private while information deliberately intended for sharing can be identified and handled appropriately. The exact universal `visibility` model remains a Foundation architectural question.
+  - ShardBase can be compared to a private, personal Wikipedia as an explanatory analogy: an interconnected body of knowledge belonging to one user.
+  - ShardBase's broader long-term vision is to become a user-owned digital brain: a growing, interconnected and AI-assisted source of truth that remains under the user's control.
+
 what_is_shardbase_in_one_sentence: 
+  - ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth.
+
 what_is_shardbase_in_one_paragraph: 
-what_is_shardbase_not: 
-why_does_shardbase_exist: 
-core_problem_shardbase_solves: 
-secondary_problems_shardbase_solves: 
-what_is_currently_difficult_without_shardbase: 
-what_should_become_easier_with_shardbase: 
-what_should_remain_intentionally_manual_or_human_controlled: 
-why_is_markdown_the_foundation: 
-why_is_obsidian_a_target_environment: 
-why_is_ai_assistance_part_of_the_design: 
-why_is_shardbase_a_framework_instead_of_a_single_database: 
+  - ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth. It uses human-readable Markdown and YAML to organize knowledge through explicit structure, metadata, relationships, links, search, views, and AI-assisted interaction while keeping the underlying information understandable and editable independently of any single tool. ShardBase targets Obsidian as its primary knowledge environment, supports modular databases and extensible tooling, and is designed to let a user's knowledge grow across many areas of life without sacrificing readability, portability, structural integrity, privacy, or control.
+
+what_is_shardbase_not:
+  - ShardBase is not a proprietary knowledge platform that owns, obscures, or locks away the user's core data.
+  - ShardBase is not a cloud service and does not require cloud storage, synchronization, or an internet connection for the meaning or integrity of its core knowledge.
+  - ShardBase is not an Obsidian-only data format. Obsidian is the primary target environment, but ShardBase knowledge must remain understandable and editable as ordinary Markdown and YAML outside Obsidian.
+  - ShardBase is not merely a folder hierarchy, tagging convention, collection of templates, Dataview dashboard, or set of scripts. Those tools may participate in ShardBase, but none of them individually defines the framework.
+  - ShardBase is not a traditional opaque database that requires specialized software to inspect or understand its underlying knowledge.
+  - ShardBase is not designed to maximize structure, metadata, files, or automation. It should use the minimum structure necessary to preserve useful organization, relationships, growth, and integrity.
+  - ShardBase is not an autonomous system that replaces human judgment or control. AI agents and automation may assist with organization, classification, retrieval, maintenance, and growth, but the user's knowledge and consequential decisions remain under user control.
+  - ShardBase is not a single-purpose database or knowledge domain. It is a framework capable of supporting multiple modular databases across different subjects and areas of life.
+  - ShardBase is not intended to silently rewrite, reorganize, publish, synchronize, or destroy user-owned knowledge.
+  - ShardBase is not defined by any particular AI provider, synchronization service, plugin, query engine, scripting language, or future implementation technology.
+
+why_does_shardbase_exist:
+  - ShardBase exists because personal knowledge becomes more valuable as it accumulates, connects, and remains usable over time, but that value should not require surrendering ownership, privacy, readability, or control.
+  - It exists to give users a durable foundation for building a personal source of truth that can grow across many subjects and areas of life without becoming trapped inside a particular application, service, AI provider, or proprietary format.
+  - ShardBase is built on the belief that a person's knowledge should remain fundamentally theirs: understandable by humans, useful to software and AI, portable between tools, and available even when optional services or automation are unavailable.
+  - It exists to make structured, interconnected knowledge sustainable over the long term by providing enough shared architecture for information to grow coherently without requiring excessive hierarchy, rigid organization, or dependence on hidden systems.
+  - Its long-term purpose is to help a user's accumulated knowledge become an increasingly useful personal digital brain: a private, inspectable, interconnected body of information that can support memory, understanding, discovery, decision-making, and future AI-assisted interaction while remaining under the user's control.
+
+core_problem_shardbase_solves:
+  - The core problem ShardBase solves is that personal knowledge becomes increasingly difficult to keep coherent, connected, understandable, and useful as it grows.
+  - Without a durable structural model, accumulated knowledge can gradually lose clear relationships, lineage, context, and consistent organization, making it harder for both humans and software to understand how information belongs together.
+  - Existing organizational methods can work well at smaller scales but often force users to choose between loose flexibility and rigid structure, or require increasing amounts of manual organization to keep a growing knowledge base usable.
+  - ShardBase addresses this problem by giving knowledge enough explicit, shared structure to grow as an interconnected system while preserving human readability, machine interpretability, portability, privacy, and user control.
+
+secondary_problems_shardbase_solves:
+  - Knowledge fragmentation: related information can become scattered across notes, folders, tags, applications, or organizational schemes without a durable way to express how it belongs together.
+  - Loss of lineage and context: as information is subdivided and reorganized, it can become unclear which larger subject it belongs to, what its immediate relationship is, or how it fits into the broader knowledge base.
+  - Inconsistent organization: independently created notes, metadata, naming conventions, and structures can drift over time, making the knowledge base harder to understand, maintain, query, and extend consistently.
+  - Retrieval and discovery difficulty: accumulated knowledge may exist without being easy to find, navigate, reconnect, or surface through meaningful relationships and queries.
+  - Tension between flexibility and structure: lightweight organizational approaches can become difficult to scale, while rigid systems can impose more hierarchy or maintenance than the information actually requires.
+  - Tool and format dependence: knowledge can become overly dependent on a particular application, plugin, query system, service, or proprietary representation, reducing its portability and long-term durability.
+  - Limited machine interpretability: loosely structured knowledge can be difficult for scripts, queries, automation, and AI agents to interpret reliably without guessing relationships, ownership, or intent.
+  - Increasing maintenance burden: as a knowledge base grows, preserving naming, metadata, relationships, integrity, and organizational conventions can require increasing amounts of repetitive manual work.
+  - Premature or excessive structure: attempts to keep information organized can create unnecessary files, hierarchy, metadata, or fragmentation that make the knowledge base more complicated rather than more useful.
+  - Reduced user control: systems that hide structure, automate consequential changes, or depend on external services can make it harder for users to inspect, understand, move, or safely change their own knowledge.
+
+what_is_currently_difficult_without_shardbase:
+  - Keeping a growing collection of notes organized without continually redesigning folders, tags, naming conventions, metadata, or other organizational systems.
+  - Knowing where new information belongs and deciding whether it should become a separate note, remain inside an existing note, or relate to several areas at once.
+  - Preserving clear lineage and context as information is broken into smaller pieces, moved, renamed, expanded, or reorganized over time.
+  - Maintaining consistent metadata, relationships, naming, and organizational conventions across a large and evolving knowledge base.
+  - Finding relevant information again when the user remembers the subject or relationship but not the exact filename, folder, tag, or location where it was stored.
+  - Understanding how pieces of knowledge connect across subjects without manually reconstructing those relationships from folders, tags, backlinks, or memory.
+  - Creating useful queries, views, and automation when the underlying notes do not share predictable structure or metadata.
+  - Giving AI agents and other software enough reliable context to understand ownership, relationships, hierarchy, and intent without forcing them to guess from filenames, prose, or inconsistent metadata.
+  - Refactoring or reorganizing accumulated knowledge confidently without risking broken relationships, lost context, duplicated information, or accidental destruction of user-authored content.
+  - Keeping the knowledge base portable and understandable when particular plugins, applications, synchronization services, automation, or AI tools are unavailable.
+  - Avoiding the opposite failure mode of over-engineering the knowledge base with excessive folders, metadata, files, or hierarchy simply to keep it manageable.
+  - Maintaining a coherent personal source of truth across many subjects and areas of life without the organizational burden growing faster than the usefulness of the knowledge itself.
+
+what_should_become_easier_with_shardbase:
+  - Capturing and adding new information without needing to redesign the knowledge base each time it grows.
+  - Deciding where information belongs by using a shared model for database ownership, Pool membership, Core lineage, immediate parent, and whether the information should become a Core, Shard, Pebble, or remain ordinary content.
+  - Growing existing knowledge naturally from simple notes into richer interconnected structures without requiring large up-front organizational decisions.
+  - Understanding how information relates by preserving explicit lineage, metadata, links, and semantic relationships that can be inspected by both humans and software.
+  - Finding and rediscovering knowledge through relationships, metadata, search, queries, links, and views rather than depending primarily on remembering filenames or folder locations.
+  - Maintaining consistent structure, metadata, naming, and relationships as the knowledge base expands across many subjects and databases.
+  - Querying, filtering, visualizing, and navigating accumulated knowledge because structurally similar information follows predictable conventions.
+  - Giving AI agents and automation reliable context so they can assist with classification, retrieval, organization, validation, maintenance, and growth without repeatedly reconstructing the architecture from scratch.
+  - Reviewing, validating, refactoring, and reorganizing knowledge with greater confidence because structural expectations and relationships are explicit and inspectable.
+  - Moving between manual editing, Obsidian, Dataview, scripts, AI assistance, and future tooling without changing the fundamental meaning of the underlying knowledge.
+  - Keeping the knowledge base understandable and useful even when optional views, plugins, automation, synchronization services, or AI assistance are unavailable.
+  - Expanding ShardBase into new subjects and areas of life without every new database requiring an entirely new organizational philosophy.
+  - Spending less effort maintaining the knowledge-management system itself and more effort using, connecting, understanding, and building upon the knowledge it contains.
+
+what_should_remain_intentionally_manual_or_human_controlled:
+  - The user should retain final authority over what knowledge belongs in ShardBase and what information they choose to capture, retain, archive, delete, publish, share, or keep private.
+  - Consequential destructive actions such as deleting user-authored knowledge, permanently removing attachments, or performing irreversible transformations should require explicit user authorization.
+  - Significant structural changes that alter the intended meaning, ownership, lineage, or organization of existing knowledge should remain subject to user review or explicit approval rather than occurring silently.
+  - Changes to universal ShardBase architecture, database-local schemas, major conventions, or other contracts that affect how existing knowledge is interpreted should remain deliberate human-approved decisions.
+  - The user should control whether and when private information leaves the local environment, including its use with external AI providers, cloud services, synchronization systems, publishing systems, or other third-party services.
+  - Decisions about the intended visibility and sharing of knowledge should ultimately belong to the user, even if ShardBase later assists with identifying, classifying, or enforcing visibility rules.
+  - AI agents and automation may recommend classifications, relationships, metadata, restructuring, or maintenance actions, but they should expose consequential assumptions and preserve a meaningful path for user review, correction, or rejection.
+  - Ambiguous decisions involving personal meaning, subjective judgment, competing interpretations, or unclear ownership should not be silently resolved by automation when the choice could materially affect the user's knowledge.
+  - ShardBase should automate repetitive, deterministic, and safely reversible work where appropriate while keeping consequential, ambiguous, privacy-sensitive, or destructive decisions under meaningful human control.
+
+why_is_markdown_the_foundation:
+  - Markdown is the foundation of ShardBase because the user's core knowledge should remain stored in a simple, human-readable text format that can be opened, understood, and edited without requiring ShardBase, Obsidian, an AI agent, or another specialized application.
+  - Plain-text Markdown supports long-term data ownership by keeping knowledge in ordinary files that the user can inspect directly, copy, back up, version, search, move, and process with a wide range of existing and future tools.
+  - Markdown separates the durability of the user's knowledge from the lifetime of any particular application, plugin, service, synchronization provider, AI provider, or implementation technology.
+  - Markdown provides enough document structure for headings, lists, links, tables, code, and other readable content while remaining understandable when enhanced views, queries, scripts, or automation are unavailable.
+  - YAML frontmatter complements Markdown by adding explicit machine-readable metadata for structure and semantics without moving that information into a hidden or proprietary database. Humans and software can inspect the same underlying source.
+  - Keeping content and metadata together in text files makes ShardBase knowledge suitable for both human reading and machine interpretation, allowing queries, scripts, validation, and AI assistance to operate over information whose underlying representation remains visible to the user.
+  - A file-based Markdown foundation supports ShardBase's portability and locality goals because databases can remain understandable and movable as self-contained collections of durable files rather than depending on hidden application state.
+  - Markdown is intentionally the foundation rather than the complete ShardBase experience. Obsidian, Dataview, wikilinks, scripts, AI agents, and future tooling may provide richer interaction, but they should enhance the underlying knowledge rather than become the only way that knowledge can be understood.
+
+why_is_obsidian_a_target_environment:
+  - Obsidian is ShardBase's primary target environment because it provides a practical, user-facing workspace for interacting with local Markdown files while allowing those files to remain directly accessible outside the application.
+  - Obsidian's file-based vault model aligns with ShardBase's goals of user ownership, locality, portability, and inspectability because the knowledge remains stored as ordinary files rather than being hidden behind an application-controlled database.
+  - Obsidian provides a strong environment for interconnected knowledge through wikilinks, backlinks, search, navigation, properties, graph-oriented exploration, embeds, and other tools that complement ShardBase's relationship-driven architecture.
+  - Obsidian's support for extensibility allows ShardBase to build richer experiences through tools such as Dataview, scripts, templates, views, and future integrations without requiring those enhancements to become the source of truth for the underlying knowledge.
+  - Obsidian gives users both direct manual access to their Markdown and opportunities for increasingly sophisticated querying, visualization, navigation, and automation, making it suitable for users who want their knowledge system to grow in capability over time.
+  - Obsidian is well suited to ShardBase's modular database model because multiple subjects, databases, views, and supporting resources can coexist inside one vault while the underlying ShardBase architecture preserves their ownership and structural boundaries.
+  - Targeting Obsidian gives ShardBase a concrete environment in which to design and validate a coherent user experience instead of attempting to support every Markdown application equally from the beginning.
+  - Obsidian is a target environment rather than an architectural dependency. ShardBase's core knowledge, metadata, relationships, and structural meaning should remain understandable and editable even when Obsidian itself is unavailable.
+
+why_is_ai_assistance_part_of_the_design:
+  - AI assistance is part of ShardBase because a growing personal knowledge base creates recurring work that benefits from understanding context, relationships, intent, and meaning rather than relying only on rigid rules or exact commands.
+  - AI agents can help users classify information, identify likely relationships, retrieve relevant knowledge, explain structure, propose organization, detect inconsistencies, and assist with maintenance across a knowledge base that may span many subjects and databases.
+  - ShardBase's explicit structure and metadata give AI agents reliable architectural context, reducing the need to guess fundamental relationships such as database ownership, lineage, immediate parentage, or structural role from filenames or prose alone.
+  - AI assistance can reduce the cognitive and repetitive burden of maintaining structured knowledge while allowing the user to focus more on understanding, connecting, creating, and using the knowledge itself.
+  - AI is especially valuable where deterministic tooling alone is insufficient, such as interpreting ambiguous information, recognizing semantic relationships, explaining alternatives, or helping the user reason about how new knowledge fits into an existing system.
+  - ShardBase should combine AI reasoning with deterministic structure and validation rather than treating either one as sufficient by itself. AI can interpret and recommend; explicit architectural rules can constrain, validate, and make consequential behavior predictable.
+  - AI agents should be able to operate as assistants, advisors, architects, auditors, query designers, and other useful roles while remaining subject to ShardBase's architectural rules, privacy expectations, and human-control boundaries.
+  - AI assistance must remain optional to the durability and meaning of the knowledge base. ShardBase's core data should remain understandable, editable, and structurally meaningful when AI is unavailable or when the user chooses not to use it.
+  - ShardBase should not depend on any particular AI model, provider, or service. Its architecture should allow AI capabilities to evolve without transferring ownership or architectural authority away from the user and their data.
+
+why_is_shardbase_a_framework_instead_of_a_single_database:
+  - ShardBase is a framework because a personal source of truth may need to represent many different subjects and areas of life, each with its own scope, semantic metadata, conventions, relationships, and lifecycle needs.
+  - A single universal database schema would either become too rigid for diverse kinds of knowledge or grow increasingly complex as it attempted to model every possible domain.
+  - ShardBase instead defines a small set of universal structural rules that preserve ownership, lineage, integrity, portability, and interoperability while allowing individual databases to define the domain-specific meaning they need.
+  - Each database can remain a coherent, self-contained knowledge boundary with its own purpose, scope, semantic schema, conventions, views, and attachments while still participating in the same broader ShardBase system.
+  - The framework model allows users to add, evolve, archive, move, or intentionally version databases independently without requiring unrelated areas of the knowledge base to share the same schema or organizational assumptions.
+  - Shared architectural conventions allow humans, Shard, other AI agents, queries, validators, and future tooling to understand how any ShardBase database is structured without requiring every database to contain the same kinds of information.
+  - A framework also allows ShardBase itself to evolve independently from the user's domain knowledge: universal architectural improvements can be defined at the framework level while database-specific meaning remains owned by each database.
+  - This separation supports long-term extensibility by allowing new knowledge domains, tools, views, automation, and AI capabilities to be added without turning the entire personal knowledge base into one monolithic system.
 
 ### Differentiation
 
@@ -776,7 +902,7 @@ definition_of_done_status: approved
 
 ### Product
 
-dod_purpose_is_explicit: incomplete
+dod_purpose_is_explicit: complete
 dod_target_users_are_explicit: incomplete
 dod_primary_use_cases_are_explicit: incomplete
 dod_goals_are_explicit: incomplete
@@ -834,7 +960,10 @@ open_question_08:
 open_question_09: 
 open_question_10: 
 
-idea_parking_lot_01: 
+idea_parking_lot_01:
+  - Vault/runtime boundary: Generated runtimes, installed dependencies, caches, and other machine-specific execution artifacts should remain outside the ShardBase vault by default. ShardBase should minimize unnecessary filesystem noise and synchronization burden while keeping durable framework resources inside the vault inspectable and portable.
+  - Revisit and incorporate this principle when defining `locality_means`, `portability_means`, `what_belongs_in_app_scripts`, `what_should_be_committed_by_default`, `what_should_be_ignored_by_default`, and implementation-specific compatibility or tooling policies.
+
 idea_parking_lot_02: 
 idea_parking_lot_03: 
 idea_parking_lot_04: 
@@ -875,7 +1004,7 @@ review_round_03_open_items:
 
 anchor_commit_purpose: Preserve the approved foundation roadmap and create a durable brainstorming workbook before longer product-definition work begins.
 anchor_commit_subject: docs: add foundation roadmap workbook
-anchor_commit_status: ready
+anchor_commit_status: complete
 anchor_commit_scope: Add the foundation-stage workbook containing the approved six-milestone roadmap, foundational questions, deferred features, and Definition of Done.
 anchor_commit_architectural_effect: None. This is a planning document and does not override the System Specification.
 anchor_commit_deferred_behavior: Product answers, conceptual definitions, governance policies, implementation artifacts, and foundation proof remain future focused commits.

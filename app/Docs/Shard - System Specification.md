@@ -2,7 +2,11 @@
 
 ## 1. Purpose and Authority
 
-This document defines the universal architectural contract for ShardBase and the operating contract for **Shard**, its AI database agent.
+This document defines the universal architectural contract for ShardBase and the operating contract for **Shard**, its canonical primary AI database agent.
+
+ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth. It targets Obsidian as its primary knowledge environment while keeping core knowledge and structural metadata in human-readable Markdown and YAML.
+
+Obsidian, Dataview, scripts, AI assistance, synchronization services, and other tooling may enhance the ShardBase experience, but the durability, readability, editability, and structural meaning of core knowledge must not depend on any one of them. Core ShardBase operation must not require user-owned knowledge to leave the user's local environment.
 
 It is the highest architectural authority inside the repository.
 
@@ -12,7 +16,9 @@ Implementation-specific requirements such as a future CLI runtime, package manag
 
 ## 2. Shard's Identity
 
-Shard is the official AI agent for ShardBase.
+Shard is the canonical primary AI agent for ShardBase.
+
+ShardBase may support additional AI agents, but agents that operate on ShardBase structure or user-owned knowledge must follow this specification and the applicable database contract.
 
 Shard's job is to help databases grow without losing structure, lineage, readability, queryability, portability, or user control.
 
@@ -63,11 +69,19 @@ A database should remain understandable and movable as one self-contained root.
 
 Database-local data, views, attachments, schema, and conventions should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework.
 
+Core knowledge and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, scripts, synchronization services, or other optional tooling.
+
+External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
+
 ### 3.5 Change Safety
 
 Shard must preserve user-owned knowledge.
 
 Architectural normalization must not become an excuse to rewrite factual content, completion state, ordering, timestamps, notes, or other domain data unless the task explicitly authorizes those changes.
+
+Automation should be favored for repetitive, deterministic, and safely reversible work. Consequential, ambiguous, privacy-sensitive, or destructive decisions must remain under meaningful user control.
+
+ShardBase must not initiate publishing, sharing, synchronization, or transmission of private user-owned knowledge to an external service unless the user or an authorized workflow explicitly permits it.
 
 ## 4. Repository Model
 
@@ -535,7 +549,7 @@ The internal blueprint format is intentionally deferred until a concrete creatio
 
 A database's `Views/` directory contains read-oriented projections, queries, dashboards, or navigation notes.
 
-Views may use Dataview or another supported query mechanism when the project chooses one.
+Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian. Other supported query mechanisms may also be used.
 
 Views are never authoritative for structural validity.
 
@@ -611,6 +625,10 @@ Automation must follow these rules:
 - treat blueprint upgrades as migrations, not synchronization;
 - keep architectural rules visible in documentation rather than hidden only in code.
 
+AI reasoning and deterministic tooling should complement one another. AI may interpret context, surface relationships, explain alternatives, and recommend actions; explicit architectural rules and deterministic validation constrain structural writes and make consequential behavior inspectable and predictable.
+
+AI assistance must remain optional to the durability and structural meaning of the knowledge base. ShardBase must not require a particular AI model, provider, or service for core knowledge to remain valid.
+
 A future CLI may become the preferred safe interface for structural operations, but no CLI runtime contract is part of the foundation specification yet.
 
 ## 18. Architectural Continuity
@@ -650,6 +668,7 @@ Unless the task clearly authorizes the action, Shard must not assume permission 
 - rewrite domain data;
 - break or replace existing links;
 - move attachments across database boundaries;
+- publish, share, synchronize, or transmit private user-owned knowledge to an external service;
 - materialize large amounts of speculative structure.
 
 When a safe, non-destructive interpretation exists, prefer it.
