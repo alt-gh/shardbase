@@ -63,7 +63,8 @@ shardbase/
 │   │       ├── Data/
 │   │       │   └── [Singular Database Form]/
 │   │       │       ├── Core.md
-│   │       │       └── Core - Shard.md
+│   │       │       ├── Core - Shard.md
+│   │       │       └── Core - Shard - Pebble.md
 │   │       ├── Views/
 │   │       ├── Attachments/
 │   │       └── Database.md
@@ -127,13 +128,16 @@ Core files use their canonical name:
 Core.md
 ```
 
-Supporting notes use an immediate Parent–Child filename:
+Supporting notes use bounded Core context:
 
 ```text
-Parent - Child.md
+Core - Current Node.md
+Core - Immediate Parent - Current Node.md
 ```
 
-Only the immediate relationship belongs in the filename. Full ancestry belongs in YAML lineage.
+A direct child of the Core uses two structural context components. A deeper descendant uses three: the root Core, the immediate parent's current-node name, and the current node. The immediate-parent component is not the parent's full filename, so filenames never accumulate beyond three structural context components.
+
+Full ancestry remains in YAML lineage through `core` and `parent_note`. If two notes would still produce the same filename, the collision must be reported and resolved through meaningful disambiguation rather than by adding more ancestor components.
 
 ## Minimum Necessary Structure
 

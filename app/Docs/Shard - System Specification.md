@@ -470,26 +470,43 @@ Core Name.md
 
 ### 9.2 Supporting Filenames
 
-A Shard or Pebble uses:
+A Shard or Pebble uses bounded Core context.
+
+For a direct child of the Core:
 
 ```text
-Parent - Current Node.md
+Core - Current Node.md
 ```
 
-The first filename segment identifies only the immediate structural parent.
+For a deeper descendant:
 
-The filename must not accumulate full ancestry.
+```text
+Core - Immediate Parent - Current Node.md
+```
+
+`Current Node` is the note's canonical local node name. `Immediate Parent` is the immediate parent's canonical current-node name, not the parent's full filename stem.
+
+A supporting filename therefore contains a maximum of three structural context components: the root Core, the immediate parent when it is distinct from the Core, and the current node. It must not accumulate additional ancestry.
 
 Valid recursive example:
 
 ```text
 Hades.md
 Hades - Weapons.md
-Weapons - Stygian Blade.md
-Stygian Blade - Aspect of Zagreus.md
+Hades - Weapons - Stygian Blade.md
+Hades - Stygian Blade - Aspect of Zagreus.md
 ```
 
-Full ancestry remains available through `core` and `parent_note` metadata.
+This is a bounded context window rather than an encoded ancestry path. Full ancestry remains authoritative and available through `core` and `parent_note` metadata.
+
+Equivalent descendants under different Cores remain distinguishable at the filesystem level:
+
+```text
+Call of Duty Black Ops - Weapons - AK-47.md
+Call of Duty Modern Warfare - Weapons - AK-47.md
+```
+
+If two structural notes would produce the same filename under this rule, Shard must report the collision. The filename must not be extended with additional ancestor components to resolve it. The conflicting local node names or immediate-parent names must instead be meaningfully disambiguated under the applicable database contract, or the collision must remain unresolved until an explicit identity mechanism is defined.
 
 ### 9.3 Filename Authority
 
@@ -700,8 +717,11 @@ When auditing structural content, validate the following.
 ### 20.3 Naming
 
 - Core filenames use the canonical Core name.
-- Supporting filenames use immediate Parent–Child naming.
-- Filenames do not accumulate full ancestry.
+- Direct Core children use `Core - Current Node.md` naming.
+- Deeper descendants use `Core - Immediate Parent - Current Node.md` naming.
+- The immediate-parent component uses the parent's current-node name rather than its full filename stem.
+- Supporting filenames contain no more than three structural context components and do not accumulate additional ancestry.
+- Filename collisions are reported and are not resolved by appending more ancestor components.
 - Filename context and metadata describe the same intended structure.
 
 ### 20.4 Integrity

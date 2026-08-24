@@ -71,7 +71,7 @@ Do not introduce nested database roots or category folders unless the framework 
 - `parent_note` identifies the immediate structural parent.
 - A Core self-references through `core` and leaves `parent_note` empty.
 - A Pebble is terminal and must not parent another structural note.
-- Supporting filenames use immediate `Parent - Child.md` naming and must not accumulate full ancestry.
+- Supporting filenames use bounded Core context: direct Core children use `Core - Current Node.md`; deeper descendants use `Core - Immediate Parent - Current Node.md`, capped at three structural context components. The immediate-parent component uses the parent's current-node name, not its full filename. Filename collisions must be reported and resolved through meaningful disambiguation rather than by adding more ancestry.
 - Prefer the minimum necessary structure.
 - Keep semantic metadata separate from structural metadata.
 - Views may query structure but do not define it.

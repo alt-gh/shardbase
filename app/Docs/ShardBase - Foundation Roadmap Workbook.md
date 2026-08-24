@@ -17,6 +17,7 @@ current_definition: A privacy-focused, user-owned structured Markdown knowledge-
 current_goal: Let a knowledge base grow without losing lineage, portability, readability, or control.
 product_identity_status: accepted
 structural_model: Pool → Core → Shard → Pebble
+supporting_filename_strategy: Bounded Core context — `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants, capped at three structural context components; collisions are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
 architectural_source_of_truth: app/Docs/Shard - System Specification.md
 database_local_authority: Each database's root-level Database.md
@@ -565,8 +566,10 @@ commit_13_subject: docs: add lineage and naming examples
 commit_13_status: planned
 canonical_lineage_example: 
 recursive_naming_example: 
+bounded_core_context_filename_example: 
 metadata_lineage_example: 
 filename_metadata_mismatch_example: 
+filename_collision_example: 
 full_ancestry_filename_anti_example: 
 renaming_safety_example: 
 
@@ -592,6 +595,7 @@ mistake_premature_fragmentation:
 mistake_semantic_type_overload: 
 mistake_nested_database_roots: 
 mistake_accumulated_filename_ancestry: 
+mistake_filename_collision_or_overextension: 
 mistake_invalid_parent_lineage: 
 mistake_pebble_parent: 
 mistake_cross_database_attachment_ownership: 
@@ -746,8 +750,11 @@ commit_26_subject: validate: add naming and placement checks
 commit_26_status: planned
 validate_core_filename: 
 validate_supporting_filename: 
-validate_immediate_parent_naming: 
+validate_bounded_core_context: 
+validate_immediate_parent_current_node_naming: 
+validate_max_three_filename_components: 
 validate_no_full_ancestry_accumulation: 
+validate_filename_collision: 
 validate_primary_heading: 
 validate_file_location: 
 validate_filename_metadata_consistency: 
