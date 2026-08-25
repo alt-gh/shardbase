@@ -26,9 +26,12 @@ ShardBase deliberately keeps Markdown and YAML as the durable source rather than
 - **Markdown is the foundation** — core knowledge remains stored in human-readable Markdown and YAML so it can be inspected, edited, copied, searched, versioned, and processed independently of ShardBase-specific tooling.
 - **Obsidian is the primary target, not the data owner** — ShardBase is designed for a strong Obsidian experience, but its core knowledge and structural meaning must remain understandable outside Obsidian.
 - **Tools enhance rather than define the knowledge** — Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, while views, scripts, plugins, AI agents, and future tooling must not become the sole source of structural truth.
+- **Shared understandability** — important knowledge should be explicit enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it without optimizing the canonical source exclusively for any one audience.
+- **Explicit without redundant authority** — important architectural meaning should be inspectable and documented, but the same fact should not be duplicated across multiple competing authoritative representations merely for visibility.
 - **AI assistance is intentional but optional** — AI can interpret, recommend, classify, retrieve, explain, and assist with maintenance, while explicit rules and deterministic validation preserve predictable structure. The knowledge base must remain durable and meaningful without AI.
 - **Human authority is preserved** — ShardBase may automate repetitive, deterministic, and safely reversible work, but consequential, ambiguous, privacy-sensitive, or destructive decisions remain under meaningful user control.
-- **Minimum necessary structure** — ShardBase uses the minimum structure necessary to preserve useful organization, relationships, growth, integrity, queryability, navigation, and lifecycle management.
+- **Minimum necessary structure** — ShardBase uses the minimum structure necessary to preserve useful organization, relationships, growth, integrity, queryability, navigation, and lifecycle management, allowing structure to emerge as knowledge develops rather than requiring future complexity to be modeled in advance.
+- **Simplicity without opacity** — ShardBase should minimize conceptual and operational burden, but simplicity must not hide necessary complexity in undocumented behavior, hidden state, or opaque tooling.
 - **Framework, not monolith** — ShardBase defines universal structural rules while allowing individual databases to own their domain-specific scope, semantic metadata, conventions, views, and resources.
 
 External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
@@ -189,7 +192,7 @@ If a user intentionally wants to version a live database, that should be an expl
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, and the Shard AI-agent definition have been defined in the Foundation Roadmap Workbook, while the remaining design philosophy, guarantees, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, and Design Philosophy have been defined in the Foundation Roadmap Workbook, while guarantees, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 

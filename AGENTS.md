@@ -31,6 +31,9 @@ A user request expresses architectural intent. Preserve that intent where possib
 - Markdown and YAML are the durable substrate for core knowledge. The underlying content and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, or ShardBase-specific automation.
 - Obsidian is the primary target environment, not the owner of ShardBase data or meaning.
 - Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, but views and queries do not define structural truth.
+- Important knowledge should be explicit enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it without optimizing the canonical source exclusively for any one audience.
+- Prefer one documented authoritative representation for a fact. Secondary representations may repeat useful context, but do not create redundant competing sources of authority merely for visibility.
+- Before an agent designs or extends note structures in a database, it should understand the complete documented set of structural and database-specific semantic note kinds that can affect that design. Do not invent a new note kind or duplicate an existing meaning because only part of the database schema was considered.
 - AI assistance is intentional but optional to the durability and meaning of the knowledge base. Do not make core structure depend on a particular AI model, provider, or service.
 - Ordinary users should not be required to know the complete ShardBase architecture, memorize structural metadata, or translate their intent into framework terminology before they can use the system productively. Explain structural decisions in terms of the user's knowledge and progressively expose architectural detail when it becomes relevant.
 - Power-user tooling may expose deeper architectural control, but it must not depend on undocumented hidden state or bypass universal safety and ownership rules.
@@ -84,11 +87,11 @@ Before changing a live database:
 
 1. Identify the target database.
 2. Read its `Database.md`.
-3. Inspect the relevant Core lineage and existing local conventions.
-4. Classify the requested outcome using ShardBase rules.
-5. Prefer the smallest valid change.
+3. Inspect the relevant Core lineage, existing local conventions, and the documented structural and semantic note kinds applicable to the task.
+4. Classify the requested outcome using ShardBase rules and the database-defined semantic schema rather than inventing undocumented note types or parallel authorities.
+5. Prefer the smallest valid change and allow additional structure to emerge only when it provides demonstrated value.
 6. Preserve user-authored content unless modification is explicitly required.
-7. Validate metadata, lineage, naming, placement, and references after the change.
+7. Validate metadata, lineage, naming, placement, references, and applicable semantic conventions after the change.
 
 Infer routine architectural details when the specification, database contract, and existing context determine them; do not require the user to supply structural terminology, metadata values, filenames, or other implementation details that can be resolved safely.
 

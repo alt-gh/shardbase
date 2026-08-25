@@ -122,6 +122,22 @@ Shard should apply the same documented architectural rules and decision tests to
 
 Shard must distinguish deterministic requirements from contextual recommendations, make materially significant assumptions visible, and avoid treating undocumented heuristics, hidden state, model-specific intuition, or provider-specific behavior as architectural authority. Changes to Shard's architectural behavior should result from deliberate changes to documented ShardBase contracts rather than silently changing because an AI model, provider, prompt, or implementation changes.
 
+### 3.10 Design Philosophy and Priority
+
+ShardBase treats the user's durable knowledge as the primary thing being designed for. Applications, views, automation, AI agents, query systems, and other tooling exist to make that knowledge easier to use; they must not become its sole owner, interpreter, or source of essential meaning.
+
+ShardBase should represent important knowledge explicitly enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it, without optimizing the canonical source exclusively for any one of those audiences. Documentation and database contracts should therefore make important structural and semantic meanings explicit where reliable shared interpretation matters while avoiding redundant competing sources of authority. Explicitness should expose necessary meaning, not formalize information merely because it can be formalized.
+
+Structure should earn its complexity. ShardBase should allow structure to emerge as knowledge develops and should introduce files, metadata, hierarchy, or additional mechanisms only when they provide concrete value through ownership, lineage, querying, navigation, reuse, lifecycle management, integrity, safety, or future growth. Simplicity must not be achieved by hiding necessary complexity in undocumented behavior, inaccessible state, or opaque tooling.
+
+When the documented architecture defines one correct result from known inputs, that result should be deterministic across compliant tools and agents. Contextual reasoning remains appropriate where the architecture genuinely leaves room for judgment, but deterministic rules must not be displaced merely because an AI agent can infer an answer.
+
+When design goals conflict, ShardBase should prioritize the preservation and recoverability of user-owned knowledge and meaningful user control, followed by structural integrity and durable shared understandability. Long-term readability, portability, inspectability, and safe future growth take precedence over short-term convenience that creates hidden dependency or lock-in. Simplicity and enhanced capabilities such as querying, automation, navigation, visualization, and AI assistance should be optimized on top of those foundations rather than at their expense.
+
+ShardBase must not sacrifice the correctness, ownership, privacy, recoverability, or intended meaning of user-owned knowledge merely to improve convenience, speed, consistency, technical elegance, feature richness, performance, or automation. Derived systems such as views, indexes, caches, embeddings, exports, or generated representations must remain distinguishable from authoritative source data and must not silently displace it.
+
+Portability and locality do not require every enhanced feature or runtime artifact to exist identically in every environment. Environment-specific syntax may be translated by explicit export or conversion tooling when useful, and recreatable runtimes, installed dependencies, caches, indexes, and temporary artifacts may remain outside the durable knowledge surface. Such implementation choices must not become prerequisites for understanding, moving, or recovering the canonical Markdown and YAML source.
+
 ## 4. Repository Model
 
 The canonical repository layout is:

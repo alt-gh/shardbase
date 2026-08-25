@@ -541,23 +541,197 @@ what_should_make_shard_safe:
 
 ### Design Philosophy
 
-core_design_philosophy: 
-minimum_necessary_structure_means: 
-human_readability_means: 
-ai_readability_means: 
-portability_means: 
-locality_means: 
-inspectability_means: 
-queryability_means: 
-user_control_means: 
-data_ownership_means: 
-structural_integrity_means: 
-future_growth_means: 
-simplicity_means: 
-explicitness_means: 
-determinism_means: 
-what_should_shardbase_optimize_for_first: 
-what_should_shardbase_never_optimize_at_the_expense_of_user_data: 
+core_design_philosophy:
+  - ShardBase should treat the user's durable knowledge as the primary thing being designed for; applications, views, automation, AI agents, and other tooling exist to make that knowledge easier to use rather than to become its owner or sole interpreter.
+  - ShardBase should provide the smallest explicit structure necessary for humans and software to share a reliable understanding of where knowledge belongs, how it relates, and how it can safely grow.
+  - The architecture should favor durable, inspectable, portable, and comprehensible representations over hidden state, unnecessary abstraction, or convenience that creates dependency on a particular tool.
+  - Structure should earn its complexity by improving clarity, lineage, retrieval, querying, navigation, reuse, lifecycle management, safety, or future growth.
+  - Human readability and machine interpretability should reinforce one another rather than being treated as competing goals: important structural meaning should be explicit enough for software to interpret reliably while remaining understandable to a person inspecting the source.
+  - ShardBase should make sophisticated interaction possible without making sophisticated tooling necessary for the underlying knowledge to remain valid and useful.
+  - ShardBase should represent important knowledge explicitly enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it, without optimizing the canonical source exclusively for any one of those audiences.
+  - When design goals conflict, preservation of user-owned knowledge, structural integrity, meaningful user control, and long-term durability should take precedence over convenience, automation, novelty, or technical elegance.
+
+minimum_necessary_structure_means:
+  - Minimum necessary structure means introducing only the files, metadata, hierarchy, relationships, conventions, and architectural mechanisms that provide meaningful value to the knowledge they organize.
+  - Information should not become a Core, Shard, Pebble, metadata field, relationship, folder, or other structural element merely because ShardBase is capable of representing it that way.
+  - A structural addition should justify itself through clearer ownership or lineage, independent growth, querying, navigation, reuse, lifecycle management, integrity, or another concrete benefit.
+  - When ordinary Markdown structure such as prose, lists, or headings provides equivalent value, the simpler representation should be preferred.
+  - ShardBase should allow structure to emerge as knowledge develops rather than requiring users to predict and model every future need in advance.
+  - Minimum necessary structure does not mean minimum useful capability. Rich querying, navigation, AI assistance, and automation may exist above a relatively small durable structural foundation.
+  - Simplicity should be evaluated across the lifetime of the knowledge rather than only at the moment of creation; a small amount of explicit structure is justified when it meaningfully prevents greater ambiguity, maintenance, or rework later.
+
+human_readability_means:
+  - Human readability means a person can inspect the durable Markdown and YAML source and understand the knowledge itself, its important structural context, and the meaning of its documented metadata without requiring ShardBase-specific software to decode it.
+  - Ordinary note content should read naturally as a document rather than primarily as serialized machine data.
+  - Structural conventions, filenames, metadata names, and documented relationships should favor understandable language and recognizable context where doing so does not compromise correctness or integrity.
+  - A user should be able to recover meaningful knowledge through ordinary text and Markdown-capable tools even when Obsidian, Dataview, scripts, AI assistance, generated views, or other enhancements are unavailable.
+  - Human readability does not require every architectural detail to be obvious without documentation. It requires those details to be explicit, documented, inspectable, and learnable rather than hidden in implementation state.
+  - Machine-oriented additions should not unnecessarily degrade the readability of the canonical source when the same capability can be achieved through a clearer representation.
+  - ShardBase should progressively disclose complexity so ordinary reading and editing remain approachable while power users can inspect the complete architecture when needed.
+
+ai_readability_means:
+  - AI readability means ShardBase should provide sufficiently explicit, consistent, and documented context that an authorized AI agent can interpret important ownership, lineage, structural roles, relationships, and conventions without relying primarily on guesswork from prose or filenames.
+  - AI-readable structure should come from the same durable Markdown, YAML, links, and documented contracts available to humans and deterministic tooling rather than from AI-specific hidden state.
+  - Universal structural semantics should remain stable and explicit enough that different capable agents or models can reach substantially equivalent architectural interpretations from equivalent context.
+  - Database-specific meaning should be discoverable through the applicable `Database.md` and existing valid conventions instead of requiring undocumented prior knowledge.
+  - AI readability should complement human readability. ShardBase should not make the canonical source unnecessarily cryptic, verbose, or machine-oriented merely to optimize it for a particular model.
+  - Deterministic facts should be represented explicitly when doing so prevents AI from having to infer what the architecture already knows.
+  - Ambiguity that is inherent to the user's knowledge may still require contextual reasoning or clarification; AI readability does not mean pretending every semantic question can or should be encoded deterministically.
+  - ShardBase should remain AI-provider and model independent: improving AI-assisted interaction must not make the knowledge dependent on one model's prompting conventions, context format, embeddings, hidden memory, or proprietary representation.
+
+portability_means:
+  - Portability means the user's durable ShardBase knowledge can be copied, moved, backed up, versioned, opened, and processed in another compatible environment without losing the essential content or documented structural meaning that makes it understandable.
+  - A database should remain a coherent, self-contained ownership boundary whose data, manifest, views, attachments, schema, and conventions can travel together without depending on undocumented state elsewhere.
+  - Core portability should come from ordinary files and documented contracts rather than requiring a proprietary export process before the user can access or move their knowledge.
+  - Moving away from Obsidian, Dataview, Shard, a particular AI provider, or another optional tool may reduce enhanced functionality, but it should not make the underlying knowledge unintelligible or structurally meaningless.
+  - ShardBase should favor relative, local, documented relationships and explicit ownership boundaries where practical so knowledge is not unnecessarily coupled to one machine, installation, filesystem location, or service.
+  - Derived representations such as JSON exports may improve interoperability, but they should be reproducible from the durable source and should not silently become more authoritative than the Markdown and YAML from which they were derived.
+  - Portability does not require every ShardBase feature to work identically in every application or operating environment. It requires preservation of the underlying knowledge and enough documented meaning for another compatible tool or future implementation to interpret it.
+  - Machine-specific runtimes, caches, installed dependencies, and other recreatable execution artifacts should not become prerequisites for moving or understanding the user's durable knowledge.
+  - ShardBase may provide export or conversion tooling that translates environment-specific syntax or capabilities into more broadly compatible representations when doing so improves interoperability—for example, converting Obsidian-style wikilinks into conventional Markdown links where an export target requires them.
+  - Such tooling should be considered an interoperability enhancement rather than a prerequisite for accessing the canonical source. The original Markdown and YAML should remain directly available to the user without requiring an export operation.
+  - Export and conversion should preserve as much knowledge, relationship meaning, and provenance as the destination format can represent, and should make meaningful losses or unsupported features visible rather than silently discarding them.
+  - Export formats should not silently become authoritative over the canonical ShardBase source unless a future architectural decision explicitly changes that authority.
+
+locality_means:
+  - Locality means the durable knowledge and structural information required for a ShardBase instance to remain understandable and valid should exist within user-controlled files and documented boundaries rather than depending on remote services or inaccessible external state.
+  - Core ShardBase operation should be possible without transmitting user-owned knowledge outside the user's local environment.
+  - A database should keep the data, manifest, views, attachments, schema documentation, and local conventions it owns within its documented database boundary wherever practical.
+  - ShardBase should minimize dependencies on hidden machine-local state outside the knowledge base when that state is required to understand the knowledge or its architecture.
+  - External services may enhance synchronization, backup, AI assistance, publishing, sharing, or other capabilities, but those services should remain optional layers rather than prerequisites for the durability or structural meaning of the knowledge.
+  - Locality does not mean every execution artifact belongs inside the ShardBase vault. Generated runtimes, installed dependencies, caches, temporary files, indexes, and other recreatable machine-specific artifacts should generally remain outside the durable knowledge surface when practical.
+  - Durable framework resources that are necessary to understand, reproduce, validate, or intentionally operate the architecture should remain inspectable and portable even when generated runtime artifacts do not.
+  - Platform-specific constraints may require different physical arrangements of repository, vault, runtime, or synchronization boundaries. ShardBase should verify those constraints before treating one arrangement as a universal rule.
+  - Locality should protect user ownership and privacy without preventing users from deliberately choosing cloud storage, synchronization, external AI, remote backup, publishing, or other services.
+
+inspectability_means:
+  - Inspectability means a user or authorized tool can examine the canonical files and documented contracts needed to understand why ShardBase represents knowledge the way it does.
+  - Important structural meaning should be visible through documented Markdown, YAML, filesystem boundaries, relationships, and architectural rules rather than existing only inside code, generated views, AI context, caches, or undocumented application state.
+  - Users should be able to determine which database owns information, its structural classification, root Core, immediate parent, lifecycle status, and other authoritative structural properties by inspecting the durable source and applicable documentation.
+  - Architectural authority should be traceable: users and tooling should be able to identify whether a behavior comes from the System Specification, a database's `Database.md`, an existing valid convention, or a particular implementation choice.
+  - Changes performed by Shard or deterministic tooling should be inspectable enough that the user can understand what changed and, for consequential operations, why.
+  - Derived views, indexes, exports, caches, and generated artifacts should be distinguishable from authoritative source data.
+  - Inspectability does not require every internal implementation mechanism to be part of the knowledge model. Implementation details may remain implementation details so long as essential knowledge meaning and architectural behavior do not depend on undocumented ones.
+  - A system that produces the correct result through hidden, irreproducible state is less aligned with ShardBase than one whose important decisions can be traced through documented inputs and rules.
+
+queryability_means:
+  - Queryability means ShardBase knowledge should contain enough consistent, explicit structure and metadata that useful sets, relationships, and properties can be retrieved deterministically without relying primarily on manual filename interpretation or natural-language inference.
+  - Universal structural metadata should support reliable questions about database ownership, Pool membership, structural role, root Core, immediate parentage, and lifecycle where those concepts are applicable.
+  - Database-specific semantic schemas should allow domain-relevant questions to be expressed consistently without forcing those semantics into universal structural fields.
+  - Queryability should emerge from authoritative source data rather than being encoded only in individual views or query implementations.
+  - Dataview should remain a primary and canonical query interface in Obsidian, while the data it queries should remain usable by other compatible tools and future query mechanisms.
+  - A broken, removed, or replaced query should reduce convenience, not destroy the meaning of the knowledge it was querying.
+  - ShardBase should prefer explicit metadata for stable facts that are important to query reliably instead of repeatedly requiring tools or AI agents to infer those facts from prose.
+  - Not every fact needs to become metadata merely because it could be queried. Metadata should be introduced when consistent retrieval, filtering, relationships, validation, automation, or other concrete uses justify the additional structure.
+  - Queryability should support both broad discovery and precise filtering without forcing the user to encode every possible future question in advance.
+  - Query mechanisms may evolve independently from the canonical data model so long as they preserve the authority and semantics of the underlying knowledge.
+
+user_control_means:
+  - User control means the user retains meaningful authority over consequential outcomes involving their knowledge rather than merely having access to the files after decisions have already been made for them.
+  - The user should control what knowledge is created, retained, materially changed, archived, deleted, published, shared, synchronized, transmitted, or intentionally exposed outside its expected privacy boundary.
+  - ShardBase should distinguish meaningful control from mandatory manual involvement. Routine, deterministic, low-risk, and safely reversible operations may be automated when the applicable contracts determine the correct outcome.
+  - Consequential, destructive, privacy-sensitive, ambiguous, or architecturally significant decisions should remain subject to appropriate user authorization when that authorization has not already been clearly established.
+  - Users should be able to inspect significant changes, understand why they occurred, reject recommendations, choose among valid alternatives, and correct or reverse operations where feasible.
+  - Interfaces should not manufacture approval fatigue by asking users to confirm implementation details already determined by documented architecture.
+  - Valid manual operation should remain possible. Shard, automation, or another preferred interface should not become the only safe or supported way to modify user-owned knowledge.
+  - User control includes the ability to intentionally choose external services, automation, AI providers, synchronization systems, or publishing workflows rather than ShardBase universally prohibiting them in the name of protection.
+  - A user's valid preference should not be overridden merely because ShardBase or an AI agent considers another valid solution more elegant.
+  - User control should be strongest where consequences are greatest and least intrusive where the architecture already provides a safe deterministic answer.
+
+data_ownership_means:
+  - Data ownership means the user's knowledge remains fundamentally under the user's possession and authority rather than becoming dependent on ShardBase, Obsidian, an AI provider, cloud service, plugin, or other intermediary for continued access or meaning.
+  - The canonical durable source should exist in files the user can directly inspect, copy, edit, move, back up, version, transform, and retain using ordinary compatible tools.
+  - ShardBase should not require a proprietary export process merely for the user to recover their own canonical knowledge.
+  - Architectural meaning necessary to interpret the user's knowledge should be documented and available with the knowledge rather than existing exclusively in a service-controlled account, hidden database, AI memory, or inaccessible implementation state.
+  - The user's ownership should survive abandonment or replacement of ShardBase tooling: discontinuing use of Shard, Dataview, Obsidian, a particular AI model, or future ShardBase automation should not revoke meaningful access to the underlying knowledge.
+  - User ownership includes authority over whether their knowledge is transmitted, synchronized, shared, published, or processed by external systems.
+  - Derived indexes, embeddings, caches, exports, views, or AI representations should not silently displace the user-controlled Markdown and YAML source as the canonical owner of meaning.
+  - ShardBase should avoid technical or architectural lock-in that makes ordinary possession of the source files insufficient to recover the essential knowledge they contain.
+  - Ownership does not mean every external representation or service must remain under ShardBase's control; it means those systems operate on or derive from knowledge whose canonical ownership remains with the user.
+
+structural_integrity_means:
+  - Structural integrity means the explicit relationships and contracts that determine where knowledge belongs remain internally consistent, valid, and trustworthy as the knowledge base changes.
+  - A structural note should have valid database ownership, structural type, Pool membership, root Core, immediate parentage, lifecycle state, placement, and naming wherever those properties are required by the applicable architecture.
+  - Structural lineage must remain free from contradictions such as missing required parents, self-parenting, circular ancestry, invalid root Cores, or Pebbles acting as structural parents.
+  - Structural metadata should remain authoritative for structural lineage, and disagreements between authoritative metadata and secondary representations such as filenames or views should be detected rather than silently ignored.
+  - Database-local rules should remain consistent with universal ShardBase invariants, and tools should not create apparently usable states that violate the documented architecture underneath.
+  - Structural operations should preserve unrelated user-authored content and valid relationships rather than achieving normalization by damaging knowledge outside the authorized scope.
+  - Integrity should be validated where deterministic rules exist instead of depending entirely on human or AI judgment.
+  - Detected integrity problems should be surfaced explicitly; ShardBase should not invent missing facts or silently guess through ambiguity merely to produce a superficially valid result.
+  - Structural integrity does not mean structure must never change. Refactoring, migration, reclassification, and growth are valid when they preserve knowledge and move the system from one coherent state to another through an authorized process.
+  - A structurally valid ShardBase should be understandable in terms of its documented contracts rather than merely functioning accidentally because current tooling happens to tolerate an inconsistency.
+
+future_growth_means:
+  - Future growth means ShardBase should allow knowledge to expand in subject matter, detail, relationships, databases, tooling, and use cases without requiring the user to correctly predict that future complexity at the moment information is first captured.
+  - Simple knowledge should be allowed to begin simply and acquire additional structure only when independent growth, querying, navigation, reuse, lifecycle management, or other demonstrated needs justify it.
+  - Architectural choices should avoid unnecessary dead ends that force large-scale reorganization merely because ordinary anticipated growth occurred.
+  - Explicit lineage and ownership should make it possible to subdivide, reorganize, or extend knowledge while preserving where it came from and how it relates to the surrounding system.
+  - ShardBase should favor extensible contracts with small stable universal cores over universal schemas that attempt to model every future domain in advance.
+  - Individual databases should be able to evolve their semantic schemas and conventions deliberately without forcing unrelated databases to adopt the same domain assumptions.
+  - New interfaces, AI capabilities, query systems, automation, export formats, or implementation technologies should be able to build on the durable architecture without becoming prerequisites for older knowledge to remain valid.
+  - Future capability should not be purchased through speculative complexity in the present. Features, metadata, structural entities, and abstractions should generally be introduced when a concrete requirement demonstrates their value.
+  - When uncertainty exists about future requirements, ShardBase should prefer choices that preserve information, identity, reversibility, and room for later extension rather than prematurely fixing details that are expensive to change.
+  - Growth should make accumulated knowledge more useful and connected without allowing organizational burden or architectural complexity to grow faster than the value the additional structure provides.
+
+simplicity_means:
+  - Simplicity means ShardBase should minimize the conceptual, structural, operational, and maintenance burden required to achieve its goals without removing information or constraints necessary for durability, integrity, or safe growth.
+  - The simplest design is not necessarily the design with the fewest files, fields, rules, or concepts; it is the design that introduces no more complexity than the problem meaningfully requires.
+  - ShardBase should prefer a small number of stable, composable concepts over many overlapping concepts that solve narrowly different versions of the same problem.
+  - Universal architecture should remain deliberately small so users and tooling can form reliable expectations without learning a large framework-specific language.
+  - Domain-specific complexity should remain inside the databases that actually need it rather than being promoted into universal ShardBase architecture merely because one use case benefits from it.
+  - Interfaces, automation, documentation, and AI assistance should absorb avoidable mechanical complexity rather than forcing ordinary users to repeatedly manage it themselves.
+  - Simplicity should be evaluated across the full lifecycle of knowledge. A design that is initially easy but creates recurring ambiguity, manual maintenance, fragile relationships, or expensive restructuring later may be less simple overall.
+  - ShardBase should avoid abstractions that merely relocate complexity into hidden state, undocumented behavior, or opaque tooling.
+  - When two designs provide equivalent durability, integrity, capability, and user control, the easier design to understand, inspect, operate, and maintain should be preferred.
+  - Simplicity should serve usefulness rather than become an objective that overrides necessary explicitness or structural integrity.
+
+explicitness_means:
+  - Explicitness means important architectural meaning should be represented through documented, inspectable information rather than requiring humans, deterministic tooling, or AI agents to infer fundamental facts from incidental clues.
+  - Facts that determine structural ownership, lineage, classification, authority, lifecycle, or other architectural behavior should be explicit when ShardBase relies on them for correct interpretation.
+  - Structural meaning should live in the representation designated as authoritative for that meaning—for example, lineage in structural YAML—rather than being encoded only indirectly through filenames, folder placement, prose, views, or conventions.
+  - Database-specific semantics that need reliable querying, validation, automation, or shared interpretation should be documented through the database contract and appropriate semantic metadata rather than existing only as undocumented assumptions.
+  - ShardBase should distinguish explicit information from redundant information. The same fact should not be duplicated across multiple authoritative representations merely to make it more visible.
+  - Secondary representations may intentionally repeat useful context for humans, such as bounded lineage context in filenames, but disagreements with the authoritative representation should be detectable rather than creating multiple competing truths.
+  - Explicitness should be proportional to consequence. Not every fact in ordinary prose needs metadata, but information that materially controls architecture or repeated machine interpretation should not require repeated guesswork.
+  - Documentation should clearly identify universal requirements, database-local requirements, recommendations, derived behavior, and implementation choices so users and tooling can understand which statements carry architectural authority.
+  - Significant assumptions made by Shard or other tooling should be surfaced when they affect consequential results rather than silently becoming temporary hidden rules.
+  - Explicitness should improve shared understanding without turning ShardBase into an excessively verbose schema in which every conceivable meaning must be formalized.
+
+determinism_means:
+  - Determinism means that when ShardBase's documented architecture defines one correct result from known inputs, equivalent inputs should produce the same architectural conclusion regardless of which compliant tool, agent, model, or user performs the operation.
+  - Requirements such as valid structural types, required metadata, lineage constraints, manifest rules, filename construction, and other precisely defined invariants should not depend on subjective interpretation once the necessary inputs are known.
+  - Deterministic behavior should be encoded in explicit contracts and, where useful, enforced or checked by deterministic tooling rather than depending solely on AI judgment.
+  - AI reasoning should be used where interpretation, ambiguity, semantic understanding, or contextual judgment is genuinely required; it should not replace a deterministic rule merely because an AI agent is capable of making the decision.
+  - Shard should infer inputs when safe and appropriate, but after those inputs are established, deterministic architectural consequences should follow predictably.
+  - Equivalent valid databases should not receive materially different structural treatment because of model personality, prompt phrasing, provider, or implementation preference.
+  - When several outcomes are architecturally valid and no documented rule chooses among them, the decision should be identified as contextual rather than falsely presented as deterministic.
+  - Determinism does not require identical prose, interface behavior, or recommendations in every interaction. It requires stability in architectural conclusions where the architecture itself provides a single answer.
+  - Changes to deterministic behavior should come from deliberate changes to documented contracts and, when applicable, migrations or version changes rather than silent implementation drift.
+  - Determinism should increase trust, testability, interoperability, and safe automation without attempting to eliminate legitimate human judgment from inherently contextual decisions.
+
+what_should_shardbase_optimize_for_first:
+  - ShardBase should optimize first for preserving the user's durable knowledge and their meaningful control over it.
+  - Within that boundary, ShardBase should prioritize structural integrity so the knowledge remains trustworthy and coherently interpretable as it grows.
+  - It should then prioritize durable shared understandability: humans should be able to understand the knowledge, deterministic tools should be able to query and validate it, and AI should be able to reason over it from the same canonical source.
+  - It should favor long-term readability, portability, inspectability, and future growth over short-term convenience that creates hidden dependency or architectural lock-in.
+  - It should minimize structural and operational complexity after the requirements above are satisfied, using the smallest structure and simplest mechanisms that preserve them.
+  - Queryability, automation, navigation, AI assistance, visualization, and other enhanced capabilities should be optimized on top of those foundations rather than by weakening them.
+  - When convenience conflicts with preservation, integrity, ownership, or meaningful user control, convenience should yield.
+  - When technical elegance conflicts with understandable and durable user-owned knowledge, the user-owned knowledge should win.
+  - When maximum automation conflicts with inspectability, authorization, or safe handling of consequential decisions, automation should yield.
+  - ShardBase's optimization target should therefore be the long-term usefulness of user-owned knowledge, not maximum structure, maximum features, maximum automation, or maximum performance in isolation.
+
+what_should_shardbase_never_optimize_at_the_expense_of_user_data:
+  - ShardBase should never sacrifice the preservation, correctness, ownership, privacy, recoverability, or intended meaning of user-owned knowledge merely to improve convenience, speed, automation, consistency, aesthetics, feature richness, or implementation simplicity.
+  - Architectural normalization should never justify deleting, rewriting, merging, reclassifying, relocating, or otherwise materially changing unrelated user-authored knowledge outside the authorized scope.
+  - Performance optimizations, indexes, caches, generated representations, database engines, embeddings, or other derived systems must not silently become more authoritative than the durable source or make loss of those derived systems equivalent to loss of the user's knowledge.
+  - Automation should not trade user authorization or change safety for fewer interactions when the operation is consequential, destructive, ambiguous, privacy-sensitive, or difficult to reverse.
+  - Structural consistency should not be achieved by inventing facts, guessing through uncertain ownership or lineage, or discarding information that does not fit an expected model.
+  - Portability should not be sacrificed merely to take advantage of a proprietary feature when doing so would make essential knowledge inaccessible or unintelligible without that feature.
+  - AI capability should not be improved by making the canonical knowledge dependent on hidden prompts, proprietary model state, provider-specific memory, or representations the user cannot inspect or recover.
+  - Simplicity should not be achieved by removing necessary provenance, lineage, metadata, documentation, or safeguards whose absence would make the user's knowledge less trustworthy.
+  - Feature development should not require users to surrender ownership or privacy of existing knowledge as the price of accessing core ShardBase functionality.
+  - When an optimization cannot be made without putting user data or its essential meaning at unacceptable risk, ShardBase should reject, constrain, redesign, or defer that optimization.
 
 ### Guarantees and Expectations
 
