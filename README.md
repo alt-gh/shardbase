@@ -58,7 +58,7 @@ Structural YAML is authoritative for lineage. Filenames provide human-readable r
 
 **Shard** is the canonical primary architectural and database AI agent for ShardBase.
 
-Shard is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, and helping the framework evolve safely. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
+Shard translates ordinary user intent into safe, minimal operations over the documented ShardBase architecture. It is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, retrieving and reasoning over authorized knowledge, and helping the framework evolve safely without requiring users to memorize the complete architecture. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
 
 When operating on a database, Shard follows this authority order:
 
@@ -189,7 +189,7 @@ If a user intentionally wants to version a live database, that should be an expl
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, and Audience have been defined in the Foundation Roadmap Workbook, while the remaining AI-agent definition, design philosophy, guarantees, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, and the Shard AI-agent definition have been defined in the Foundation Roadmap Workbook, while the remaining design philosophy, guarantees, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 
