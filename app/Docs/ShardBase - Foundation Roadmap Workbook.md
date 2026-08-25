@@ -25,6 +25,7 @@ architectural_source_of_truth: app/Docs/Shard - System Specification.md
 database_local_authority: Each database's root-level Database.md
 repository_default: Framework material is committed; local live databases and Inbox contents are ignored by default.
 foundation_priority: Establish architecture and agent contracts before locking in implementation-specific requirements.
+universal_vs_database_specific_rules_status: accepted
 foundation_workbook_status: working
 foundation_roadmap_status: approved
 foundation_completion_status: incomplete
@@ -844,15 +845,107 @@ what_should_never_depend_on_hidden_state:
 
 ### Universal vs Database-Specific Rules
 
-universal_shardbase_rules_are: 
-database_specific_rules_are: 
-what_belongs_in_the_system_specification: 
-what_belongs_in_database_md: 
-what_belongs_in_existing_database_conventions: 
-what_should_never_be_database_specific: 
-what_should_never_be_universal: 
-how_should_extensions_be_documented: 
-how_should_conflicts_between_local_rules_and_universal_rules_be_handled: 
+universal_shardbase_rules_are:
+  - Universal ShardBase rules are the minimum cross-database contracts necessary for any compliant ShardBase database, human, agent, or tool to share a predictable interpretation of the architecture.
+  - They define concepts whose meaning must remain consistent regardless of knowledge domain, including database ownership boundaries, the role and authority of `Database.md`, Pool → Core → Shard → Pebble semantics, structural metadata and lineage authority, structural-versus-semantic separation, naming and placement invariants, minimum necessary structure, portability and inspectability expectations, and universal change-safety requirements.
+  - A rule should be universal only when allowing individual databases to redefine it would make databases structurally incompatible, undermine shared interpretation, weaken framework guarantees, or require tooling to rediscover fundamental architecture separately for every database.
+  - Universal rules should deliberately remain smaller than the complete behavior of any individual database.
+  - Universal rules apply equally to databases regardless of subject matter.
+  - Universal rules define what it means to participate in ShardBase; they do not define what every ShardBase database must know about.
+
+database_specific_rules_are:
+  - Database-specific rules define how one database represents and operates on the particular domain of knowledge it owns.
+  - They include database purpose and scope, canonical Pool values, Core strategy, semantic metadata fields and meanings, domain-specific note kinds or classifications, semantic relationships, local lifecycle concepts, content conventions, domain naming conventions, attachment guidance, views, and other resources that are meaningful only within that database.
+  - Database-specific rules may specialize choices that the universal architecture intentionally leaves open, but they may not redefine or contradict universal ShardBase invariants.
+  - A database should introduce local rules only when its domain actually requires them; it should not duplicate universal rules merely to restate ShardBase.
+  - Local rules should remain understandable from the database itself so moving the database does not separate it from the contract necessary to interpret its domain meaning.
+
+what_belongs_in_the_system_specification:
+  - Rules whose meaning must be identical across every compliant ShardBase database.
+  - Definitions of universal architectural concepts and reserved terminology.
+  - The authority hierarchy between framework rules, database contracts, existing conventions, and user intent.
+  - Repository and database-root contracts that affect ShardBase compatibility.
+  - Universal structural metadata fields, permitted structural values, and their semantics.
+  - Structural lineage, classification, naming, placement, and integrity rules.
+  - Boundaries between structural and semantic meaning.
+  - Universal ownership, portability, locality, inspectability, determinism, and hidden-state requirements.
+  - Framework-wide change-safety, authorization, validation, migration, and compatibility principles once those are defined.
+  - Rules governing how database-local extensions may interact with the universal architecture.
+  - If two independently designed ShardBase databases must agree on a rule for the framework and its tooling to interpret both correctly, the rule probably belongs in the System Specification, unless it is merely an implementation detail that does not need architectural authority.
+
+what_belongs_in_database_md:
+  - The database's identity, purpose, ownership scope, inclusions, and exclusions.
+  - How that database applies universal ShardBase structure to its domain.
+  - Its canonical Pool vocabulary and local Core strategy where these require explanation.
+  - The complete documented semantic schema needed to interpret its knowledge, including semantic metadata fields, bounded allowed values where relevant, meanings, and important relationships between them.
+  - The complete documented set of domain-specific semantic note kinds or categories that can affect classification or note design.
+  - Domain-specific naming, content, relationship, lifecycle, and organizational conventions.
+  - Database-local views, attachment guidance, resources, scripts, or workflows whose existence is relevant to operating the database.
+  - Explicit local extensions to ShardBase behavior that the universal specification permits.
+  - Important local decisions that an agent, human, or tool must know before safely creating, interpreting, querying, or modifying the database.
+  - `Database.md` should document the database's contract rather than duplicate the complete System Specification.
+
+what_belongs_in_existing_database_conventions:
+  - Existing valid database conventions are established patterns present in the database that are consistent with both the System Specification and `Database.md`, but which do not rise to the level of an explicit contractual requirement.
+  - They provide continuity when several architecturally valid choices remain available.
+  - Examples may include preferred prose organization, recurring section ordering, stylistic naming choices not mandated by the contract, common relationship patterns, or other nonessential practices consistently used by existing notes.
+  - Shard should preserve these conventions rather than introducing unnecessary variation merely because another valid option exists.
+  - Existing conventions must never override the System Specification or `Database.md`.
+  - A recurring convention that becomes necessary for reliable interpretation, querying, validation, creation, or shared semantic understanding should no longer remain merely implicit; it should be promoted into `Database.md`.
+  - Accidental inconsistency should not acquire authority merely because it exists repeatedly.
+  - Existing content may demonstrate a preference; it must not secretly define a required contract.
+
+what_should_never_be_database_specific:
+  - What constitutes a ShardBase database or where its architectural authority comes from.
+  - The meaning or authority of `Database.md`.
+  - The Pool → Core → Shard → Pebble structural model.
+  - The reserved meaning of universal structural fields such as `type`, `pool`, `core`, `parent_note`, and structural `status`.
+  - Structural lineage authority.
+  - The rule that Pebbles are terminal.
+  - Universal filename and placement invariants.
+  - Universal structural-versus-semantic separation.
+  - Framework-level database ownership boundaries.
+  - Rules that protect canonical knowledge from hidden architectural state.
+  - Universal human-control, privacy, data-preservation, and change-safety guarantees.
+  - Any other invariant that the System Specification explicitly identifies as universal.
+  - A database may add domain meaning around universal concepts, but it must not redefine what those concepts mean.
+
+what_should_never_be_universal:
+  - Domain-specific entities such as `game`, `person`, `book`, `project`, `organization`, `recipe`, or `course`.
+  - Domain-specific semantic metadata merely because several databases might find it useful.
+  - Pool vocabularies.
+  - Domain-specific Core strategies unless a concept is actually required across every database.
+  - Subject-specific relationships, taxonomies, categories, status systems, scoring systems, or lifecycle concepts.
+  - Particular note-body templates or headings that have no framework-wide architectural significance.
+  - Database-specific views, dashboards, queries, attachment conventions, or workflows.
+  - A convention merely because the first canonical or example database happens to use it.
+  - Optional capabilities merely because a powerful implementation can support them.
+  - Implementation details such as a scripting language, package manager, AI provider, plugin, or runtime unless a future architectural decision proves they are universally necessary.
+  - If a valid ShardBase database can reasonably exist without understanding a concept, that concept should not be promoted into universal architecture merely for consistency.
+
+how_should_extensions_be_documented:
+  - A database may extend ShardBase through semantic metadata, bounded value sets, domain-specific note kinds, relationships, conventions, views, resources, and other behavior explicitly permitted by the universal architecture.
+  - Extensions that affect interpretation of canonical database knowledge should be documented in that database's `Database.md`.
+  - Documentation should state what the extension means, where it applies, whether it is required or optional, any allowed values or constraints when relevant, and how it interacts with existing structural or semantic concepts.
+  - Extensions must use their own semantic names rather than repurposing reserved universal fields or concepts.
+  - Extensions should avoid creating a second authoritative representation of information already defined elsewhere.
+  - Tool-specific extensions may live in relevant resources or implementation documentation when they do not affect canonical interpretation, but `Database.md` should point to them when knowledge of the extension is necessary to operate the database correctly.
+  - An extension used by several databases does not automatically become universal. Promotion into the System Specification should require a deliberate architectural decision showing that framework-wide meaning is actually necessary.
+  - If an extension begins changing what existing canonical data means, it should be treated as a schema or migration concern rather than as an undocumented convention.
+  - Foundation-stage extension documentation should remain lightweight; ShardBase should not invent extension manifests, namespaces, plugin APIs, or version registries until a concrete implementation requirement justifies them.
+
+how_should_conflicts_between_local_rules_and_universal_rules_be_handled:
+  - Universal rules always take precedence over database-local rules.
+  - `Database.md` may extend or specialize only those areas the System Specification leaves open; it cannot override a universal invariant.
+  - Existing database conventions are subordinate to both the System Specification and `Database.md`.
+  - A local rule that contradicts a universal rule is invalid rather than an authorized exception.
+  - Shard and deterministic tooling should report the conflict explicitly and identify both the universal requirement and the conflicting local rule.
+  - They should not silently choose whichever representation is easier to implement.
+  - They should preserve user-authored knowledge while proposing the smallest valid correction.
+  - If local behavior represents a legitimate need that the universal architecture cannot currently accommodate, the proper path is to propose a framework-level architectural extension or change rather than creating a private exception inside one database.
+  - Until such a framework change is deliberately approved, the existing universal rule remains authoritative.
+  - If a System Specification change later legitimizes previously invalid local behavior, any required reinterpretation or transformation of existing databases should follow the applicable migration and compatibility policies rather than happening silently.
+  - Local rules may extend universal rules; they may never contradict them. If a legitimate local requirement cannot fit within the universal contract, the contract itself must be reconsidered explicitly rather than bypassed locally.
 
 ### Repository vs Local User Data
 

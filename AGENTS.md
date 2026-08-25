@@ -19,9 +19,11 @@ Before making structural or architectural changes, follow this authority order:
 3. Existing valid local conventions in that database
 4. The current user request
 
-The system specification defines universal ShardBase invariants.
+The system specification defines the universal ShardBase contract: the cross-database concepts and invariants that every compliant database must share.
 
-`Database.md` defines domain-specific scope, schema, conventions, and resources for one database. A database contract may extend the framework but must not override universal structural rules.
+`Database.md` defines how one database represents and operates on the particular domain of knowledge it owns. It may document semantic metadata, Pool vocabulary, Core strategy, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, resources, and other permitted extensions, but it must not override universal rules. It should not duplicate the complete System Specification merely to restate ShardBase.
+
+Existing valid local conventions are subordinate to both authorities. They may guide continuity when several compliant choices remain, but existing content may demonstrate a preference; it must not secretly define a required contract. If a recurring convention becomes necessary for reliable interpretation, querying, validation, or creation, require it to be documented in `Database.md`.
 
 A user request expresses architectural intent. Preserve that intent where possible, but do not implement an invalid Core, Shard, Pebble, lineage relationship, or destructive change merely because it was requested in structural terms.
 
@@ -34,6 +36,8 @@ A user request expresses architectural intent. Preserve that intent where possib
 - Important knowledge should be explicit enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it without optimizing the canonical source exclusively for any one audience.
 - Prefer one documented authoritative representation for a fact. Secondary representations may repeat useful context, but do not create redundant competing sources of authority merely for visibility.
 - Before an agent designs or extends note structures in a database, it should understand the complete documented set of structural and database-specific semantic note kinds that can affect that design. Do not invent a new note kind or duplicate an existing meaning because only part of the database schema was considered.
+- Treat reuse across databases as evidence, not automatic grounds for universalization. Domain-specific entities, semantic fields, Pool vocabularies, taxonomies, relationships, lifecycle concepts, views, workflows, and implementation technologies should remain local unless a deliberate framework decision establishes that all compliant databases must share their meaning.
+- When a legitimate database requirement conflicts with a universal rule, report the conflict and propose a framework-level architectural change rather than creating a private local exception. Until such a change is approved, the universal rule remains authoritative.
 - AI assistance is intentional but optional to the durability and meaning of the knowledge base. Do not make core structure depend on a particular AI model, provider, or service.
 - Ordinary users should not be required to know the complete ShardBase architecture, memorize structural metadata, or translate their intent into framework terminology before they can use the system productively. Explain structural decisions in terms of the user's knowledge and progressively expose architectural detail when it becomes relevant.
 - Power-user tooling may expose deeper architectural control, but it must not depend on undocumented hidden state or bypass universal safety and ownership rules.

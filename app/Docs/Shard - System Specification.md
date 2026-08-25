@@ -10,7 +10,9 @@ Obsidian, Dataview, scripts, AI assistance, synchronization services, and other 
 
 It is the highest architectural authority inside the repository.
 
-Database-local rules belong in each database's root-level `Database.md`. A database may extend ShardBase with semantic metadata and domain conventions, but it must not override the structural invariants in this specification.
+Database-local rules belong in each database's root-level `Database.md`. A database may extend ShardBase with semantic metadata, domain conventions, bounded values, domain-specific classifications, relationships, views, resources, and other behavior that this specification leaves open, but it must not override universal ShardBase invariants. Existing valid database conventions may guide continuity where more than one compliant choice remains, but they are subordinate to both this specification and `Database.md`.
+
+Universal rules define what it means to participate in ShardBase; they do not define what every ShardBase database must know about. A rule belongs at the universal level when independently designed compliant databases must agree on it for the framework and its tooling to interpret them correctly. Domain concepts that a valid database can reasonably exist without understanding should remain database-local unless a deliberate architectural decision establishes a framework-wide requirement.
 
 Implementation-specific requirements such as a future CLI runtime, package manager, plugin version, or operating-system matrix are not architectural invariants unless this specification explicitly makes them one.
 
@@ -151,6 +153,22 @@ Essential knowledge meaning and architectural behavior must never depend on undo
 ShardBase's architecture must not require a particular machine, installation, application profile, plugin configuration, AI conversation, external account, or generated runtime in order to recover or understand the essential meaning of canonical knowledge. Users may deliberately choose storage, synchronization, AI, publishing, or other external services that introduce their own access dependencies; those dependencies are user choices and must not become requirements of the ShardBase architecture itself. If an implementation introduces state that materially influences architectural behavior, that dependency must be explicit and documented before it can become part of a ShardBase contract. Essential behavior that depends on undocumented and inaccessible state is an architectural defect even when the current implementation appears to work.
 
 ShardBase should strongly pursue compatibility, low-risk evolution, useful export fidelity, reliable validation, and accurate AI assistance, but it does not promise perfect compatibility across every environment, lossless conversion to every format, error-free AI reasoning, factual correctness of user-authored content, immunity from hardware or filesystem failure, transactional database semantics, or backward compatibility without migration for every future architectural change. Such limitations do not weaken the guarantees over the canonical source and documented architecture that ShardBase itself controls.
+
+### 3.12 Universal and Database-Local Contracts
+
+ShardBase uses three distinct levels of documented database behavior:
+
+1. **Universal contract** — this System Specification defines the cross-database concepts, invariants, authority boundaries, structural semantics, ownership rules, safety requirements, and guarantees that every compliant ShardBase database must share.
+2. **Database contract** — the database root's `Database.md` defines how that database represents and operates on the particular domain of knowledge it owns, including its purpose, scope, Pool vocabulary, Core strategy, semantic schema, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, resources, and permitted local extensions.
+3. **Existing valid convention** — established local patterns may guide continuity when several choices remain valid under both higher authorities, but they are preferences rather than hidden contractual requirements. Existing content may demonstrate a preference; it must not secretly define a required contract.
+
+Local rules may extend or specialize only areas the universal contract intentionally leaves open. They must not redefine reserved structural fields, Pool → Core → Shard → Pebble semantics, structural lineage authority, database ownership boundaries, filename and placement invariants, the terminal nature of Pebbles, structural-versus-semantic separation, hidden-state prohibitions, or universal ownership, privacy, preservation, authorization, and change-safety requirements. A conflicting local rule is invalid rather than an authorized exception.
+
+Conversely, domain-specific entities, semantic fields, Pool vocabularies, taxonomies, relationships, local lifecycle concepts, note-body templates, views, workflows, and implementation technologies must not be promoted into universal architecture merely because one or several databases find them useful. Reuse across databases is evidence to evaluate, not automatic grounds for universalization.
+
+Extensions that affect interpretation of canonical database knowledge must be documented in `Database.md`, including their meaning, scope, required or optional status, bounded values or constraints when relevant, and interaction with existing structural or semantic concepts. Extensions must use their own semantic names rather than repurpose reserved universal fields. Tool-specific details may live elsewhere when they do not affect canonical interpretation, but `Database.md` should point to them when knowledge of those details is required to operate the database correctly.
+
+If a legitimate database requirement cannot fit within the universal contract, the proper path is to propose an explicit framework-level architectural change. Until such a change is approved, the existing universal rule remains authoritative. Any later reinterpretation or transformation of existing data must follow the applicable compatibility and migration policy rather than occur silently.
 
 ## 4. Repository Model
 
@@ -314,7 +332,7 @@ Every `Database.md` must contain:
 ## Resources
 ```
 
-These sections form the context Shard must read before making database-specific structural decisions.
+These sections form the context Shard must read before making database-specific structural decisions. `Database.md` should document the database's own contract rather than duplicate the complete System Specification. It must contain the local meaning an authorized human, agent, or tool needs in order to safely create, interpret, query, or modify the database.
 
 #### Purpose
 
@@ -330,13 +348,13 @@ How the database applies ShardBase locally, including Pool usage and Core strate
 
 #### Schema
 
-Database-specific semantic metadata layered on top of universal ShardBase structural metadata.
+The complete documented semantic schema needed to interpret the database's domain-specific knowledge, layered on top of universal ShardBase structural metadata. This includes semantic fields, their meanings, bounded values or constraints where relevant, important semantic relationships, and domain-specific note kinds or categories that can affect classification or note design.
 
-If no additional metadata exists, say so explicitly.
+If no additional metadata or semantic note kinds exist, say so explicitly.
 
 #### Conventions
 
-Database-local naming, relationship, lifecycle, or content conventions that do not override ShardBase invariants.
+Database-local naming, relationship, lifecycle, content, organizational, or workflow conventions that do not override ShardBase invariants. A convention that becomes necessary for reliable interpretation, querying, validation, creation, or shared semantic understanding belongs here rather than remaining only implicit in existing content.
 
 If no additional conventions exist, say so explicitly.
 
@@ -719,9 +737,9 @@ A future CLI may become the preferred safe interface for structural operations, 
 
 ## 18. Architectural Continuity
 
-When operating inside an existing database, Shard must preserve established local conventions that are valid under this specification.
+When operating inside an existing database, Shard must preserve established local conventions that are valid under both this specification and the database's `Database.md`. Such conventions guide continuity only where more than one compliant choice remains.
 
-Do not introduce a different valid convention merely because it is personally preferred.
+Do not introduce a different valid convention merely because it is personally preferred. Repeated inconsistency does not become authoritative through repetition, and a recurring convention that becomes necessary for reliable shared interpretation should be documented in `Database.md` rather than remain an implicit requirement.
 
 A structural migration is justified when:
 

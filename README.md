@@ -34,7 +34,7 @@ ShardBase deliberately keeps Markdown and YAML as the durable source rather than
 - **Simplicity without opacity** — ShardBase should minimize conceptual and operational burden, but simplicity must not hide necessary complexity in undocumented behavior, hidden state, or opaque tooling.
 - **Readable, editable, and portable by construction** — canonical knowledge must remain readable, directly editable, and movable without requiring ShardBase-specific tooling; loss of an optional view, AI system, script, or generated runtime may reduce convenience but must not erase essential meaning.
 - **No hidden architectural state** — essential knowledge meaning and architectural behavior must be traceable to canonical files and documented contracts. Undocumented inaccessible state must not become a required interpreter or silent authority merely because an implementation currently works.
-- **Framework, not monolith** — ShardBase defines universal structural rules while allowing individual databases to own their domain-specific scope, semantic metadata, conventions, views, and resources.
+- **Framework, not monolith** — universal rules define what it means to participate in ShardBase, while each database defines how it represents and operates on the particular domain of knowledge it owns. Database contracts may extend areas the framework intentionally leaves open, but they may not contradict universal invariants, and recurring local requirements should be documented rather than hidden in existing content.
 
 External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
 
@@ -194,7 +194,7 @@ If a user intentionally wants to version a live database, that should be an expl
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, and Guarantees and Expectations have been defined in the Foundation Roadmap Workbook, while conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, and Universal vs Database-Specific Rules have been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 
