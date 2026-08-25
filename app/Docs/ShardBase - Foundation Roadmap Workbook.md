@@ -735,16 +735,112 @@ what_should_shardbase_never_optimize_at_the_expense_of_user_data:
 
 ### Guarantees and Expectations
 
-what_should_shardbase_guarantee: 
-what_should_shardbase_try_to_guarantee_but_not_promise: 
-what_does_shardbase_explicitly_not_guarantee: 
-what_should_remain_readable_without_shardbase_tooling: 
-what_should_remain_editable_without_shardbase_tooling: 
-what_should_remain_portable_without_shardbase_tooling: 
-what_should_survive_a_broken_view_or_query: 
-what_should_survive_ai_being_unavailable: 
-what_should_survive_automation_being_unavailable: 
-what_should_never_depend_on_hidden_state: 
+what_should_shardbase_guarantee:
+  - ShardBase should guarantee architectural properties that are within the framework's control rather than promising that external software, hardware, services, user actions, or storage systems can never fail.
+  - The user's canonical durable knowledge should remain directly accessible as user-controlled files, with Markdown and YAML carrying the essential content and documented architectural meaning.
+  - Core knowledge and structural meaning must not require Obsidian, Dataview, Shard, another AI agent, automation, a hosted service, or a proprietary database to remain understandable.
+  - Architecturally significant meaning should have an explicit documented authority so essential interpretation does not depend on whichever tool or view happens to be active.
+  - Optional and derived systems such as views, indexes, caches, embeddings, exports, and generated representations must remain distinguishable from authoritative source data and must not silently become the source of truth.
+  - Compliant ShardBase tooling must preserve the established authorization boundaries around destructive, privacy-sensitive, externally transmitted, or otherwise consequential operations.
+  - Documented deterministic architectural rules should produce stable architectural conclusions for compliant tools and agents when the required inputs are known.
+  - Essential architectural behavior must not depend on undocumented hidden state.
+
+what_should_shardbase_try_to_guarantee_but_not_promise:
+  - ShardBase should strongly pursue long-term understandability, recoverability, portability, and compatibility without promising perfect behavior across every Markdown editor, operating system, filesystem, synchronization provider, Obsidian version, plugin, or future tool.
+  - It should make ordinary growth and architectural evolution low-risk and minimally disruptive without promising that every future change can occur without migration, compatibility work, manual review, or modification of existing files.
+  - Export and conversion tooling should preserve as much useful meaning as the destination format supports and expose meaningful losses, but ShardBase should not promise lossless conversion into every format or environment.
+  - Shard and other AI assistance should be designed for accuracy, consistency, explainability, and usefulness without promising perfect semantic interpretation, classification, relationship discovery, or reasoning.
+  - Deterministic validation should reliably detect documented violations within its defined scope without claiming to prove the factual correctness, completeness, or subjective quality of user-authored knowledge.
+  - ShardBase should reduce the likelihood and impact of accidental organizational damage without pretending it can make arbitrary external modification, hardware failure, filesystem corruption, malicious action, or user error impossible.
+
+what_does_shardbase_explicitly_not_guarantee:
+  - ShardBase does not guarantee continuous availability of Obsidian, Dataview, plugins, AI services, synchronization providers, cloud services, external applications, or other third-party tooling.
+  - ShardBase does not guarantee identical enhanced functionality, rendering, querying, automation, or feature parity in every environment merely because the durable knowledge remains portable.
+  - ShardBase does not guarantee perfect compatibility with every Markdown implementation or preservation of every application-specific capability during conversion.
+  - ShardBase does not guarantee transactional database semantics, ACID behavior, machine-scale relational performance, concurrent-write coordination, or other guarantees normally provided by a traditional database engine.
+  - Structural validity does not guarantee the factual correctness, completeness, truthfulness, or quality of user-authored knowledge.
+  - AI-generated classifications, summaries, relationships, recommendations, or other interpretations are not guaranteed to be correct merely because they were produced within ShardBase.
+  - ShardBase does not guarantee immunity from hardware failure, filesystem corruption, operating-system failure, malicious modification, external synchronization errors, inadequate backups, or user mistakes.
+  - ShardBase does not guarantee that every future architectural evolution will remain backward-compatible without migration; compatibility and breaking-change behavior require explicit governance.
+  - ShardBase's privacy guarantees do not extend to promising the behavior of external services or environments a user deliberately chooses. Core operation must not require external transmission, and compliant ShardBase behavior must not silently initiate it.
+
+what_should_remain_readable_without_shardbase_tooling:
+  - The user's canonical knowledge content should remain readable without ShardBase-specific tooling.
+  - Markdown note bodies should remain understandable as ordinary written documents rather than requiring a specialized renderer or generated representation to decode their essential meaning.
+  - YAML frontmatter should remain inspectable as ordinary text, with documented field names and meanings that can be understood without running ShardBase software.
+  - Important structural context such as structural role, Pool, root Core, immediate parent, lifecycle state, and other authoritative properties should remain discoverable from the canonical files and documentation without requiring Shard, a validator, Dataview, or another generated interface.
+  - Database purpose, scope, semantic schema, conventions, and other database-local meaning should remain readable from the database's `Database.md`.
+  - Universal architectural meaning should remain readable from committed framework documentation, especially the System Specification.
+  - Obsidian-specific or other enhanced syntax may lose presentation quality outside its preferred environment, but essential knowledge should not become unintelligible merely because the enhanced renderer is absent.
+  - Generated views, dashboards, indexes, caches, embeddings, or AI representations must not contain the only readable copy of essential knowledge.
+  - Readability requires preservation of essential knowledge and documented meaning, not identical presentation or enhanced behavior in every environment.
+
+what_should_remain_editable_without_shardbase_tooling:
+  - Canonical Markdown and YAML should remain directly editable with ordinary compatible text or Markdown tools.
+  - Users should be able to modify prose, headings, lists, links, and other ordinary note content without requiring Shard, Obsidian, a CLI, a plugin, an AI service, or a proprietary editor.
+  - Structural and semantic metadata should remain textually editable by a knowledgeable user without requiring a specialized ShardBase interface.
+  - `Database.md` contracts and framework documentation should remain directly editable as Markdown.
+  - A valid manual editing path should remain part of ShardBase even if higher-level interfaces eventually become the preferred or safer way to perform complicated structural operations.
+  - Validation, templates, AI assistance, or future tooling may reduce mistakes, but those conveniences must not transform canonical knowledge into an opaque format that only those tools can modify.
+  - Direct editability does not mean every manual edit is automatically valid; users may create invalid metadata or structure, and ShardBase should keep the rules explicit, documented, and available for validation.
+  - Derived or generated artifacts may intentionally be non-editable when they are reproducible from authoritative source data; their editability is not part of the canonical-data guarantee.
+
+what_should_remain_portable_without_shardbase_tooling:
+  - Canonical Markdown and YAML knowledge should be copyable and movable without requiring a ShardBase export process merely to recover or relocate it.
+  - A database should remain portable as a coherent ownership boundary containing its data, manifest, views, attachments, semantic schema, and documented conventions.
+  - Moving canonical files should preserve essential content and documented architectural meaning even when some enhanced functionality is unavailable in the destination environment.
+  - Portability must not depend on Shard, an AI provider, generated indexes, caches, embeddings, hidden application databases, or machine-specific runtime state.
+  - Relative and database-local references should be preferred where practical so knowledge is not unnecessarily tied to one computer or absolute filesystem location.
+  - Framework documentation necessary to interpret the architecture should remain available independently of a running ShardBase implementation.
+  - Environment-specific capabilities may require explicit conversion for optimal use elsewhere, but conversion should be an interoperability enhancement rather than a prerequisite for possessing or accessing the canonical source.
+  - ShardBase does not promise identical rendering, queries, plugins, automation, or other enhanced behavior after moving to another environment.
+  - When a destination cannot represent some ShardBase capability, conversion tooling should make meaningful losses visible rather than silently presenting the conversion as lossless.
+  - Re-creatable execution artifacts such as virtual environments, installed dependencies, caches, temporary files, or indexes do not need to travel with the knowledge unless a future documented contract explicitly makes one durable.
+
+what_should_survive_a_broken_view_or_query:
+  - The underlying knowledge must remain valid and understandable when a Dataview query, dashboard, generated index, search view, or other projection is broken, missing, incompatible, or removed.
+  - A broken view must not change the authoritative structural meaning of the notes it was intended to display.
+  - Database ownership, Pool membership, structural classification, Core lineage, immediate parentage, lifecycle status, and database-specific semantic meaning must continue to come from their documented authoritative sources rather than from a view.
+  - Users should still be able to locate and inspect canonical files directly even if a preferred navigation or discovery interface is unavailable.
+  - View failure may reduce convenience, discoverability, aggregation, visualization, or navigation quality, but it must not corrupt or invalidate otherwise valid canonical knowledge.
+  - Rules required to interpret a database must not exist only inside query code.
+  - Rebuilding or replacing a broken view should operate over the same canonical source rather than requiring architectural meaning to be reconstructed from the failed view.
+  - If a view reveals an inconsistency in the underlying source, the inconsistency should be corrected at its authoritative source rather than compensated for only inside the view.
+
+what_should_survive_ai_being_unavailable:
+  - Canonical knowledge, structural relationships, database contracts, and architectural meaning must remain intact and understandable when AI is unavailable or deliberately disabled.
+  - Users must retain a valid path to create, read, edit, navigate, search, query, validate, and maintain ShardBase knowledge without an AI agent.
+  - Deterministic architectural invariants must remain documented independently of Shard or any other AI system.
+  - Database-specific schemas and conventions must remain discoverable from `Database.md` and the durable source rather than relying on an AI agent's memory or interpretation.
+  - Existing knowledge must not require AI-generated summaries, embeddings, hidden memories, prompts, classifications, or inferred relationships to preserve its essential meaning.
+  - AI unavailability may increase manual effort and reduce contextual assistance, relationship discovery, natural-language interaction, or convenience, but it must not invalidate the knowledge base.
+  - Knowledge created with AI assistance should have the same architectural durability as manually created knowledge once it has been accepted into the canonical source.
+  - Replacing Shard, an AI model, or an AI provider should not require rewriting canonical knowledge merely to preserve its architectural meaning.
+  - AI-derived artifacts that cannot be regenerated without a particular provider must not contain the only authoritative copy of essential knowledge.
+
+what_should_survive_automation_being_unavailable:
+  - Canonical ShardBase knowledge and its documented structure must remain valid when scripts, validators, migration helpers, generators, future CLI tooling, or other automation are unavailable.
+  - Users must retain a manual path for inspecting and editing durable Markdown, YAML, and database contracts.
+  - Structural rules enforced by automation must also exist in authoritative documentation; scripts must implement the architecture rather than secretly define it.
+  - A database must not require a generated index, cache, registry artifact, or automation-maintained hidden state in order for its canonical files to remain meaningful.
+  - Automation failure may make repetitive work slower, increase the chance of manual mistakes, or remove conveniences such as automatic validation or generation, but it must not make valid existing knowledge unreadable or structurally meaningless.
+  - Deterministic automation should be reproducible from canonical inputs wherever its output is derived rather than authoritative.
+  - If automation creates durable canonical content, that content must remain understandable and maintainable after the automation itself becomes unavailable.
+  - Migration or maintenance tooling must not be the only place where the rules governing its transformations are documented.
+  - ShardBase may eventually recommend automation as the safest or easiest interface for complicated operations, but the architecture must not become unknowable merely because the preferred automation is absent.
+
+what_should_never_depend_on_hidden_state:
+  - Essential knowledge meaning must never depend on undocumented hidden state.
+  - Structural identity, ownership, lineage, classification, lifecycle meaning, and other architectural facts required to interpret canonical knowledge must not exist only in application databases, caches, indexes, generated files, AI memory, prompts, embeddings, runtime state, plugin internals, or service-controlled metadata.
+  - Database-specific semantic meaning required for reliable interpretation must be documented in the database contract or represented through canonical knowledge rather than existing only as an undocumented implementation convention.
+  - Universal architectural behavior must be documented in the System Specification rather than being discoverable only by reading source code or observing a particular implementation.
+  - ShardBase's architecture must not require a particular machine, installation, application profile, plugin configuration, AI conversation, external account, or generated runtime in order to recover or understand the essential meaning of the user's canonical knowledge.
+  - Users may deliberately choose storage, synchronization, AI, publishing, or other external services that introduce their own access dependencies, but those dependencies must not become requirements of the ShardBase architecture itself.
+  - Derived state may exist for performance, search, visualization, AI retrieval, automation, caching, or convenience, but it must either be reproducible from authoritative inputs or be nonessential to interpreting the canonical source.
+  - Hidden implementation state must never silently override authoritative Markdown, YAML, database contracts, or documented architectural rules.
+  - If an implementation introduces state that materially influences architectural behavior, that dependency must be made explicit and documented before it can become part of a ShardBase contract.
+  - Important architectural decisions should be traceable to inspectable inputs and documented rules.
+  - If essential behavior depends on something undocumented and inaccessible, the fact that it currently works does not make the architecture acceptable; ShardBase should treat that condition as an architectural defect.
 
 ### Universal vs Database-Specific Rules
 
