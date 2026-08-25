@@ -16,6 +16,7 @@ project_name: ShardBase
 current_definition: A privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth.
 current_goal: Let a knowledge base grow without losing lineage, portability, readability, or control.
 product_identity_status: accepted
+differentiation_status: accepted
 structural_model: Pool → Core → Shard → Pebble
 supporting_filename_strategy: Bounded Core context — `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants, capped at three structural context components; collisions are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
@@ -175,16 +176,75 @@ why_is_shardbase_a_framework_instead_of_a_single_database:
 
 ### Differentiation
 
-why_not_just_use_folders: 
-why_not_just_use_tags: 
-why_not_just_use_arbitrary_yaml: 
-why_not_just_use_dataview_queries: 
-why_not_just_use_links_and_backlinks: 
-why_not_just_use_an_obsidian_template_system: 
-why_not_just_use_a_traditional_database: 
-what_does_shardbase_add_that_these_tools_do_not: 
-which_existing_tools_should_shardbase_complement_instead_of_replace: 
-what_is_the_smallest_unique_idea_at_the_center_of_shardbase: 
+why_not_just_use_folders:
+  - Folders are useful for filesystem ownership and broad organization, but a note can physically exist in only one place while conceptually relating to many subjects, categories, and entities.
+  - Deep folder hierarchies tend to encode relationships implicitly in paths, making reorganizations increasingly consequential as the knowledge base grows.
+  - ShardBase deliberately keeps filesystem structure relatively shallow and expresses knowledge structure through explicit metadata and relationships, allowing organization to evolve without requiring the filesystem to encode the entire conceptual model.
+  - Folders should remain useful for boundaries such as databases, data, views, and attachments; they simply should not carry the full burden of representing knowledge relationships.
+
+why_not_just_use_tags:
+  - Tags are useful for lightweight classification and cross-cutting grouping, but they generally express membership rather than lineage, ownership, parentage, or structural role.
+  - A tag can show that notes share a concept, but it does not reliably establish which database owns them, which Core anchors their lineage, which note is the immediate parent, or whether a note is structurally terminal.
+  - Tags also provide little protection against inconsistent vocabularies or incompatible interpretations as a knowledge base grows.
+  - ShardBase complements tags with explicit structural contracts while allowing tags to remain useful for optional semantic classification.
+
+why_not_just_use_arbitrary_yaml:
+  - YAML provides machine-readable metadata, but arbitrary YAML alone does not provide a shared meaning for that metadata.
+  - Without a contract, different notes, databases, users, scripts, and AI agents can use different field names or interpret the same field differently.
+  - ShardBase defines a small universal structural schema and clearly separates it from database-specific semantic metadata.
+  - This preserves flexibility without requiring every tool or agent to rediscover the meaning of the knowledge base from scratch.
+
+why_not_just_use_dataview_queries:
+  - Dataview is excellent for querying, filtering, aggregating, and presenting structured knowledge, and ShardBase should make extensive use of it.
+  - A query is a projection of existing data rather than the authority that defines what the data means.
+  - If structural rules exist only inside Dataview queries, broken or unavailable queries can make the architecture opaque.
+  - ShardBase therefore makes the underlying Markdown and YAML authoritative and uses Dataview as a canonical interface over that durable structure.
+
+why_not_just_use_links_and_backlinks:
+  - Links and backlinks are essential for expressing connections and navigating knowledge, but a generic link does not inherently explain the meaning of the relationship.
+  - A backlink can show that two notes reference one another without establishing whether the relationship is structural ancestry, semantic association, citation, dependency, membership, or something else.
+  - ShardBase combines links with explicit metadata and database contracts so important relationships have inspectable semantics.
+  - Wikilinks and backlinks should remain a major part of the user experience rather than being replaced.
+
+why_not_just_use_an_obsidian_template_system:
+  - Templates are useful for creating consistent files, frontmatter, headings, and starting structures.
+  - They describe how a note should begin, but they do not by themselves define or enforce the architecture governing how that note relates to the rest of the knowledge base.
+  - Templates can become stale as conventions evolve and cannot reliably establish whether creating a new file was structurally justified in the first place.
+  - ShardBase should use templates or blueprints where useful while keeping architectural rules independently documented and validatable.
+
+why_not_just_use_a_traditional_database:
+  - Traditional databases can provide stronger schemas, constraints, indexing, querying, transactional behavior, and performance characteristics than Markdown files.
+  - Their tradeoff for ShardBase's purpose is that the user's knowledge can become dependent on database software, schemas, interfaces, exports, or application-specific representations in order to remain directly understandable and editable.
+  - ShardBase aims to keep the technical knowledge barrier for basic ownership and editing low: obtaining the file-based knowledge base and working with its Markdown should be sufficient for direct inspection and editing, without requiring database administration knowledge, a database server, or a bespoke application.
+  - Markdown files can be edited with widely available text and Markdown tools across many devices, including phones, without requiring ShardBase to design a dedicated application, website, or device-specific interface just to expose the underlying data.
+  - Human-readable Markdown and YAML can also serve as a practical source for deterministic conversion or export into structured formats such as JSON when interoperability or downstream tooling requires it; derived formats should not replace the canonical Markdown and YAML source by default.
+  - Traditional databases remain appropriate for workloads that are fundamentally transactional, highly relational at machine scale, or performance-sensitive; ShardBase does not need to compete with them on those terms.
+
+what_does_shardbase_add_that_these_tools_do_not:
+  - ShardBase adds a shared architectural contract across otherwise independent knowledge-management primitives.
+  - It defines how databases own knowledge, how structural lineage is represented, which metadata has universal meaning, how domain-specific semantics remain extensible, when information deserves independent structure, and which source is authoritative when representations disagree.
+  - That contract gives humans, Obsidian, Dataview, scripts, validators, and AI agents a common interpretation of the same user-owned files.
+  - It also adds change-safety and human-control expectations so the knowledge base can be operated on and evolved without making powerful tooling architecturally authoritative.
+  - The result is not another organizational primitive but a framework for making existing primitives work together predictably as the knowledge base grows.
+
+which_existing_tools_should_shardbase_complement_instead_of_replace:
+  - Markdown for durable content.
+  - YAML for explicit structural and semantic metadata.
+  - Filesystem folders for database ownership and resource boundaries.
+  - Tags for lightweight semantic classification and cross-cutting grouping when useful.
+  - Wikilinks and backlinks for relationships and navigation.
+  - Obsidian for the primary interactive knowledge environment.
+  - Dataview for querying, filtering, navigation, and read-oriented projections.
+  - Templates and blueprints for repeatable creation and bootstrap workflows.
+  - Search, graph visualization, and other Obsidian capabilities for discovery.
+  - Git for intentional versioning of framework material and any user data explicitly chosen for version control.
+  - Scripts and deterministic validators for repetitive, inspectable automation.
+  - AI agents for contextual reasoning, classification, retrieval, recommendations, and assisted maintenance.
+  - External synchronization, backup, publishing, and sharing systems when explicitly chosen by the user.
+
+what_is_the_smallest_unique_idea_at_the_center_of_shardbase:
+  - A minimal, explicit structural contract for user-owned Markdown knowledge that preserves lineage as the knowledge grows and gives humans, software, and AI a shared understanding of how that knowledge belongs together.
+  - The central differentiation is the shared understanding created by the contract: humans, Obsidian, Dataview, scripts, validators, and AI can cooperate over the same durable files without any one of those tools becoming the sole owner or interpreter of the knowledge.
 
 ### Audience
 

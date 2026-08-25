@@ -12,6 +12,14 @@ ShardBase provides a durable shared architecture for that growth. It is designed
 
 The long-term goal is a user-owned personal source of truth that can support memory, understanding, discovery, decision-making, and AI-assisted interaction without requiring the user to surrender ownership or architectural control of their knowledge.
 
+## What ShardBase Adds
+
+ShardBase is not intended to replace folders, tags, YAML, wikilinks, backlinks, Dataview, templates, scripts, Git, or AI assistance. Each of those tools solves a useful part of the knowledge-management problem. ShardBase adds the shared architectural contract that lets them cooperate over the same user-owned knowledge without requiring any one tool to become the sole source of meaning.
+
+That contract defines database ownership, structural lineage, universal structural metadata, the boundary between structural and semantic meaning, materialization expectations, authority, and change-safety rules. The result is a predictable shared interpretation for humans, Obsidian, Dataview, scripts, validators, and AI agents as the knowledge base grows.
+
+ShardBase deliberately keeps Markdown and YAML as the durable source rather than requiring a traditional database engine or bespoke application for basic access. The files remain directly editable with widely available tools across devices and can be transformed into derived machine-readable formats such as JSON when interoperability or downstream processing requires it. Traditional databases remain a better fit when transactional guarantees, machine-scale relational workloads, or database-engine performance are the primary requirement.
+
 ## Core Design Commitments
 
 - **User-owned and privacy-focused** — the user owns and controls their core data. ShardBase does not require that data to leave the user's local environment for core operation.
@@ -173,7 +181,7 @@ If a user intentionally wants to version a live database, that should be an expl
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity has been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity and Differentiation have been defined in the Foundation Roadmap Workbook, while the remaining audience definition, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 

@@ -83,6 +83,18 @@ Automation should be favored for repetitive, deterministic, and safely reversibl
 
 ShardBase must not initiate publishing, sharing, synchronization, or transmission of private user-owned knowledge to an external service unless the user or an authorized workflow explicitly permits it.
 
+### 3.6 Shared Architectural Contract and Tool Composability
+
+ShardBase is an architectural contract over complementary knowledge-management primitives rather than a replacement for those primitives.
+
+Folders may express ownership and resource boundaries, YAML may express structural and semantic metadata, wikilinks and backlinks may express navigable relationships, Dataview and other query systems may project structured knowledge, templates and blueprints may standardize creation, deterministic scripts may automate repeatable work, and AI agents may interpret context and assist with decisions. No one of these tools is sufficient by itself to define ShardBase's structural meaning.
+
+The universal contract exists so humans, Obsidian, queries, scripts, validators, and AI agents can share a predictable interpretation of the same user-owned files while each tool remains replaceable or optional where the architecture permits.
+
+Core knowledge must remain directly inspectable and editable without requiring a traditional database server, bespoke application, hosted service, or device-specific interface. Widely available text and Markdown tooling should remain sufficient for direct access to the durable source files.
+
+Markdown and YAML should remain straightforward to parse and transform into derived machine-readable representations, such as JSON, when interoperability or downstream tooling requires them. Derived representations are not structurally authoritative unless this specification explicitly defines them as such.
+
 ## 4. Repository Model
 
 The canonical repository layout is:
