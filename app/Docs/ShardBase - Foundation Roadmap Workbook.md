@@ -17,6 +17,7 @@ current_definition: A privacy-focused, user-owned structured Markdown knowledge-
 current_goal: Let a knowledge base grow without losing lineage, portability, readability, or control.
 product_identity_status: accepted
 differentiation_status: accepted
+audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
 supporting_filename_strategy: Bounded Core context — `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants, capped at three structural context components; collisions are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
@@ -248,20 +249,109 @@ what_is_the_smallest_unique_idea_at_the_center_of_shardbase:
 
 ### Audience
 
-primary_user: 
-primary_user_problem: 
-primary_user_skill_level: 
-primary_user_workflow: 
-secondary_users: 
-future_users: 
-who_is_shardbase_not_for: 
-what_user_behaviors_fit_shardbase_well: 
-what_user_behaviors_conflict_with_shardbase: 
-does_shardbase_assume_the_user_understands_markdown: 
-does_shardbase_assume_the_user_uses_obsidian: 
-does_shardbase_assume_the_user_uses_ai: 
-how_much_architectural_knowledge_should_a_normal_user_need: 
-how_much_architectural_knowledge_should_a_power_user_need: 
+primary_user:
+  - The primary ShardBase user is an individual who wants to build and maintain a long-lived personal source of truth across multiple subjects or areas of life while retaining ownership, privacy, portability, and direct access to their underlying knowledge.
+  - They value interconnected and structured knowledge, but do not want the usefulness of their knowledge base to depend on a proprietary platform, hidden database, cloud service, or particular AI provider.
+  - They are willing to use a structured knowledge system when that structure reduces long-term organizational burden rather than creating additional maintenance for its own sake.
+  - They may use Obsidian, Dataview, automation, and AI assistance extensively, but should not need to become an expert in every underlying technology to benefit from ShardBase.
+
+primary_user_problem:
+  - The primary user's problem is keeping an increasingly large and interconnected body of personal knowledge coherent, discoverable, maintainable, and trustworthy over time without the organizational system becoming harder to maintain than the knowledge is useful.
+  - They need a reliable way to understand where information belongs, how it relates to other knowledge, how it can grow or be reorganized safely, and how humans and software can interpret the same underlying structure.
+  - They also need that organization to remain durable when particular applications, plugins, automation, synchronization services, or AI tools are unavailable.
+
+primary_user_skill_level:
+  - ShardBase should be usable by someone with general computer literacy and a basic willingness to work with Markdown-based notes; programming, database administration, YAML expertise, Git expertise, or detailed knowledge of ShardBase architecture should not be prerequisites for ordinary use.
+  - Because Obsidian is the primary target environment, early ShardBase users are likely to be comfortable with Obsidian and basic Markdown concepts, but the framework should not treat power-user knowledge as a permanent usability requirement.
+  - More advanced users may directly inspect or edit YAML, create Dataview queries, use Git, write scripts, or reason about ShardBase architecture, but those capabilities should expand what they can do rather than determine whether they can use the system at all.
+  - The desired long-term experience is progressive: users should be able to begin with simple knowledge capture and navigation and learn deeper architectural concepts only when those concepts become useful to them.
+
+primary_user_workflow:
+  - The primary workflow begins with capturing or creating information, either directly within an existing database when its destination is known or through the Inbox when it has not yet been classified.
+  - The user reviews and develops knowledge over time while ShardBase helps determine database ownership, Pool membership, Core lineage, immediate parentage, and whether information deserves a Core, Shard, Pebble, or ordinary Markdown structure.
+  - The user interacts with accumulated knowledge through normal reading and editing, links and backlinks, search, metadata, Dataview views, and optional AI-assisted retrieval or reasoning rather than depending primarily on filesystem navigation.
+  - As knowledge grows, the user can expand, connect, query, validate, refactor, archive, or reorganize it without abandoning the same durable Markdown source.
+  - Shard and deterministic tooling should progressively absorb repetitive structural work while keeping ambiguous, consequential, privacy-sensitive, or destructive decisions under meaningful user control.
+
+secondary_users:
+  - Secondary users include Obsidian power users, knowledge-management enthusiasts, researchers, writers, developers, students, professionals, and other individuals who already maintain substantial collections of notes and want stronger structural consistency, lineage, querying, or AI-assisted interaction.
+  - Secondary users also include technically inclined users who want to build custom Dataview views, scripts, validators, integrations, or other tooling over a predictable Markdown and YAML architecture.
+  - Some users may adopt ShardBase primarily for one substantial domain—such as research, projects, media, learning, or another personal knowledge area—without initially intending to build a comprehensive personal digital brain.
+  - Secondary users may interact more directly with ShardBase's architecture than the primary user, but they remain users of the same framework rather than a separate technical audience.
+
+future_users:
+  - Future users may include less technical individuals who interact with ShardBase primarily through higher-level interfaces, guided workflows, automation, or AI assistance rather than directly editing YAML or understanding the architectural model.
+  - Future users may include people who use ShardBase through interfaces other than Obsidian, provided those interfaces preserve the same user-owned Markdown and YAML foundation and architectural contracts.
+  - Future users may also include people who adopt packaged databases, workflows, blueprints, or domain-specific experiences built on top of ShardBase without needing to understand the full framework beneath them.
+  - ShardBase should leave room for broader accessibility over time without weakening its guarantees around ownership, inspectability, portability, structural integrity, privacy, or human control.
+
+who_is_shardbase_not_for:
+  - ShardBase is not primarily for users who want a completely maintenance-free knowledge system in which an external service owns all organization, storage, interpretation, and decision-making.
+  - It is not a strong fit for users who require a traditional database's transactional guarantees, machine-scale relational workloads, or database-engine performance as their primary requirement.
+  - It is not designed for users who want their knowledge to depend entirely on proprietary application state, cloud-only storage, or an opaque hosted service.
+  - It is not intended for users who want maximum automation even when that means surrendering meaningful control over destructive, ambiguous, privacy-sensitive, or consequential decisions.
+  - It is not intended for users whose preferred organizational model requires every relationship to be represented through deep filesystem hierarchy rather than metadata, links, and explicit structural contracts.
+  - It may be unnecessarily structured for users with very small, temporary, or disposable note collections that do not benefit from durable lineage, querying, growth, or long-term maintenance.
+
+what_user_behaviors_fit_shardbase_well:
+  - Capturing knowledge with the expectation that it may remain useful, connected, or evolve over a long period of time.
+  - Gradually developing information rather than attempting to perfectly model an entire knowledge base in advance.
+  - Valuing clear relationships, lineage, metadata, and context while accepting that not every piece of information needs its own file or structural entity.
+  - Reviewing and refining accumulated knowledge as its meaning, importance, or relationships become clearer.
+  - Using search, links, metadata, queries, views, and relationships as complementary ways to navigate knowledge rather than relying exclusively on folder locations.
+  - Preferring inspectable and reversible changes, particularly when reorganizing or automating important knowledge.
+  - Keeping knowledge in durable formats and treating applications, plugins, scripts, AI agents, and other tooling as interfaces over that knowledge rather than its sole owner.
+  - Allowing automation and AI to reduce repetitive work while retaining human judgment for ambiguous or consequential decisions.
+  - Building the system incrementally as new subjects, relationships, databases, and requirements emerge.
+
+what_user_behaviors_conflict_with_shardbase:
+  - Creating extensive hierarchy, metadata, files, or classifications preemptively without a demonstrated need for independent growth, querying, navigation, reuse, or lifecycle management.
+  - Treating folder location, filename conventions, tags, Dataview queries, or another individual tool as the sole authority for structural meaning.
+  - Frequently bypassing or contradicting documented structural metadata and database contracts without deliberately updating those contracts.
+  - Expecting AI agents or automation to silently make destructive, privacy-sensitive, ambiguous, or architecturally consequential decisions without review.
+  - Treating generated views, indexes, caches, or other derived representations as more authoritative than the durable Markdown and YAML source.
+  - Depending on undocumented hidden state or external services in ways that make the knowledge unintelligible or unusable when those systems are unavailable.
+  - Regularly duplicating knowledge instead of establishing appropriate ownership or relationships when one durable source of truth is intended.
+  - Optimizing the knowledge base for maximum structural complexity, automation, or technical sophistication rather than usefulness and maintainability.
+
+does_shardbase_assume_the_user_understands_markdown:
+  - ShardBase should assume that users can understand basic Markdown concepts or can learn them with minimal guidance, but it should not require advanced Markdown knowledge for ordinary use.
+  - A normal user should be able to read and edit ShardBase notes without understanding every Markdown feature, YAML syntax rule, wikilink behavior, or implementation detail.
+  - Because Markdown is the durable source of the user's knowledge, ShardBase should make the underlying files approachable enough that a user can inspect and recover their information even when higher-level tooling is unavailable.
+  - More advanced direct editing of structural metadata may require additional knowledge, but interfaces, templates, validation, and AI assistance should reduce the need for users to manipulate structural syntax manually.
+  - ShardBase documentation should teach the subset of Markdown and YAML concepts necessary for safe direct interaction rather than assuming prior expertise.
+
+does_shardbase_assume_the_user_uses_obsidian:
+  - ShardBase assumes Obsidian as its primary supported knowledge environment and should design its canonical user experience around Obsidian.
+  - It should not assume that Obsidian is always available or that the user's knowledge can only be accessed through Obsidian.
+  - Core content, structural metadata, lineage, and database meaning must remain readable and editable with ordinary Markdown-capable tools outside Obsidian.
+  - Features that rely specifically on Obsidian, Dataview, wikilink rendering, plugins, or other Obsidian functionality should be treated as enhanced interfaces rather than the sole representation of knowledge.
+  - ShardBase does not need to provide an equally polished experience in every Markdown application during the foundation stage; targeting Obsidian gives the framework a concrete environment against which its user experience can be designed and tested.
+  - The filesystem and repository experience should remain conscious of environments where the Obsidian vault root may also need to expose framework-level repository files, particularly on constrained or cloud-synchronized devices. Exact platform-specific requirements should be verified before being promoted to universal architectural rules.
+
+does_shardbase_assume_the_user_uses_ai:
+  - No. ShardBase is designed to benefit substantially from AI assistance, but AI must not be required for the durability, validity, readability, editability, or structural meaning of the user's knowledge.
+  - A user should be able to create, read, edit, navigate, search, and maintain a valid ShardBase knowledge base without using an AI agent.
+  - AI should make context-heavy activities such as classification, relationship discovery, retrieval, explanation, maintenance, and architectural reasoning easier rather than becoming the hidden mechanism that makes the system understandable.
+  - Deterministic rules and validation should govern structural invariants so users are not required to trust an AI model to determine whether their knowledge remains structurally valid.
+  - Users who choose AI assistance should be able to change models, providers, or agents without transferring architectural authority or data ownership to any particular AI system.
+  - Shard is therefore a canonical ShardBase agent and experience, not a prerequisite for the underlying knowledge to remain ShardBase-compatible.
+
+how_much_architectural_knowledge_should_a_normal_user_need:
+  - A normal user should need only a small conceptual model of ShardBase rather than detailed knowledge of its implementation or complete specification.
+  - They should understand, at a practical level, that knowledge belongs to databases, related information can form lineages, and ShardBase distinguishes between larger root subjects and smaller supporting information.
+  - They should not need to memorize structural YAML fields, filename algorithms, manifest requirements, validation rules, repository contracts, migration mechanics, or every distinction between Core, Shard, Pebble, and ordinary content before they can use the system productively.
+  - When a structural decision matters, ShardBase should explain it in terms of the user's knowledge and intended outcome rather than requiring the user to translate their intent into architectural terminology first.
+  - Interfaces, documentation, templates, validation, and AI assistance should progressively disclose architectural detail when it becomes relevant.
+  - A user who chooses to manually modify architecture should be able to learn the corresponding rules because those rules remain explicit, documented, and inspectable.
+
+how_much_architectural_knowledge_should_a_power_user_need:
+  - A power user should be able to understand the complete conceptual architecture well enough to intentionally create, inspect, query, extend, troubleshoot, and refactor ShardBase databases.
+  - They should understand database ownership, Pool → Core → Shard → Pebble semantics, structural versus semantic metadata, lineage authority, bounded filenames, minimum necessary structure, manifests, views, attachments, Inbox behavior, and relevant change-safety rules.
+  - They should be able to inspect YAML and Markdown directly and reason about whether a proposed structure conforms to the universal specification and the applicable `Database.md`.
+  - Power users who create automation, validators, scripts, templates, blueprints, integrations, or other extensions should understand the architectural contracts their tooling affects rather than relying only on observed implementation behavior.
+  - Power users should not need undocumented internal knowledge, hidden state, or ShardBase source-code expertise to understand the architecture. The specification and database contracts should contain enough information to explain valid behavior.
+  - Architectural knowledge should enable greater control and extension, not confer a separate class of authority over user-owned knowledge or permit tooling to bypass ShardBase safety guarantees.
 
 ### Shard — AI Agent
 
@@ -970,7 +1060,7 @@ definition_of_done_status: approved
 ### Product
 
 dod_purpose_is_explicit: complete
-dod_target_users_are_explicit: incomplete
+dod_target_users_are_explicit: complete
 dod_primary_use_cases_are_explicit: incomplete
 dod_goals_are_explicit: incomplete
 dod_non_goals_are_explicit: incomplete
@@ -1029,6 +1119,9 @@ open_question_10:
 
 idea_parking_lot_01:
   - Vault/runtime boundary: Generated runtimes, installed dependencies, caches, and other machine-specific execution artifacts should remain outside the ShardBase vault by default. ShardBase should minimize unnecessary filesystem noise and synchronization burden while keeping durable framework resources inside the vault inspectable and portable.
+  - Mobile and cloud-synchronized vaults may constrain where the Obsidian vault root can practically sit relative to the repository root, which can expose framework-level files and directories in the Obsidian file experience. Verify relevant Obsidian and platform behavior before defining a universal filesystem or packaging rule.
+  - Investigate whether Obsidian can exclude or hide framework-only files or folders from its file explorer and indexing in a way that works reliably across supported environments. Do not assume this capability until verified.
+  - Python Poetry is a possible future implementation option for keeping Python virtual environments outside the project root because its default environment location can live under Poetry's cache directory. Do not standardize Poetry or any package manager until an actual implementation requires that choice.
   - Revisit and incorporate this principle when defining `locality_means`, `portability_means`, `what_belongs_in_app_scripts`, `what_should_be_committed_by_default`, `what_should_be_ignored_by_default`, and implementation-specific compatibility or tooling policies.
 
 idea_parking_lot_02: 

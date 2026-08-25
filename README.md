@@ -33,6 +33,14 @@ ShardBase deliberately keeps Markdown and YAML as the durable source rather than
 
 External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
 
+## Who ShardBase Is For
+
+ShardBase is primarily for individuals who want to build a long-lived personal source of truth across multiple subjects or areas of life without surrendering ownership, privacy, portability, or direct access to their underlying knowledge. It is designed for people who value interconnected, structured knowledge but want the structure to reduce long-term organizational burden rather than become a system they must constantly maintain for its own sake.
+
+Ordinary use should not require programming, database administration, Git expertise, advanced YAML knowledge, or memorization of the complete ShardBase architecture. Users should be able to start with basic Markdown-oriented capture, reading, editing, and navigation, while deeper architectural concepts are disclosed when they become useful. Obsidian is the primary supported environment, but it is an interface over the durable Markdown and YAML source rather than a requirement for that source to remain understandable. AI assistance is similarly intentional and valuable but optional.
+
+ShardBase is especially suited to knowledge that is expected to grow, connect, be queried, or remain useful over time. It is less suited to disposable note collections, users who want an opaque service to own all organization and decision-making, or workloads whose primary needs are traditional database transactions and machine-scale relational performance.
+
 ## Structural Model
 
 ShardBase organizes structural knowledge through four concepts:
@@ -181,7 +189,7 @@ If a user intentionally wants to version a live database, that should be an expl
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity and Differentiation have been defined in the Foundation Roadmap Workbook, while the remaining audience definition, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, and Audience have been defined in the Foundation Roadmap Workbook, while the remaining AI-agent definition, design philosophy, guarantees, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 

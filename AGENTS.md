@@ -32,6 +32,8 @@ A user request expresses architectural intent. Preserve that intent where possib
 - Obsidian is the primary target environment, not the owner of ShardBase data or meaning.
 - Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, but views and queries do not define structural truth.
 - AI assistance is intentional but optional to the durability and meaning of the knowledge base. Do not make core structure depend on a particular AI model, provider, or service.
+- Ordinary users should not be required to know the complete ShardBase architecture, memorize structural metadata, or translate their intent into framework terminology before they can use the system productively. Explain structural decisions in terms of the user's knowledge and progressively expose architectural detail when it becomes relevant.
+- Power-user tooling may expose deeper architectural control, but it must not depend on undocumented hidden state or bypass universal safety and ownership rules.
 - Prefer automation for repetitive, deterministic, and safely reversible work. Keep consequential, ambiguous, privacy-sensitive, or destructive decisions under meaningful user control.
 - Do not initiate publishing, sharing, synchronization, or transmission of private user-owned knowledge to an external service unless the task or an authorized workflow explicitly permits it.
 

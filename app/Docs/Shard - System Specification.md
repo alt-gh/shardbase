@@ -95,6 +95,16 @@ Core knowledge must remain directly inspectable and editable without requiring a
 
 Markdown and YAML should remain straightforward to parse and transform into derived machine-readable representations, such as JSON, when interoperability or downstream tooling requires them. Derived representations are not structurally authoritative unless this specification explicitly defines them as such.
 
+### 3.7 Progressive Architectural Disclosure
+
+ShardBase must not require an ordinary user to understand the complete architecture before they can use the system productively. Basic use should be possible with general computer literacy and a practical understanding of Markdown-oriented notes. Programming, database administration, Git expertise, advanced YAML knowledge, and memorization of structural metadata or filename rules are not ordinary-use prerequisites.
+
+When structural decisions matter, Shard and other interfaces should explain them in terms of the user's knowledge and intended outcome rather than requiring the user to express that intent in ShardBase terminology first. Documentation, templates, validation, automation, and AI assistance should progressively expose deeper architectural detail as it becomes relevant.
+
+Power users and tooling authors should be able to understand and intentionally operate on the full documented architecture. That deeper access must not depend on undocumented hidden state, source-code-only behavior, or permission to bypass universal structural, privacy, ownership, or change-safety rules.
+
+Obsidian is the primary supported knowledge environment, but core knowledge must remain usable outside it as defined elsewhere in this specification. Platform-specific filesystem, synchronization, packaging, or runtime constraints must be verified before they are promoted to universal architectural requirements.
+
 ## 4. Repository Model
 
 The canonical repository layout is:
