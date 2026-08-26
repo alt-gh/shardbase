@@ -25,7 +25,7 @@ Before making structural or architectural changes, follow this authority order:
 
 The system specification defines the universal ShardBase contract: the cross-database concepts and invariants that every compliant database must share.
 
-`Database.md` defines how one database represents and operates on the particular domain of knowledge it owns. It may document semantic metadata, Pool vocabulary, Core strategy, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, resources, and other permitted extensions, but it must not override universal rules. It should not duplicate the complete System Specification merely to restate ShardBase.
+`Database.md` defines how one database represents and operates on the particular domain of knowledge it owns. It may document declared data collections and their meanings, semantic metadata, Pool vocabulary, Core strategy, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, templates, resources, and other permitted extensions, but it must not override universal rules. It should not duplicate the complete System Specification merely to restate ShardBase.
 
 Existing valid local conventions are subordinate to both authorities. They may guide continuity when several compliant choices remain, but existing content may demonstrate a preference; it must not secretly define a required contract. If a recurring convention becomes necessary for reliable interpretation, querying, validation, or creation, require it to be documented in `Database.md`.
 
@@ -69,31 +69,39 @@ A user may intentionally version, synchronize, move, or share their own database
 
 ## Database Root Contract
 
-A live database is a direct child of `app/Db/` and contains:
+A live database is a direct child of `app/Db/` and contains one or more declared data collections:
 
 ```text
 [Database Name]/
 ├── Data/
-│   └── [Singular Database Form]/
+│   ├── [Primary Data Collection]/
+│   │   └── Attachments/
+│   └── [Additional Data Collection]/
+│       └── Attachments/
+├── Templates/
 ├── Views/
-├── Attachments/
 └── Database.md
 ```
 
-Do not introduce nested database roots or category folders unless the framework specification is explicitly changed.
+Additional data collections and `Templates/` are optional; a minimal database needs only one declared data collection. Data collection names and meanings are database-specific and are declared in `Database.md`. Canonical database notes live directly in a declared collection root. `Attachments/` is a reserved non-structural resource directory and must be excluded from structural-note discovery, including when it happens to contain Markdown files. Do not recursively treat every descendant of `Data/` as a Core, Shard, or Pebble candidate.
+
+Data collections organize database-owned files; they do not define Pool membership, Core lineage, or parentage. Do not introduce nested database roots or undeclared data-collection directories unless the framework specification is explicitly changed.
+
+Database-owned templates must remain within the database boundary so they travel with the database. Their use may provide a valid editor-based creation path, but template headings or skeleton sections never imply separate structural-note materialization.
 
 ## Core Structural Rules
 
 - Preserve **Pool → Core → Shard → Pebble** semantics.
 - YAML metadata is authoritative for structural lineage.
 - `type` is reserved for `core`, `shard`, and `pebble`.
-- `pool` is a logical metadata value and does not require a Pool folder or Pool note.
+- `pool` is a logical metadata value and does not require a Pool folder or Pool note. A Core and its structural descendants use the same canonical Pool value.
 - `core` identifies the canonical root Core.
 - `parent_note` identifies the immediate structural parent.
 - A Core self-references through `core` and leaves `parent_note` empty.
 - A Pebble is terminal and must not parent another structural note.
 - Supporting filenames use bounded Core context: direct Core children use `Core - Current Node.md`; deeper descendants use `Core - Immediate Parent - Current Node.md`, capped at three structural context components. The immediate-parent component uses the parent's current-node name, not its full filename. Filename collisions must be reported and resolved through meaningful disambiguation rather than by adding more ancestry.
-- Prefer the minimum necessary structure.
+- Prefer the minimum necessary structure. A heading, including a heading in a template or skeleton document, is not evidence by itself that a Shard or Pebble should be created.
+- If completing the requested note suggests creating additional structural notes beyond the note the user intended to create, propose those additional notes and require deliberate user action before materializing them.
 - Keep semantic metadata separate from structural metadata.
 - Views may query structure but do not define it.
 
@@ -103,11 +111,12 @@ Before changing a live database:
 
 1. Identify the target database.
 2. Read its `Database.md`.
-3. Inspect the relevant Core lineage, existing local conventions, and the documented structural and semantic note kinds applicable to the task.
-4. Classify the requested outcome using ShardBase rules and the database-defined semantic schema rather than inventing undocumented note types or parallel authorities.
-5. Prefer the smallest valid change and allow additional structure to emerge only when it provides demonstrated value.
-6. Preserve user-authored content unless modification is explicitly required.
-7. Validate metadata, lineage, naming, placement, references, and applicable semantic conventions after the change.
+3. Identify the declared data collection that should contain the canonical file when the task creates, promotes, or relocates canonical knowledge.
+4. Inspect the relevant Core lineage, existing local conventions, database-owned templates when applicable, and the documented structural and semantic note kinds applicable to the task.
+5. Classify the requested outcome using ShardBase rules and the database-defined semantic schema rather than inventing undocumented note types, treating data collections as lineage, or creating parallel authorities.
+6. Prefer the smallest valid change and allow additional structure to emerge only when it provides demonstrated value.
+7. Preserve user-authored content unless modification is explicitly required.
+8. Validate metadata, lineage, naming, placement, references, and applicable semantic conventions after the change.
 
 Infer routine architectural details when the specification, database contract, and existing context determine them; do not require the user to supply structural terminology, metadata values, filenames, or other implementation details that can be resolved safely.
 
@@ -125,7 +134,8 @@ Unless explicitly authorized, do not:
 - rewrite factual or domain-specific content during a structural migration;
 - break existing links;
 - move attachments across database boundaries;
-- silently synchronize a live database from a changed blueprint.
+- silently synchronize a live database from a changed blueprint;
+- materialize additional structural notes merely because a requested note contains headings, skeleton sections, or links suggesting possible future notes.
 
 Authorization is scoped to the requested task. Context, brainstorming, side comments, future ideas, or unrelated information supplied during a task do not by themselves authorize changes to adjacent material or broaden the operation's scope. The ability to perform an action is not permission to perform it.
 
@@ -135,13 +145,13 @@ Structural normalization may correct clear metadata, naming, or lineage violatio
 
 Blueprints are framework-owned bootstrap material. They may be used to create a new database.
 
-After creation, the live database owns its `Database.md`, Data, Views, Attachments, and other local resources. Later blueprint changes are not automatically authoritative for that database.
+After creation, the live database owns its `Database.md`, declared Data collections, collection-local Attachments, Views, database-owned templates, and other local resources. Later blueprint changes are not automatically authoritative for that database.
 
 Any upgrade from a newer blueprint must be an explicit migration.
 
 ## Inbox Rule
 
-`app/Inbox/` is pre-structural local capture.
+`app/Inbox/` is pre-structural local capture and is the default destination for ordinary ad-hoc new notes created through a Markdown editor or directly through the filesystem when they have not been created through a ShardBase-aware canonical creation path.
 
 Inbox items:
 
@@ -151,7 +161,9 @@ Inbox items:
 - should not own local attachments;
 - must not be committed by default.
 
-Promotion from Inbox into a database requires classification and conformance to the destination `Database.md`.
+The canonical day-to-day interaction model remains direct reading and editing of Markdown in the user's chosen compatible editor. New databases and new canonical structural notes should preferentially be created through a ShardBase-aware creation path, such as a future CLI or a valid database-owned template, so placement, metadata, naming, and lineage can be applied consistently. Knowledgeable users may still create canonical files manually when they intentionally satisfy the documented contract.
+
+Promotion from Inbox into a database requires classification and conformance to the destination `Database.md`. AI-provider API integration is not required for this workflow; users may deliberately provide authorized ShardBase files or context to external AI agents of their choice.
 
 ## Git Commit Messages
 

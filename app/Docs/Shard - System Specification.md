@@ -94,7 +94,7 @@ ShardBase is local-first. User-owned knowledge and local state remain on the use
 
 A database should remain understandable and movable as one self-contained root.
 
-Database-local data, views, attachments, schema, conventions, and database-owned agent resources should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework.
+Database-local declared data collections, views, collection-local attachments, database-owned templates, schema, conventions, and database-owned agent resources should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework.
 
 Core knowledge and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, scripts, synchronization services, or other optional tooling.
 
@@ -136,7 +136,7 @@ Obsidian is the primary supported knowledge environment, but core knowledge must
 
 The user's intended outcome is the goal; the documented ShardBase architecture constrains how that goal may be implemented. Shard should preserve the substance of user intent whenever a valid implementation exists, even when the user's requested terminology or structural implementation is incorrect. Architectural invalidity and architectural preference must remain distinct: Shard must not implement invalid structure, but it must not override a user's valid preference merely because another design seems more elegant.
 
-When sufficient context exists, Shard should infer routine architectural details such as the target database, Pool, root Core, immediate parent, structural classification, materialization need, metadata, naming, and placement. It should prefer the smallest valid interpretation and preserve existing valid local conventions. Shard should not require the user to perform architectural translation or choose deterministic implementation details that the documented contracts already resolve.
+When sufficient context exists, Shard should infer routine architectural details such as the target database, declared data collection, Pool, root Core, immediate parent, structural classification, materialization need, metadata, naming, and placement. It should prefer the smallest valid interpretation and preserve existing valid local conventions. Shard should not require the user to perform architectural translation or choose deterministic implementation details that the documented contracts already resolve.
 
 Shard should ask for clarification when missing information would materially affect ownership, structural identity, lineage, privacy, visibility, destructive behavior, or data integrity and cannot be safely determined from existing context. When a safe, minimal, non-destructive interpretation exists, Shard should proceed with that interpretation and disclose any significant assumption rather than creating unnecessary approval friction.
 
@@ -181,12 +181,12 @@ ShardBase should strongly pursue compatibility, low-risk evolution, useful expor
 ShardBase uses three distinct levels of documented database behavior:
 
 1. **Universal contract** — this System Specification defines the cross-database concepts, invariants, authority boundaries, structural semantics, ownership rules, safety requirements, and guarantees that every compliant ShardBase database must share.
-2. **Database contract** — the database root's `Database.md` defines how that database represents and operates on the particular domain of knowledge it owns, including its purpose, scope, Pool vocabulary, Core strategy, semantic schema, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, resources, and permitted local extensions.
+2. **Database contract** — the database root's `Database.md` defines how that database represents and operates on the particular domain of knowledge it owns, including its purpose, scope, declared data collections and their meanings, Pool vocabulary, Core strategy, semantic schema, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, templates and other resources, and permitted local extensions.
 3. **Existing valid convention** — established local patterns may guide continuity when several choices remain valid under both higher authorities, but they are preferences rather than hidden contractual requirements. Existing content may demonstrate a preference; it must not secretly define a required contract.
 
 Local rules may extend or specialize only areas the universal contract intentionally leaves open. They must not redefine reserved structural fields, Pool → Core → Shard → Pebble semantics, structural lineage authority, database ownership boundaries, filename and placement invariants, the terminal nature of Pebbles, structural-versus-semantic separation, hidden-state prohibitions, or universal ownership, privacy, preservation, authorization, and change-safety requirements. A conflicting local rule is invalid rather than an authorized exception.
 
-Conversely, domain-specific entities, semantic fields, Pool vocabularies, taxonomies, relationships, local lifecycle concepts, note-body templates, views, workflows, and implementation technologies must not be promoted into universal architecture merely because one or several databases find them useful. Reuse across databases is evidence to evaluate, not automatic grounds for universalization.
+Conversely, domain-specific entities, semantic fields, data-collection names and meanings, Pool vocabularies, taxonomies, relationships, local lifecycle concepts, note-body templates, views, workflows, and implementation technologies must not be promoted into universal architecture merely because one or several databases find them useful. Reuse across databases is evidence to evaluate, not automatic grounds for universalization.
 
 Extensions that affect interpretation of canonical database knowledge must be documented in `Database.md`, including their meaning, scope, required or optional status, bounded values or constraints when relevant, and interaction with existing structural or semantic concepts. Extensions must use their own semantic names rather than repurpose reserved universal fields. Tool-specific details may live elsewhere when they do not affect canonical interpretation, but `Database.md` should point to them when knowledge of those details is required to operate the database correctly.
 
@@ -204,9 +204,12 @@ shardbase/
 │   ├── Db/
 │   │   └── [Database Name]/
 │   │       ├── Data/
-│   │       │   └── [Singular Database Form]/
+│   │       │   ├── [Primary Data Collection]/
+│   │       │   │   └── Attachments/
+│   │       │   └── [Additional Data Collection]/
+│   │       │       └── Attachments/
+│   │       ├── Templates/
 │   │       ├── Views/
-│   │       ├── Attachments/
 │   │       └── Database.md
 │   ├── Docs/
 │   ├── Inbox/
@@ -229,11 +232,11 @@ Blueprint format is intentionally implementation-defined until automation requir
 
 Contains live user-owned databases and is a primary private-data boundary.
 
-For the foundation version, each database root is a **direct child** of `app/Db/`. Nested database roots and category directories are not part of the v1 foundation contract.
+For the foundation version, each database root is a **direct child** of `app/Db/`. Nested database roots and category directories are not part of the v1 foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
 
 Live database contents are local and private by default. They must not enter the distributable framework repository, framework releases, public repositories, or external transmissions merely because they exist inside the ShardBase project tree. Versioning, synchronization, backup, movement, or sharing of a live database must result from a deliberate user choice. A user may intentionally version a database, including in a private Git repository, without changing the framework-wide default.
 
-Database-owned specialist agents should remain portable with their databases once the canonical agent layout is finalized. Their domain assistance may travel with a deliberately moved or shared database, but architectural and semantic authority must remain in this specification and the database's documented contract rather than only in the agent definition.
+Database-owned specialist agents should remain portable with their databases once the canonical agent layout is finalized. Database-owned templates likewise remain inside the database boundary so creation guidance can travel with the schema and conventions it implements. Their domain assistance or template behavior may travel with a deliberately moved or shared database, but architectural and semantic authority must remain in this specification and the database's documented contract rather than only in an agent or template definition.
 
 ### 4.3 `app/Docs/`
 
@@ -277,18 +280,25 @@ Ignoring private data protects against future accidental tracking; it does not r
 
 ## 5. Database Root Contract
 
-Every live database has this root structure:
+Every live database has one or more declared data collections beneath `Data/`:
 
 ```text
 [Database Name]/
 ├── Data/
-│   └── [Singular Database Form]/
+│   ├── [Primary Data Collection]/
+│   │   └── Attachments/
+│   └── [Additional Data Collection]/
+│       └── Attachments/
+├── Templates/
 ├── Views/
-├── Attachments/
 └── Database.md
 ```
 
-A database root must not exist inside another database root.
+Additional data collections and `Templates/` are optional. A minimal valid database needs one declared data collection, an appropriate collection-local `Attachments/` boundary, `Views/`, and `Database.md`. A database root must not exist inside another database root.
+
+A **data collection** is a database-defined filesystem grouping for canonical notes. It is not a Pool, Core, Shard, Pebble, or structural lineage mechanism. The primary collection is commonly named for the singular form of the database subject, while additional collections may represent other domain-owned kinds such as a series or collection concept. Collection names and meanings belong to the database contract.
+
+Canonical Markdown notes live directly inside a declared data collection. Tooling must discover structural-note candidates from the declared collection roots rather than recursively treating every descendant beneath `Data/` as structural content. `Attachments/` is a reserved non-structural resource directory and must always be excluded from Core, Shard, and Pebble discovery, regardless of the file extensions it contains.
 
 ### 5.1 Database Manifest
 
@@ -303,7 +313,8 @@ Required manifest frontmatter:
 manifest_version: 1
 database_id: example-database
 database_name: Example Database
-data_folder: Example
+data_collections:
+  - Example
 database_status: active
 ---
 ```
@@ -324,21 +335,29 @@ It should remain unchanged if the database display name or directory name change
 
 The canonical human-readable database name.
 
-#### `data_folder`
+#### `data_collections`
 
-The exact name of the singular data directory beneath `Data/`.
+A non-empty list containing the exact names of the database-defined canonical data directories directly beneath `Data/`.
 
 Example:
 
 ```yaml
-data_folder: Game
+data_collections:
+  - Game
+  - Series
 ```
 
 corresponds to:
 
 ```text
-Data/Game/
+Data/
+├── Game/
+│   └── Attachments/
+└── Series/
+    └── Attachments/
 ```
+
+Each declared collection owns canonical note locations at its root and reserves its own `Attachments/` child as non-structural resources. Declaring a collection does not establish Pool membership, Core lineage, structural type, or parentage. `Database.md` must document the domain meaning and intended use of each collection.
 
 #### `database_status`
 
@@ -384,27 +403,41 @@ Why the database exists.
 
 #### Scope
 
-What the database owns and what it intentionally does not own.
+What the database owns and what it intentionally does not own. Scope defines the database's semantic ownership boundary rather than merely describing the files currently present. `Includes` should identify owned kinds of knowledge, while `Excludes` should clarify realistic nearby concepts that could otherwise create ownership ambiguity. Relationships to knowledge owned elsewhere do not automatically transfer ownership or justify duplicate authoritative copies.
 
 #### Architecture
 
-How the database applies ShardBase locally, including Pool usage and Core strategy.
+How the database applies ShardBase locally, including the meaning of each declared data collection, Pool usage, and Core strategy. Data collections organize files and must not be described as structural ancestry.
 
 #### Schema
 
-The complete documented semantic schema needed to interpret the database's domain-specific knowledge, layered on top of universal ShardBase structural metadata. This includes semantic fields, their meanings, bounded values or constraints where relevant, important semantic relationships, and domain-specific note kinds or categories that can affect classification or note design.
+The complete documented semantic schema needed to interpret the database's domain-specific knowledge, layered on top of universal ShardBase structural metadata. This includes semantic fields, their meanings, where they apply, whether they are required or optional when that distinction matters, expected value shapes, bounded values or constraints where relevant, important semantic relationships, and the complete documented set of domain-specific note kinds or categories that can affect classification or note design.
 
 If no additional metadata or semantic note kinds exist, say so explicitly.
 
 #### Conventions
 
-Database-local naming, relationship, lifecycle, content, organizational, or workflow conventions that do not override ShardBase invariants. A convention that becomes necessary for reliable interpretation, querying, validation, creation, or shared semantic understanding belongs here rather than remaining only implicit in existing content.
+Database-local naming, relationship, lifecycle, content, organizational, attachment, template, or workflow conventions that do not override ShardBase invariants. A convention that becomes necessary for reliable interpretation, querying, validation, creation, or shared semantic understanding belongs here rather than remaining only implicit in existing content. Purely stylistic preferences may remain existing conventions when they do not affect reliable operation.
 
 If no additional conventions exist, say so explicitly.
 
 #### Resources
 
-Links or descriptions for relevant Views, attachments guidance, scripts, or other database-local resources.
+Links or descriptions for relevant Views, collection-local attachment guidance, database-owned templates, scripts, or other database-local resources.
+
+### 5.3 Canonical Database Experience
+
+ShardBase's primary day-to-day interaction surface is the user's chosen compatible Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly; routine prose, heading, list, link, embed, and metadata editing must not require a CLI or AI agent.
+
+Creation and editing are distinct concerns. New databases and new canonical structural notes should preferentially be created through a ShardBase-aware creation path that can apply the documented placement, metadata, naming, lineage, and validation rules consistently. A future CLI is the intended framework-owned creation surface, but no CLI runtime or implementation is part of the foundation contract yet. A database-owned template may also provide a valid editor-based creation path when it produces a note that conforms to this specification and the database contract. Knowledgeable users retain the ability to create canonical files manually, subject to the same validation requirements.
+
+Ordinary ad-hoc notes created through a Markdown editor or directly through the filesystem should enter `app/Inbox/` by default when they have not been created through a ShardBase-aware canonical creation path. Promotion into a database requires classification and conformance to the destination database contract.
+
+Database-owned templates must remain within the portable database boundary. The optional root-level `Templates/` directory is the canonical database-owned template location for the foundation architecture. Templates are creation resources, not structural notes or architectural authority. Headings and skeleton sections inside a template remain document structure and must never be interpreted by themselves as instructions to materialize additional Shards or Pebbles.
+
+Shard and other AI agents are assistance layers rather than the primary editor. ShardBase does not require scripts, a CLI, or another built-in component to call model-provider APIs during the foundation stage. A user may deliberately provide authorized ShardBase files or context to an external AI agent or application of their choice. Such use remains subject to the local-first transmission boundary and does not make the external AI system authoritative over the canonical Markdown and YAML.
+
+A good database should remain discoverable without requiring filesystem expertise, queryable from explicit source meaning rather than query-specific invention, manually editable as ordinary Markdown, and sufficiently documented that Shard can explain or assist with the database when the user deliberately supplies the relevant authorized context.
 
 ## 6. Structural Model
 
@@ -420,13 +453,13 @@ In the foundation architecture, a Pool is represented by metadata rather than by
 
 A database may define one or many Pool values in its own contract.
 
-Pool membership organizes related lineages but does not itself establish parent-child ancestry.
+Pool membership organizes related lineages but does not itself establish parent-child ancestry. A structural lineage uses one canonical Pool value: the Core and its structural descendants should share that Pool. Changing a lineage's Pool is therefore a lineage-level classification change rather than a local child-note preference. Data collections and Pools are independent concepts.
 
 ### 6.2 Core
 
 A Core is the root structural entity of one lineage.
 
-A Core should represent a stable, independently meaningful entity capable of owning Shards or Pebbles.
+A Core should represent a stable, independently meaningful root subject capable of owning Shards or Pebbles. Importance or size alone does not justify Core status, and semantic containers such as categories, series, collections, franchises, or organizations do not automatically become structural roots merely because they group other knowledge. A database may document different Core strategies for different data collections when its domain requires them.
 
 A Core has no structural parent.
 
@@ -436,7 +469,7 @@ A Shard is a meaningful subdivision of a Core or another Shard.
 
 A Shard may own child Shards or Pebbles.
 
-A Shard should exist only when separate growth, querying, navigation, reuse, or lifecycle management provides meaningful value.
+A Shard should exist only when separate growth, querying, navigation, reuse, or lifecycle management provides meaningful value. It may be short and have no current children if credible independent growth justifies a continuing structural role. Shards must not be created simply to reproduce every heading, template section, skeleton section, or semantic category as a file.
 
 ### 6.4 Pebble
 
@@ -444,19 +477,20 @@ A Pebble is a terminal structural note.
 
 A Pebble must not parent another structural note.
 
-If a Pebble requires structural children, it must be reconsidered and normally reclassified as a Shard.
+If a Pebble requires structural children, it must be reconsidered and normally reclassified as a Shard. Pebble is a terminal structural role rather than a statement about note length; a Pebble may still contain substantial Markdown, headings, links, attachments, semantic metadata, and non-structural relationships.
 
 ## 7. Classification Protocol
 
 Before creating or restructuring a structural note, Shard must determine:
 
 1. Which database owns the information.
-2. Which Pool it belongs to.
-3. Which Core owns the lineage.
-4. Which note is the immediate structural parent.
-5. Whether the entity is a Core, Shard, Pebble, or ordinary content inside an existing note.
-6. Whether it needs an independent lifecycle.
-7. Whether independent querying, navigation, reuse, or future growth justifies a separate file.
+2. Which declared data collection should contain the canonical file.
+3. Which Pool it belongs to.
+4. Which Core owns the lineage.
+5. Which note is the immediate structural parent.
+6. Whether the entity is a Core, Shard, Pebble, or ordinary content inside an existing note.
+7. Whether it needs an independent lifecycle.
+8. Whether independent querying, navigation, reuse, or future growth justifies a separate file.
 
 Classification guidance:
 
@@ -465,7 +499,9 @@ Classification guidance:
 - Use a **Pebble** for a terminal independent knowledge unit.
 - Use a **heading** when independent structure adds no meaningful benefit.
 
-A semantic relationship such as membership in a category, series, collection, franchise, organization, or project does not automatically create structural lineage.
+The existence of a heading, including a heading in a template or heading-only skeleton document, is never sufficient evidence that a separate structural note should be created. Content may remain under a heading indefinitely when its primary meaning and usefulness depend on the surrounding note. If a requested note suggests additional structural notes beyond the note the user intended to create, those additional materializations require deliberate user action rather than automatic creation.
+
+A semantic relationship such as membership in a category, series, collection, franchise, organization, or project does not automatically create structural lineage. Data-collection membership likewise does not create structural lineage.
 
 ## 8. Structural Metadata Schema
 
@@ -659,7 +695,7 @@ Every heading must be followed by exactly one blank line before its content.
 
 Lists, tables, callouts, code blocks, and embeds may contain information but must not substitute for headings when a real document hierarchy exists.
 
-Do not create empty structural headings merely to make a document appear more organized.
+Do not create empty structural headings merely to make a document appear more organized. A heading-only skeleton may be a deliberate document template or planning aid; tooling must not treat its headings as instructions to create separate Shards or Pebbles.
 
 ## 11. Ghost Shards
 
@@ -681,7 +717,7 @@ Do not materialize a Ghost Shard until independent structure provides meaningful
 
 `app/Blueprints/` contains framework-owned bootstrap material for creating new databases.
 
-A blueprint may describe or provide an initial database directory, `Database.md`, Views, starter structural content, or other distributable database resources. ShardBase may ship optional or default database packages, and such a package may include an initial specialist database agent once agent packaging is defined. Users may also create entirely new databases and agents of their own.
+A blueprint may describe or provide an initial database directory, `Database.md`, declared data collections, Views, database-owned templates, starter structural content, or other distributable database resources. ShardBase may ship optional or default database packages, and such a package may include an initial specialist database agent once agent packaging is defined. Users may also create entirely new databases and agents of their own.
 
 Blueprints are authoritative only during database creation.
 
@@ -707,21 +743,23 @@ Structural rules must not exist only inside a query that Shard cannot infer from
 
 ## 14. Attachments
 
-A database's root-level `Attachments/` directory contains local non-structural files owned by that database.
+Each declared data collection reserves `Data/<collection>/Attachments/` for local non-structural files owned by the database. Keeping attachments beneath the collection containing canonical notes supports editor workflows that place new attachments in a subfolder under the current note directory while preserving database portability.
 
 Attachments:
 
-- are not Cores, Shards, Pebbles, or Pools;
+- are not Cores, Shards, Pebbles, Pools, or structural-note candidates;
 - do not use structural YAML;
+- must be excluded from recursive structural discovery even if an attachment has a `.md` extension;
 - may be referenced by multiple notes inside the same database;
 - should not be referenced across database boundaries;
-- must not be automatically deleted merely because a note is deleted.
+- must not be automatically deleted merely because a note is deleted;
+- must not have their unresolved references silently removed merely because the underlying file is missing or has been deliberately offloaded.
 
-Orphan cleanup must be explicit and user-authorized.
+Orphan cleanup must be explicit and user-authorized. A missing local attachment reference should be reported as unavailable rather than rewritten away. ShardBase may later support deliberate attachment offloading and restoration, but the exact offload representation and lifecycle mechanism remain unresolved until the Knowledge Lifecycle contract defines them.
 
 ## 15. Inbox
 
-`app/Inbox/` is the local intake boundary for information that has not yet been verified, classified, or assigned to a database.
+`app/Inbox/` is the local intake boundary for information that has not yet been verified, classified, or assigned to a database. It is also the default destination for ordinary ad-hoc new notes created through a Markdown editor or directly through the filesystem when they have not been created through a ShardBase-aware canonical creation path.
 
 Inbox items are intentionally pre-structural.
 
@@ -735,7 +773,7 @@ They do not require:
 
 Inbox items should be text-only local capture and should not own local attachments.
 
-During review, an Inbox item may be discarded, merged into an existing note, or promoted into a database.
+During review, an Inbox item may be discarded, merged into an existing note, or promoted into a database. A future CLI or a conforming database-owned template may create canonical database notes directly; intentional manual canonical creation remains possible for knowledgeable users, but ordinary capture should not bypass classification merely because a file can physically be placed inside a database.
 
 Promotion requires classification under this specification and conformance to the destination `Database.md`.
 
@@ -777,7 +815,9 @@ AI reasoning and deterministic tooling should complement one another. AI may int
 
 AI assistance must remain optional to the durability and structural meaning of the knowledge base. ShardBase must not require a particular AI model, provider, or service for core knowledge to remain valid. Local authorization to read user-owned knowledge does not authorize a script, agent, or integration to transmit that knowledge to an external AI or other service.
 
-A future CLI may become the preferred safe interface for structural operations, but no CLI runtime contract is part of the foundation specification yet.
+A future CLI is intended to become the preferred framework-owned interface for creating databases and new canonical structural notes, as well as for other deterministic structural operations where controlled creation reduces invalid states. It is not intended to replace the Markdown editor as the user's primary reading and editing interface, and no CLI runtime contract is part of the foundation specification yet.
+
+ShardBase should not initially require framework scripts or the CLI to communicate with AI models through provider APIs. Users may deliberately supply authorized ShardBase files or context to external AI agents and applications of their choice. Built-in model-provider integration remains deferred until a concrete implementation requirement justifies it.
 
 ## 18. Architectural Continuity
 
@@ -819,7 +859,8 @@ Unless the task clearly authorizes the action, Shard must not assume permission 
 - publish, share, synchronize, upload, transmit, or otherwise expose user-owned knowledge or local state outside the local environment without the user's explicit authorization or an already-authorized workflow;
 - perform destructive migrations, irreversible transformations, or large-scale refactors;
 - make consequential assumptions about privacy, visibility, ownership, identity, or deletion;
-- materialize large amounts of speculative structure.
+- materialize large amounts of speculative structure;
+- create additional structural notes beyond the note the user intended to create merely because headings, templates, skeleton sections, links, or other context suggest possible subdivisions.
 
 Authorization is scoped to the requested task. Context, brainstorming, side comments, future ideas, or unrelated information supplied during a task do not by themselves authorize Shard to modify adjacent content or broaden the operation's scope. Shard must preserve unrelated user-authored content during structural work and keep normalization limited to the authorized scope.
 
@@ -834,7 +875,10 @@ When auditing structural content, validate the following.
 - The database is a direct child of `app/Db/`.
 - `Database.md` exists at the database root.
 - Required manifest fields exist and use valid values.
-- `data_folder` resolves to `Data/<data_folder>/`.
+- `data_collections` is a non-empty list of unique declared collection names.
+- Every declared collection resolves to a direct child `Data/<collection>/`.
+- Canonical note discovery inspects declared collection roots and excludes each collection's reserved `Attachments/` subtree.
+- Undeclared direct-child data collection directories are reported for review.
 - Required manifest body sections exist.
 - Database-specific rules do not override universal invariants.
 
@@ -843,6 +887,7 @@ When auditing structural content, validate the following.
 - Required structural fields exist.
 - `type` is `core`, `shard`, or `pebble`.
 - `pool` is a scalar canonical Pool value.
+- Shards and Pebbles use the same canonical Pool value as their root Core.
 - Core notes self-reference through `core`.
 - Supporting notes resolve to the canonical root Core.
 - `parent_note` resolves to the immediate parent.
@@ -873,7 +918,8 @@ When auditing structural content, validate the following.
 - Heading levels are sequential.
 - Headings are followed by exactly one blank line.
 - Structural hierarchy uses headings rather than decorative formatting.
-- Empty structural headings are avoided.
+- Empty structural headings are avoided unless they are deliberate skeleton or template structure.
+- Heading-only skeletons are not treated as instructions to materialize separate structural notes.
 
 ### 20.6 Fragmentation
 
@@ -882,11 +928,13 @@ When auditing structural content, validate the following.
 - Empty or near-empty structural notes are flagged for review.
 - Duplicate or overlapping Shards are flagged.
 - Ghost Shards are not prematurely materialized.
+- Additional structural notes are not materialized solely from headings, templates, skeleton sections, or semantic categories without independent-value justification and deliberate user authorization when they extend beyond the requested note.
 
 ### 20.7 Attachments
 
-- Local attachments live in the owning database's `Attachments/` directory.
-- Local references resolve.
+- Local attachments live in `Data/<declared collection>/Attachments/` within the owning database.
+- Attachment directories are excluded from structural-note discovery.
+- Local references resolve, or unresolved references are reported as unavailable without being silently removed.
 - References do not cross database boundaries.
 - Orphans are reported rather than automatically deleted.
 
@@ -895,6 +943,7 @@ When auditing structural content, validate the following.
 - Inbox files are treated as pre-structural.
 - Inbox files are not required to satisfy database schemas.
 - Inbox contents are ignored by Git.
+- Ordinary ad-hoc editor or filesystem capture defaults to Inbox unless it was created through a conforming ShardBase-aware canonical creation path.
 - Promotion applies proper classification and destination-database rules.
 
 ## 21. Shard Response Contract
@@ -903,14 +952,15 @@ When proposing a structural entity, Shard should provide enough information to m
 
 1. classification;
 2. database ownership;
-3. Pool;
-4. root Core;
-5. immediate parent;
-6. recommended location;
-7. filename;
-8. required metadata;
-9. rationale;
-10. significant assumptions or future Ghost Shards.
+3. data collection;
+4. Pool;
+5. root Core;
+6. immediate parent;
+7. recommended location;
+8. filename;
+9. required metadata;
+10. rationale;
+11. significant assumptions or future Ghost Shards.
 
 When auditing, Shard should report:
 
@@ -928,6 +978,7 @@ Responses should prioritize architectural reasoning over unnecessary implementat
 Shard exists to answer, for every structural decision:
 
 - Which database owns this?
+- Which declared data collection should contain its canonical file?
 - Which Pool does it belong to?
 - What is its root Core?
 - What is its immediate parent?

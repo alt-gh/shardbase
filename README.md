@@ -85,12 +85,15 @@ shardbase/
 │   ├── Db/
 │   │   └── [Database Name]/
 │   │       ├── Data/
-│   │       │   └── [Singular Database Form]/
-│   │       │       ├── Core.md
-│   │       │       ├── Core - Shard.md
-│   │       │       └── Core - Shard - Pebble.md
+│   │       │   ├── [Primary Data Collection]/
+│   │       │   │   ├── Core.md
+│   │       │   │   ├── Core - Shard.md
+│   │       │   │   ├── Core - Shard - Pebble.md
+│   │       │   │   └── Attachments/
+│   │       │   └── [Additional Data Collection]/
+│   │       │       └── Attachments/
+│   │       ├── Templates/
 │   │       ├── Views/
-│   │       ├── Attachments/
 │   │       └── Database.md
 │   ├── Docs/
 │   │   ├── Shard - System Specification.md
@@ -104,27 +107,41 @@ shardbase/
 └── README.md
 ```
 
+`Templates/` and additional data collections are optional. A minimal database needs only one declared data collection.
+
 ## Database Anatomy
 
 Each live database is a direct child of `app/Db/` and is self-contained.
 
 ### `Database.md`
 
-The database manifest and local contract. It defines database identity, scope, data folder, semantic schema, conventions, and resources.
+The database manifest and local contract. It defines database identity, scope, declared data collections, semantic schema, conventions, and resources.
 
-### `Data/[Singular Database Form]/`
+### `Data/[Data Collection]/`
 
-Contains all structural notes for the database.
+Contains canonical database notes for one database-defined data grouping. A database has one or more declared data collections; the primary collection is commonly the singular form of the database subject, while additional collections may represent other domain-owned kinds such as a series or collection concept.
 
-Pools are **logical metadata values**, not required filesystem folders. This keeps the database filesystem shallow while preserving flexible grouping through YAML and queries.
+Canonical Markdown notes live directly inside their declared data collection. `Attachments/` is a reserved non-structural resource subdirectory and must be excluded from structural-note discovery even if it contains a Markdown file. Tools should scan the declared collection roots rather than recursively treating every descendant beneath `Data/` as a Core, Shard, or Pebble candidate.
+
+Data collections organize database-owned files; they do not define Pool membership, Core lineage, or structural parentage. Pools remain **logical metadata values**, not required filesystem folders.
+
+### `Data/[Data Collection]/Attachments/`
+
+Contains local non-structural files owned by the database and associated with that collection. Cross-database attachment references should be avoided so a database remains portable. A missing or deliberately offloaded attachment reference should be surfaced rather than silently removed; the exact offloading and restoration mechanism remains a lifecycle design question.
+
+### `Templates/`
+
+Optional database-owned note templates may live with the database so they remain portable with its schema and conventions. Templates may provide a ShardBase-aware creation path in Markdown editors, but headings or skeleton sections inside a template do not by themselves justify creating additional structural notes.
 
 ### `Views/`
 
 Contains database-local views and queries. Dataview is a primary and canonical ShardBase interface in Obsidian. Views consume metadata; they do not define structural truth.
 
-### `Attachments/`
+## Canonical Database Experience
 
-Contains local files owned by the database. Cross-database attachment references should be avoided so a database remains portable.
+ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. New databases and new canonical structural notes should preferentially be created through a ShardBase-aware creation path, such as the future CLI or a valid database-owned template, so required placement, metadata, naming, and lineage rules can be applied consistently. Ordinary ad-hoc notes created through an editor or filesystem belong in `app/Inbox/` by default until reviewed and promoted; knowledgeable users may still create canonical files manually when they intentionally satisfy the documented contract.
+
+The foundation does not require ShardBase scripts or a CLI to call AI-model APIs. Users may deliberately provide authorized ShardBase files or context to external AI agents and applications of their choice. AI assistance should reduce architectural burden without becoming the primary editor, a hidden source of truth, or a prerequisite for using the underlying Markdown knowledge.
 
 ## Structural Metadata
 
@@ -140,7 +157,7 @@ status: active
 ---
 ```
 
-For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty.
+For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty. A Core and its structural descendants use the same canonical `pool` value.
 
 Domain-specific meaning belongs in separate database-defined metadata. The reserved `type` field is never repurposed for semantic categories such as person, project, game, book, source, or organization.
 
@@ -167,7 +184,7 @@ Full ancestry remains in YAML lineage through `core` and `parent_note`. If two n
 
 ShardBase intentionally avoids premature fragmentation.
 
-A new structural note should exist only when it provides meaningful value through independent growth, querying, navigation, reuse, or lifecycle management. Otherwise, the information should remain inside its parent note as ordinary Markdown structure.
+A new structural note should exist only when it provides meaningful value through independent growth, querying, navigation, reuse, or lifecycle management. Otherwise, the information should remain inside its parent note as ordinary Markdown structure. A heading, including a heading in a skeleton or template, is never sufficient evidence by itself that a separate Shard or Pebble should be materialized. If creating the requested note suggests additional structural notes, those additional notes should be proposed rather than created without deliberate user action.
 
 Future notes may be represented by unresolved wikilinks until they justify materialization.
 
@@ -202,7 +219,7 @@ A user may deliberately version a live database or other user-owned state, inclu
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, and Repository vs Local User Data have been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, and Canonical Database Experience have been defined in the Foundation Roadmap Workbook, while the remaining lifecycle, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 
