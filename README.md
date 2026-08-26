@@ -65,6 +65,8 @@ Structural YAML is authoritative for lineage. Filenames provide human-readable r
 
 Shard translates ordinary user intent into safe, minimal operations over the documented ShardBase architecture. It is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, retrieving and reasoning over authorized knowledge, and helping the framework evolve safely without requiring users to memorize the complete architecture. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
 
+ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. The exact repository layout for agent definitions and local user customization remains a foundation design question; any eventual layout must preserve an obvious boundary between distributable framework material and user-owned private state.
+
 When operating on a database, Shard follows this authority order:
 
 1. `app/Docs/Shard - System Specification.md` — universal ShardBase rules.

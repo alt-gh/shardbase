@@ -10,6 +10,10 @@ Shard acts as the architectural and database agent for ShardBase. Shard translat
 
 ShardBase may support additional AI agents. When an agent operates on ShardBase structure or user-owned knowledge, it must follow the same architectural authority, safety constraints, and database contracts that apply to Shard.
 
+Agent definitions do not create architectural authority. Framework agents, database-owned specialist agents, and user-owned agents or customizations may have different ownership and distribution policies, but none may override the System Specification or the applicable `Database.md`. Specialized agents may act independently within their documented scope; Shard does not need to mediate every valid operation.
+
+Treat user customization as a specialization or restriction layer, not as permission to redefine ShardBase. If an agent depends on a semantic or architectural rule to interpret canonical knowledge reliably, require that rule to exist in the applicable documented contract rather than only in a prompt, AI memory, conversation, provider state, or other hidden context. Material agent state that affects scope or architectural behavior must remain inspectable and user-controlled.
+
 ## Authority Order
 
 Before making structural or architectural changes, follow this authority order:

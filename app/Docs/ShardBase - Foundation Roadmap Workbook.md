@@ -21,6 +21,7 @@ audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
 supporting_filename_strategy: Bounded Core context — `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants, capped at three structural context components; collisions are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
+agent_architecture_status: accepted conceptual ownership, authority, customization, and cooperation boundaries; exact repository layout remains provisional
 architectural_source_of_truth: app/Docs/Shard - System Specification.md
 database_local_authority: Each database's root-level Database.md
 repository_default: Framework material is committed; local live databases and Inbox contents are ignored by default.
@@ -946,6 +947,96 @@ how_should_conflicts_between_local_rules_and_universal_rules_be_handled:
   - Until such a framework change is deliberately approved, the existing universal rule remains authoritative.
   - If a System Specification change later legitimizes previously invalid local behavior, any required reinterpretation or transformation of existing databases should follow the applicable migration and compatibility policies rather than happening silently.
   - Local rules may extend universal rules; they may never contradict them. If a legitimate local requirement cannot fit within the universal contract, the contract itself must be reconsidered explicitly rather than bypassed locally.
+
+### Agent Architecture and Customization
+
+what_is_a_framework_agent:
+  - A framework agent is distributed as part of ShardBase itself and serves a framework-level role rather than belonging to one user's private environment or one live database.
+  - Shard is the canonical primary framework agent.
+  - Framework-owned agent definitions should be committed as framework material once their canonical repository location is finalized.
+
+what_is_a_database_agent:
+  - A database agent is a specialist agent whose purpose, domain expertise, and normal operating scope belong to one database.
+  - A database agent remains subject to the System Specification and the database's `Database.md`; specialization does not grant authority to redefine universal or database-local contracts.
+  - A reusable blueprint or distributable database package may provide an initial specialist agent, such as a Games database agent, but after materialization the live database owns its agent definition and customization just as it owns its other database-local state.
+  - A database agent should be portable with the database whose domain it understands.
+
+what_is_a_user_owned_agent_or_customization:
+  - A user-owned agent is created or customized for one user's ShardBase environment rather than distributed as canonical framework behavior.
+  - User-owned agent definitions and framework-distributed agent definitions must have an obvious, inspectable boundary.
+  - User-owned agent material should be capable of remaining local and private by default, subject to the repository policy that will be defined in the Repository vs Local User Data section.
+  - The exact directory name and filesystem representation for user-local agent material remain unresolved; `Local/` is only a provisional placeholder and is not an approved architectural name.
+
+how_should_git_policy_follow_agent_ownership:
+  - The Git policy of an agent follows the ownership and distribution policy of that agent, not merely whether it cooperates with Shard.
+  - Framework-distributed agent definitions may be committed as framework material.
+  - Live database agents follow the versioning policy of their owning live database.
+  - User-owned private agents and customizations must not become public merely because they interact with committed framework agents.
+  - Exact commit and ignore behavior should be finalized together with the broader Repository vs Local User Data policy.
+
+how_should_agent_customization_work:
+  - Agent customization may specialize personality, communication, workflows, preferences, defaults, capabilities, or permitted behavior and may further restrict what an agent can do.
+  - Customization must not silently redefine ShardBase architecture, override the applicable `Database.md`, weaken universal privacy or change-safety guarantees, or become a hidden source of architectural authority.
+  - Architectural authority remains external to the agent and comes from documented ShardBase contracts.
+
+how_should_shard_be_customizable:
+  - Shard should support user customization through a user-owned specialization layer rather than requiring modification of the canonical Shard definition as the normal customization mechanism.
+  - A customized Shard remains the same architectural role and remains subject to the System Specification, applicable database contracts, and authorization boundaries.
+  - A Shard customization may restrict or specialize behavior but cannot make otherwise invalid ShardBase structure valid.
+
+how_should_agents_cooperate:
+  - ShardBase agents should cooperate through explicit, inspectable contracts rather than hidden AI-to-AI assumptions.
+  - Relevant contracts may describe identity, purpose, scope, owned databases, capabilities, read and write boundaries, delegation boundaries, privacy constraints, and conditions for escalation or user involvement.
+  - A specialist database agent may operate independently within its documented scope; Shard does not need to mediate every routine valid action.
+  - When an agent encounters a framework-level architectural question, a cross-database operation, an authority conflict, a privacy boundary, or work outside its documented scope, it should defer to the appropriate authority, Shard where useful, or the user rather than inventing a private exception.
+
+what_must_agents_never_privately_redefine:
+  - Universal structural semantics, reserved fields, lineage authority, ownership boundaries, privacy rules, preservation rules, authorization requirements, and other System Specification invariants.
+  - Database semantics that are required to interpret canonical knowledge reliably; such semantics belong in the applicable `Database.md` rather than only in an agent prompt or memory.
+  - The meaning of canonical user-owned knowledge through provider memory, hidden prompts, conversation state, or other inaccessible state.
+
+what_agent_state_must_be_inspectable:
+  - Persistent state that materially affects an agent's architectural behavior, scope, permissions, or interpretation should be user-owned, inspectable, and documented sufficiently to reconstruct the meaningful behavior.
+  - Provider memory, hidden prompts, embeddings, caches, and conversation history may be optional conveniences but must not contain the only authoritative copy of information required to understand or safely operate the agent.
+
+what_agent_implementation_details_are_deferred:
+  - Agent APIs, orchestration protocols, prompt file formats, machine-readable agent schemas, model-provider integrations, runtime mechanisms, delegation transports, and similar implementation details remain deferred until a concrete implementation requires them.
+  - Foundation work should define ownership, authority, locality, portability, customization, cooperation, and safety boundaries without prematurely standardizing the implementation.
+
+provisional_agent_repository_layout:
+  - The following layout records a working direction for future repository design. It is deliberately **provisional**, does not amend the canonical repository layout, and should be revisited before foundation completion.
+
+```text
+shardbase/
+├── .obsidian/
+├── app/
+│   ├── Agents/
+│   │   └── Shard/
+│   ├── Blueprints/
+│   │   └── [Database Blueprint]/
+│   │       └── Agents/
+│   ├── Db/
+│   │   └── [Database Name]/
+│   │       ├── Agents/
+│   │       ├── Data/
+│   │       ├── Views/
+│   │       ├── Attachments/
+│   │       └── Database.md
+│   ├── Docs/
+│   ├── Inbox/
+│   ├── Local/
+│   │   └── Agents/
+│   ├── Registry/
+│   └── Scripts/
+├── .gitignore
+├── AGENTS.md
+└── README.md
+```
+
+  - `app/Agents/` is the working boundary for framework-distributed agent definitions.
+  - Database-local `Agents/` is the working boundary for specialist agents owned by a live database or supplied by its blueprint before materialization.
+  - `app/Local/Agents/` is only a placeholder illustrating the need for a user-owned local boundary. The name `Local/` and the final physical arrangement are explicitly unresolved.
+  - No canonical repository-structure document should adopt this layout until the open naming, ownership, and local-data questions are deliberately resolved.
 
 ### Repository vs Local User Data
 

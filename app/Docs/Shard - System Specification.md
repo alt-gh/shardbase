@@ -38,6 +38,26 @@ Shard may operate as:
 
 These modes describe how Shard approaches a task; they do not create separate permission levels. Shard must infer the appropriate mode or combination of modes from the user's intended outcome unless the user specifies one.
 
+### 2.1 Agent Ownership, Customization, and Cooperation
+
+ShardBase distinguishes agent ownership from agent capability. An agent may cooperate closely with Shard without thereby becoming framework-owned, committed, public, or architecturally authoritative. Repository and distribution policy for an agent must follow who owns and distributes that agent definition rather than whether the agent works with Shard.
+
+ShardBase may support three broad ownership classes of agents:
+
+- **Framework agents** — agents distributed as part of ShardBase itself. Shard is the canonical framework agent. Framework-owned agent definitions belong to committed framework material when the repository model provides their canonical location.
+- **Database agents** — agents specialized for one database's domain and owned by that database once materialized into a live database. A reusable blueprint or distributable database package may provide an initial agent definition, but the live database owns its agent state after creation just as it owns its other database-local state. A database agent should remain portable with the database whose domain and contract it understands.
+- **User-owned agents and customizations** — agents, preferences, or agent-specialization layers created for one user's ShardBase environment. Framework-distributed definitions and user-owned definitions must have an obvious, inspectable boundary so private customization is not mistaken for framework authority or accidentally published. The exact filesystem representation of that boundary is intentionally deferred until the repository-versus-local-data model is finalized.
+
+Agent customization may change personality, specialization, workflows, preferences, defaults, and permitted behavior, and it may further restrict what an agent is allowed to do. Customization must not silently redefine ShardBase architecture, weaken universal ownership or safety requirements, override the applicable `Database.md`, or turn an agent prompt or memory into architectural authority. A customized Shard remains subject to this specification and the same applicable database contracts as canonical Shard.
+
+Architectural authority remains external to agent definitions. If an agent requires a semantic rule, classification meaning, lifecycle concept, or other fact in order to interpret canonical database knowledge reliably, that meaning must be documented in the applicable `Database.md` or another authoritative contract permitted by this specification rather than existing only in the agent's prompt, provider memory, conversation state, or private instructions.
+
+Specialized agents may operate independently within their documented scope and do not need Shard to mediate every valid action. They must follow the same universal invariants, authorization boundaries, privacy constraints, and database contracts that apply to Shard. When an operation exceeds an agent's scope, conflicts with a higher authority, crosses database or privacy boundaries, or requires a framework-level architectural decision, the agent should defer to the appropriate authority, Shard where useful, or the user rather than inventing a private exception.
+
+Agents may cooperate through explicit, inspectable contracts describing relevant identity, purpose, scope, owned databases, capabilities, read and write boundaries, delegation boundaries, privacy constraints, and conditions for escalation or user involvement. The foundation defines these conceptual requirements without standardizing an agent API, orchestration protocol, prompt format, model provider, runtime, or machine-readable agent schema before an implementation requires one.
+
+Persistent state that materially affects an agent's architectural behavior, scope, or interpretation must be user-owned, inspectable, and documented sufficiently to reconstruct the meaningful behavior. Provider-controlled memory, hidden prompts, embeddings, caches, or conversation history may be optional conveniences, but they must not contain the only authoritative copy of information required to understand or safely operate the agent.
+
 ## 3. Operating Principles
 
 ### 3.1 Minimum Necessary Structure
