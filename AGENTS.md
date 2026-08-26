@@ -36,7 +36,7 @@ A user request expresses architectural intent. Preserve that intent where possib
 - The user owns and controls their core ShardBase data.
 - ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. Do not transmit, synchronize, publish, upload, share, or otherwise expose that state outside the local environment unless the user deliberately chooses an external service or explicitly authorizes the action. Authorization to read local data is not authorization to transmit it.
 - Local-first is not local-only. Respect a user's deliberate choice to use cloud synchronization, remote backup, Git hosting, external AI, publishing, database sharing, or other external services without turning those services into core architectural dependencies.
-- ShardBase is not an intermediary, synchronization layer, or automatic connection between local knowledge and external AI services such as ChatGPT or Gemini. Do not broker or transmit user-owned knowledge to an external service merely because ShardBase can read it. If the user wants an external service to receive information, that transfer must occur through a separate deliberately authorized workflow.
+- **ShardBase manages AI-related knowledge; it does not integrate with AI systems.** ShardBase may structure, manage, validate, package, convert, and export user-owned Agent, Prompt, instruction, context, or related files, but ShardBase itself must not execute, invoke, authenticate with, orchestrate, connect to, or transmit data to AI models or AI-agent services such as ChatGPT or Gemini. If the user wants an external AI system to receive ShardBase information, that transfer occurs through a separate workflow controlled by the user outside ShardBase.
 - Markdown and YAML are the durable substrate for core knowledge. The underlying content and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, or ShardBase-specific automation.
 - Obsidian is the primary target environment, not the owner of ShardBase data or meaning.
 - Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, but views and queries do not define structural truth.
@@ -58,7 +58,7 @@ A user request expresses architectural intent. Preserve that intent where possib
 Git policy follows ownership and intended distribution rather than filesystem path alone. Treat committed framework surfaces as potentially public and user-owned live state as local and private by default. A private file does not become framework material merely because it is placed beneath a normally committed directory, and generated output inherits the sensitivity of the information it contains.
 
 - `app/Blueprints/` — framework-owned reusable database bootstrap material. Optional or default database packages may eventually include an initial specialist Agent; after materialization, the live database and its Agent are user-owned.
-- `app/Db/` — live user-owned databases and a primary private-data boundary. Ignore live contents by default. Do not include them in framework commits, releases, public repositories, or external transmissions without deliberate user authorization. Database-owned Agents should travel with their database once the canonical layout is defined.
+- `app/Db/` — live user-owned databases and a primary private-data boundary. Ignore live contents by default. Do not include them in framework commits, releases, public repositories, or external transmissions without deliberate user authorization. An optional root-level `Agents/` directory is the canonical location for database-owned specialist Agent resources and travels with its database.
 - `app/Docs/` — committed framework documentation and architectural specifications. Do not copy private live-database knowledge, Inbox content, secrets, private Agent state, or other user-owned information into committed documentation.
 - `app/Inbox/` — local user-owned unverified, pre-structural capture. Ignore contents by default and do not treat the Inbox as architectural documentation or a database.
 - `app/Registry/` — committed global database discovery and navigation infrastructure. Prefer runtime discovery; keep user-specific generated inventories, caches, or other Registry-derived state local by default.
@@ -74,6 +74,7 @@ A live database is a direct child of `app/Db/` and contains one or more declared
 
 ```text
 [Database Name]/
+├── Agents/
 ├── Data/
 │   ├── [Primary Data Collection]/
 │   │   └── Attachments/
@@ -84,7 +85,9 @@ A live database is a direct child of `app/Db/` and contains one or more declared
 └── Database.md
 ```
 
-Additional data collections and `Templates/` are optional; a minimal database needs only one declared data collection. Data collection names and meanings are database-specific and are declared in `Database.md`. Canonical database notes live directly in a declared collection root. `Attachments/` is a reserved non-structural resource directory and must be excluded from structural-note discovery, including when it happens to contain Markdown files. Do not recursively treat every descendant of `Data/` as a Core, Shard, or Pebble candidate.
+Additional data collections, `Agents/`, and `Templates/` are optional; a minimal database needs only one declared data collection. Data collection names and meanings are database-specific and are declared in `Database.md`. Canonical database notes live directly in a declared collection root. `Attachments/` is a reserved non-structural resource directory and must be excluded from structural-note discovery, including when it happens to contain Markdown files. Do not recursively treat every descendant of `Data/` as a Core, Shard, or Pebble candidate.
+
+`Agents/` contains optional database-owned specialist Agent resources such as Agent definitions, Prompts, instructions, or context. Treat these as user-owned database resources, not structural notes or architectural authority. Their presence does not authorize AI execution or transmission; ShardBase does not connect them to an AI service.
 
 Data collections organize database-owned files; they do not define Pool membership, Core lineage, or parentage. Do not introduce nested database roots or undeclared data-collection directories unless the framework specification is explicitly changed.
 
@@ -165,7 +168,7 @@ Inbox items:
 
 The canonical day-to-day interaction model remains direct reading and editing of Markdown in the user's chosen compatible editor. ShardBase recommends two primary paths for new notes: use the CLI for notes intended to become canonical under `app/Db/`, and use `app/Inbox/` for ad-hoc notes created through a Markdown editor or filesystem. Knowledgeable users may still create canonical files manually when they intentionally satisfy the documented contract, but that is outside the recommended creation path. Database-owned templates remain useful resources but do not replace the recommended CLI/Inbox split.
 
-Promotion from Inbox into a database requires classification and conformance to the destination `Database.md`, and review may instead incorporate the information into an existing canonical note or leave it unresolved. AI-provider API integration is not required for this workflow. ShardBase must not broker local knowledge to external AI services; users may deliberately provide authorized files or context to external agents through separate workflows of their choice.
+Promotion from Inbox into a database requires classification and conformance to the destination `Database.md`, and review may instead incorporate the information into an existing canonical note or leave it unresolved. ShardBase must not broker local knowledge to external AI services. Users may deliberately provide authorized files, Agent resources, Prompts, exports, or context to external AI systems through separate workflows of their choice.
 
 ## Knowledge Lifecycle
 
@@ -204,6 +207,8 @@ Do not combine unrelated changes merely to reduce commit count.
 
 ## Implementation Restraint
 
-Do not introduce runtime, package-manager, plugin-version, operating-system, AI-provider, or CLI requirements until an actual implementation depends on them.
+Do not introduce runtime, package-manager, plugin-version, operating-system, CLI-UX, or schema-validation technology requirements until an actual implementation depends on them. AI-provider integration is not a deferred implementation choice: it is outside ShardBase's product boundary. Synchronization systems and general-purpose search/indexing engines likewise remain responsibilities of user-selected tools rather than ShardBase subsystems.
+
+Introduce a minimal CLI at the earliest architecturally responsible opportunity once its underlying creation contracts are sufficiently settled. Canonical CLI creation must be deterministic and schema-aware: use applicable templates for starting shape, validate universal structural and database-semantic constraints before writing, and refuse invalid canonical state. Do not prematurely standardize JSON Schema, TypeScript-style types, Pydantic, or another validation mechanism merely to satisfy this behavior.
 
 When tooling is added, document its compatibility contract separately from architectural invariants so implementation details can evolve without redefining ShardBase structure.

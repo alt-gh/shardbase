@@ -29,7 +29,8 @@ ShardBase deliberately keeps Markdown and YAML as the durable source rather than
 - **Tools enhance rather than define the knowledge** — Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, while views, scripts, plugins, AI agents, and future tooling must not become the sole source of structural truth.
 - **Shared understandability** — important knowledge should be explicit enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it without optimizing the canonical source exclusively for any one audience.
 - **Explicit without redundant authority** — important architectural meaning should be inspectable and documented, but the same fact should not be duplicated across multiple competing authoritative representations merely for visibility.
-- **AI assistance is intentional but optional** — AI can interpret, recommend, classify, retrieve, explain, and assist with maintenance, while explicit rules and deterministic validation preserve predictable structure. The knowledge base must remain durable and meaningful without AI.
+- **AI knowledge without AI integration** — ShardBase may structure, manage, validate, package, and export user-owned AI-related knowledge such as Agents, Prompts, instructions, and context, but ShardBase itself does not execute, invoke, authenticate with, orchestrate, connect to, or transmit data to AI models or AI-agent services. External AI use is a separate user-controlled workflow.
+- **AI assistance is intentional but optional** — external AI agents may interpret, recommend, classify, retrieve, explain, and assist with maintenance when the user deliberately provides authorized ShardBase context, while explicit rules and deterministic validation preserve predictable structure. The knowledge base must remain durable and meaningful without AI.
 - **Human authority is preserved** — ShardBase may automate repetitive, deterministic, and safely reversible work, but consequential, ambiguous, privacy-sensitive, or destructive decisions remain under meaningful user control.
 - **Minimum necessary structure** — ShardBase uses the minimum structure necessary to preserve useful organization, relationships, growth, integrity, queryability, navigation, and lifecycle management, allowing structure to emerge as knowledge develops rather than requiring future complexity to be modeled in advance.
 - **Simplicity without opacity** — ShardBase should minimize conceptual and operational burden, but simplicity must not hide necessary complexity in undocumented behavior, hidden state, or opaque tooling.
@@ -66,7 +67,7 @@ Structural YAML is authoritative for lineage. Filenames provide human-readable r
 
 Shard translates ordinary user intent into safe, minimal operations over the documented ShardBase architecture. It is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, retrieving and reasoning over authorized knowledge, and helping the framework evolve safely without requiring users to memorize the complete architecture. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
 
-ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. The exact repository layout for agent definitions and local user customization remains a foundation design question; any eventual layout must preserve an obvious boundary between distributable framework material and user-owned private state. The ownership policy is already established: framework agents may be distributed, live database agents follow their database, and user-owned agents and customizations remain local and private by default.
+ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. Database-owned specialist Agent resources have an approved optional home at `app/Db/[Database Name]/Agents/` so they remain portable with their database. The final framework-level and user-local Agent locations remain Foundation design questions. Agent files are user-owned knowledge resources rather than an embedded AI runtime: ShardBase manages AI-related knowledge but does not integrate with AI systems.
 
 When operating on a database, Shard follows this authority order:
 
@@ -84,6 +85,7 @@ shardbase/
 │   ├── Blueprints/
 │   ├── Db/
 │   │   └── [Database Name]/
+│   │       ├── Agents/
 │   │       ├── Data/
 │   │       │   ├── [Primary Data Collection]/
 │   │       │   │   ├── Core.md
@@ -107,7 +109,7 @@ shardbase/
 └── README.md
 ```
 
-`Templates/` and additional data collections are optional. A minimal database needs only one declared data collection.
+`Agents/`, `Templates/`, and additional data collections are optional. A minimal database needs only one declared data collection.
 
 ## Database Anatomy
 
@@ -116,6 +118,10 @@ Each live database is a direct child of `app/Db/` and is self-contained.
 ### `Database.md`
 
 The database manifest and local contract. It defines database identity, scope, declared data collections, semantic schema, conventions, and resources.
+
+### `Agents/`
+
+Optional database-owned specialist Agent resources live here so they remain portable with the database. These may include Agent definitions, Prompts, instructions, context, or related user-owned files intended for deliberate use with external AI systems. `Agents/` does not make ShardBase an AI runtime or integration layer, and Agent files never override the System Specification or `Database.md`.
 
 ### `Data/[Data Collection]/`
 
@@ -139,9 +145,9 @@ Contains database-local views and queries. Dataview is a primary and canonical S
 
 ## Canonical Database Experience
 
-ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. The intended normal workflow recommends two primary entry paths for new notes: canonical notes intended for `app/Db/` should normally be created through the ShardBase CLI, while ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Inbox/` for review. The CLI runtime is not yet part of the Foundation implementation contract; until it exists, and for knowledgeable users who deliberately choose otherwise, canonical files may still be created manually subject to the documented contract.
+ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. The intended normal workflow recommends two primary entry paths for new notes: canonical notes intended for `app/Db/` should normally be created through the ShardBase CLI, while ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Inbox/` for review. A minimal CLI should be introduced at the earliest architecturally responsible opportunity once its underlying contracts are stable enough to implement safely. Canonical CLI creation should be schema-aware and type-safe in behavior: applicable templates may provide starting shape, while structural and database semantic contracts determine validity and are checked before a write. The exact runtime and validation technology remain implementation-defined. Until the CLI exists, and for knowledgeable users who deliberately choose otherwise, canonical files may still be created manually subject to the documented contract.
 
-The foundation does not require ShardBase scripts or the CLI to call AI-model APIs. ShardBase is not an intermediary, synchronization layer, or automatic connection between local knowledge and external AI services such as ChatGPT or Gemini. Users who want an external service to receive ShardBase information must deliberately provide, move, export, upload, or otherwise authorize that information through a separate workflow. AI assistance should reduce architectural burden without becoming the primary editor, a hidden source of truth, or a prerequisite for using the underlying Markdown knowledge.
+ShardBase manages AI-related knowledge; it does not integrate with AI systems. Framework scripts and the CLI do not call model-provider APIs, authenticate with providers, invoke or orchestrate external agents, or automatically broker local knowledge to services such as ChatGPT or Gemini. ShardBase may structure, validate, package, convert, or export local user-owned Agent, Prompt, instruction, context, or related files. Users who want an external AI system to receive those files or other ShardBase information perform that transfer through a separate deliberate workflow using the external system of their choice.
 
 ## Structural Metadata
 
@@ -225,9 +231,9 @@ A user may deliberately version a live database or other user-owned state, inclu
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, and Knowledge Lifecycle have been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, and Foundation Boundaries have been defined in the Foundation Roadmap Workbook, while breaking-change governance, exit criteria, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
-The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
+The foundation standardizes durable and observable contracts before locking in replaceable implementation details. A minimal CLI may begin as soon as the creation contracts it depends on are sufficiently settled so those contracts can be exercised through real use; mature CLI UX, compatibility matrices, migration engines, validation libraries, and blueprint packaging details should be added only when implementation demonstrates the need. AI-provider integration, synchronization systems, and general-purpose search/indexing engines are not deferred ShardBase implementation targets: AI integration remains outside the product boundary, while synchronization and search/indexing are provided by user-selected external tools.
 
 The architectural source of truth is:
 
