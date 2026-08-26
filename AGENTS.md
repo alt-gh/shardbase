@@ -34,6 +34,8 @@ A user request expresses architectural intent. Preserve that intent where possib
 ## Product Guardrails
 
 - The user owns and controls their core ShardBase data.
+- ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. Do not transmit, synchronize, publish, upload, share, or otherwise expose that state outside the local environment unless the user deliberately chooses an external service or explicitly authorizes the action. Authorization to read local data is not authorization to transmit it.
+- Local-first is not local-only. Respect a user's deliberate choice to use cloud synchronization, remote backup, Git hosting, external AI, publishing, database sharing, or other external services without turning those services into core architectural dependencies.
 - Markdown and YAML are the durable substrate for core knowledge. The underlying content and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, or ShardBase-specific automation.
 - Obsidian is the primary target environment, not the owner of ShardBase data or meaning.
 - Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, but views and queries do not define structural truth.
@@ -48,18 +50,22 @@ A user request expresses architectural intent. Preserve that intent where possib
 - Treat readability, editability, and portability as separate durability requirements for canonical knowledge. Loss of an optional view, query, AI system, automation, plugin, or generated runtime may reduce convenience but must not erase or redefine essential knowledge meaning.
 - Essential architectural behavior must be traceable to canonical files and documented contracts. Do not rely on application databases, caches, indexes, AI memory, prompts, embeddings, plugin internals, service-controlled metadata, or other undocumented inaccessible state as a required source of meaning or authority. If such state materially affects architectural behavior, require that dependency to be made explicit and documented; otherwise treat it as an architectural defect.
 - Prefer automation for repetitive, deterministic, and safely reversible work. Keep consequential, ambiguous, privacy-sensitive, or destructive decisions under meaningful user control.
-- Do not initiate publishing, sharing, synchronization, or transmission of private user-owned knowledge to an external service unless the task or an authorized workflow explicitly permits it.
+- Do not initiate publishing, sharing, synchronization, upload, transmission, or other external exposure of user-owned knowledge or local state unless the task or an authorized workflow explicitly permits it.
 
 ## Repository Boundaries
 
-- `app/Blueprints/` — framework-owned database bootstrap material.
-- `app/Db/` — local live databases.
-- `app/Docs/` — committed framework documentation and architectural specifications.
-- `app/Inbox/` — local unverified, pre-structural capture.
-- `app/Registry/` — global database discovery and navigation infrastructure.
-- `app/Scripts/` — optional automation, validation, migration, and maintenance tooling.
+Git policy follows ownership and intended distribution rather than filesystem path alone. Treat committed framework surfaces as potentially public and user-owned live state as local and private by default. A private file does not become framework material merely because it is placed beneath a normally committed directory, and generated output inherits the sensitivity of the information it contains.
 
-Do not treat `app/Inbox/` as architectural documentation or a database.
+- `app/Blueprints/` — framework-owned reusable database bootstrap material. Optional or default database packages may eventually include an initial specialist Agent; after materialization, the live database and its Agent are user-owned.
+- `app/Db/` — live user-owned databases and a primary private-data boundary. Ignore live contents by default. Do not include them in framework commits, releases, public repositories, or external transmissions without deliberate user authorization. Database-owned Agents should travel with their database once the canonical layout is defined.
+- `app/Docs/` — committed framework documentation and architectural specifications. Do not copy private live-database knowledge, Inbox content, secrets, private Agent state, or other user-owned information into committed documentation.
+- `app/Inbox/` — local user-owned unverified, pre-structural capture. Ignore contents by default and do not treat the Inbox as architectural documentation or a database.
+- `app/Registry/` — committed global database discovery and navigation infrastructure. Prefer runtime discovery; keep user-specific generated inventories, caches, or other Registry-derived state local by default.
+- `app/Scripts/` — optional framework automation, validation, migration, conversion, and maintenance tooling. Scripts implement documented architecture. Private one-user automation does not become framework-owned by location alone.
+
+Generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, build artifacts, credentials, tokens, and other recreatable or sensitive local state must not become durable framework repository content. Keep recreatable runtime state outside the ShardBase project or durable vault surface where practical, especially when the user deliberately stores ShardBase in a cloud-synchronized location.
+
+A user may intentionally version, synchronize, move, or share their own database or other local state, including through a private Git repository. Such behavior requires a deliberate user choice and appropriate repository policy; it is never implied by ShardBase's framework repository. Git ignore rules prevent future accidental tracking but do not remove sensitive content already recorded in history.
 
 ## Database Root Contract
 

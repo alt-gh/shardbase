@@ -6,7 +6,7 @@ This document defines the universal architectural contract for ShardBase and the
 
 ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth. It targets Obsidian as its primary knowledge environment while keeping core knowledge and structural metadata in human-readable Markdown and YAML.
 
-Obsidian, Dataview, scripts, AI assistance, synchronization services, and other tooling may enhance the ShardBase experience, but the durability, readability, editability, and structural meaning of core knowledge must not depend on any one of them. Core ShardBase operation must not require user-owned knowledge to leave the user's local environment.
+Obsidian, Dataview, scripts, AI assistance, synchronization services, and other tooling may enhance the ShardBase experience, but the durability, readability, editability, and structural meaning of core knowledge must not depend on any one of them. ShardBase is local-first: user-owned knowledge and local state remain on the user's machine by default, and core operation must not require that information to leave the local environment. ShardBase must not transmit, synchronize, publish, upload, share, or otherwise make user-owned state available outside the local environment unless the user deliberately chooses an external service or explicitly authorizes the action.
 
 It is the highest architectural authority inside the repository.
 
@@ -46,7 +46,7 @@ ShardBase may support three broad ownership classes of agents:
 
 - **Framework agents** — agents distributed as part of ShardBase itself. Shard is the canonical framework agent. Framework-owned agent definitions belong to committed framework material when the repository model provides their canonical location.
 - **Database agents** — agents specialized for one database's domain and owned by that database once materialized into a live database. A reusable blueprint or distributable database package may provide an initial agent definition, but the live database owns its agent state after creation just as it owns its other database-local state. A database agent should remain portable with the database whose domain and contract it understands.
-- **User-owned agents and customizations** — agents, preferences, or agent-specialization layers created for one user's ShardBase environment. Framework-distributed definitions and user-owned definitions must have an obvious, inspectable boundary so private customization is not mistaken for framework authority or accidentally published. The exact filesystem representation of that boundary is intentionally deferred until the repository-versus-local-data model is finalized.
+- **User-owned agents and customizations** — agents, preferences, or agent-specialization layers created for one user's ShardBase environment. Framework-distributed definitions and user-owned definitions must have an obvious, inspectable boundary so private customization is not mistaken for framework authority or accidentally published. User-owned agent material is local and private by default. Its exact filesystem representation remains intentionally deferred even though its ownership and repository policy are defined.
 
 Agent customization may change personality, specialization, workflows, preferences, defaults, and permitted behavior, and it may further restrict what an agent is allowed to do. Customization must not silently redefine ShardBase architecture, weaken universal ownership or safety requirements, override the applicable `Database.md`, or turn an agent prompt or memory into architectural authority. A customized Shard remains subject to this specification and the same applicable database contracts as canonical Shard.
 
@@ -90,13 +90,15 @@ The reserved structural field `type` must never be overloaded with semantic valu
 
 ### 3.4 Locality and Portability
 
+ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. A fresh or ordinary ShardBase environment must not require the user to disable external transmission features merely to keep their knowledge local.
+
 A database should remain understandable and movable as one self-contained root.
 
-Database-local data, views, attachments, schema, and conventions should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework.
+Database-local data, views, attachments, schema, conventions, and database-owned agent resources should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework.
 
 Core knowledge and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, scripts, synchronization services, or other optional tooling.
 
-External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
+Local-first is not local-only. External synchronization, backup, cloud storage, Git hosting, external AI, publishing, database sharing, and similar services are deliberate user choices and are separate from ShardBase's core operation. Reading or operating on local information does not by itself authorize transmitting that information outside the local environment.
 
 ### 3.5 Change Safety
 
@@ -106,7 +108,7 @@ Architectural normalization must not become an excuse to rewrite factual content
 
 Automation should be favored for repetitive, deterministic, and safely reversible work. Consequential, ambiguous, privacy-sensitive, or destructive decisions must remain under meaningful user control.
 
-ShardBase must not initiate publishing, sharing, synchronization, or transmission of private user-owned knowledge to an external service unless the user or an authorized workflow explicitly permits it.
+ShardBase must not initiate publishing, sharing, synchronization, upload, transmission, or other external exposure of user-owned knowledge or local state unless the user or an authorized workflow explicitly permits it. Authorization to read or operate on local information is not authorization to transmit it.
 
 ### 3.6 Shared Architectural Contract and Tool Composability
 
@@ -217,39 +219,61 @@ shardbase/
 
 ### 4.1 `app/Blueprints/`
 
-Contains framework-owned recipes or resources used to bootstrap new databases.
+Contains framework-owned reusable bootstrap material used to create new databases. A blueprint or distributable database package may provide an initial `Database.md`, database structure, Views, starter resources, and, once agent packaging is defined, an initial specialist database agent. ShardBase may ship optional or default databases through this bootstrap boundary.
+
+Blueprint material must represent reusable starting state rather than a copy of a particular user's live database. After materialization, the resulting live database and any database-owned agent state are user-owned. Later blueprint changes require an explicit migration rather than silent synchronization.
 
 Blueprint format is intentionally implementation-defined until automation requires a stricter contract.
 
 ### 4.2 `app/Db/`
 
-Contains live local databases.
+Contains live user-owned databases and is a primary private-data boundary.
 
-For the foundation version, each database root is a **direct child** of `app/Db/`.
+For the foundation version, each database root is a **direct child** of `app/Db/`. Nested database roots and category directories are not part of the v1 foundation contract.
 
-Nested database roots and category directories are not part of the v1 foundation contract.
+Live database contents are local and private by default. They must not enter the distributable framework repository, framework releases, public repositories, or external transmissions merely because they exist inside the ShardBase project tree. Versioning, synchronization, backup, movement, or sharing of a live database must result from a deliberate user choice. A user may intentionally version a database, including in a private Git repository, without changing the framework-wide default.
+
+Database-owned specialist agents should remain portable with their databases once the canonical agent layout is finalized. Their domain assistance may travel with a deliberately moved or shared database, but architectural and semantic authority must remain in this specification and the database's documented contract rather than only in the agent definition.
 
 ### 4.3 `app/Docs/`
 
-Contains committed framework documentation.
+Contains committed framework documentation. This specification belongs here.
 
-This specification belongs here.
+Because `app/Docs/` is committed and distributable by default, its contents must be suitable for a potentially public framework surface. Framework documentation must not embed private live-database knowledge, Inbox content, credentials, private agent state, or other user-owned information. Examples should be intentionally authored, sanitized, or otherwise clearly non-private.
+
+Filesystem location does not itself create architectural authority; documents must retain their documented role and authority.
 
 ### 4.4 `app/Inbox/`
 
-Contains local, unverified, pre-structural capture awaiting review and classification.
+Contains local, user-owned, unverified, pre-structural capture awaiting review and classification. Inbox contents are private and ignored by the framework repository by default.
 
 The Inbox is not a database and is not a documentation directory.
 
 ### 4.5 `app/Registry/`
 
-Contains global discovery and navigation infrastructure for databases in the current ShardBase instance.
+Contains framework-owned global discovery and navigation infrastructure for databases in the current ShardBase instance. Generic Registry queries, views, templates, or discovery logic may be committed.
+
+Committed Registry resources must not require actual user database names or private knowledge to be embedded in distributable source. They should discover authorized local databases at runtime where practical. User-specific generated inventories, caches, or other Registry-derived state inherit the sensitivity of the local information they contain and remain local by default. Registry infrastructure may inspect authorized local state without gaining permission to publish or persist that private state into the committed framework surface.
 
 ### 4.6 `app/Scripts/`
 
-Contains optional framework automation, validation, maintenance, migration, or future CLI-support code.
+Contains optional framework-owned reusable automation, validation, maintenance, migration, conversion, creation, querying, or future CLI-support code.
 
-Scripts do not become architecturally authoritative merely by implementing behavior. They must implement this specification.
+Scripts do not become architecturally authoritative merely by implementing behavior. They must implement this specification. Private one-user automation does not become framework-distributed merely because it is physically placed beneath `app/Scripts/`.
+
+Generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, build artifacts, and other recreatable machine-specific state are not durable framework content and should remain outside the ShardBase project or durable vault surface where practical. This reduces filesystem noise and unnecessary synchronization burden, particularly when a user deliberately places ShardBase in a cloud-synchronized location. No package manager or runtime layout is part of the foundation contract until an implementation requires one.
+
+### 4.7 Repository Ownership, Privacy, and Distribution
+
+Git policy follows ownership and intended distribution rather than filesystem path alone. Framework-owned material intended for distribution is committed by default. User-owned live state is local and private by default. Live database state, Inbox contents, user-owned agents and customizations, sensitive generated state, credentials, and machine-specific runtime artifacts must be ignored by the framework repository unless the user deliberately establishes a different repository policy.
+
+Commit eligibility is determined by ownership, intended distribution, and the information a file contains. Putting private user data inside a normally committed framework directory does not make it framework data. Likewise, output generated by committed framework tooling does not become publishable merely because the generator is public. Generated and derived artifacts inherit the sensitivity of the information they contain.
+
+Framework-owned surfaces committed by default must be treated as potentially public and designed not to embed user-owned private state. This applies to documentation, Registry infrastructure, scripts, framework agents once their location is finalized, and other distributable resources.
+
+Users retain authority to deliberately version, synchronize, move, share, or publish their own data. Such a choice may use a private or public Git repository, synchronization provider, backup system, or another user-selected mechanism. Intentional user-data versioning is not required to occur inside the framework repository. Tracking data that is ignored by default, or changing a path's normal ownership or distribution expectation, requires an explicit and inspectable repository-policy change rather than an accidental Git bypass.
+
+Ignoring private data protects against future accidental tracking; it does not remove sensitive information already recorded in Git history. The first inclusion of user-owned private information in version history therefore crosses a consequential privacy boundary.
 
 ## 5. Database Root Contract
 
@@ -657,7 +681,7 @@ Do not materialize a Ghost Shard until independent structure provides meaningful
 
 `app/Blueprints/` contains framework-owned bootstrap material for creating new databases.
 
-A blueprint may describe or provide an initial database directory, `Database.md`, Views, or starter structural content.
+A blueprint may describe or provide an initial database directory, `Database.md`, Views, starter structural content, or other distributable database resources. ShardBase may ship optional or default database packages, and such a package may include an initial specialist database agent once agent packaging is defined. Users may also create entirely new databases and agents of their own.
 
 Blueprints are authoritative only during database creation.
 
@@ -715,7 +739,7 @@ During review, an Inbox item may be discarded, merged into an existing note, or 
 
 Promotion requires classification under this specification and conformance to the destination `Database.md`.
 
-Inbox contents must be ignored by Git by default.
+Inbox contents must be ignored by the framework repository by default and must not be externally transmitted merely because framework tooling can read them. Deliberate external versioning or sharing remains a user choice.
 
 ## 16. Registry
 
@@ -729,7 +753,7 @@ Its purpose is discovery and navigation.
 
 For the foundation repository, database roots are direct children of `app/Db/`, and each valid database root contains `Database.md`.
 
-The registry may discover manifests through their location and required manifest metadata.
+The registry may discover manifests through their location and required manifest metadata. Committed Registry infrastructure should discover local state without embedding the user's database inventory in distributable source. Generated Registry state that contains user-specific database information is local by default.
 
 The registry must not redefine a database's identity, schema, or structural lineage.
 
@@ -751,7 +775,7 @@ Automation must follow these rules:
 
 AI reasoning and deterministic tooling should complement one another. AI may interpret context, surface relationships, explain alternatives, and recommend actions; explicit architectural rules and deterministic validation constrain structural writes and make consequential behavior inspectable and predictable.
 
-AI assistance must remain optional to the durability and structural meaning of the knowledge base. ShardBase must not require a particular AI model, provider, or service for core knowledge to remain valid.
+AI assistance must remain optional to the durability and structural meaning of the knowledge base. ShardBase must not require a particular AI model, provider, or service for core knowledge to remain valid. Local authorization to read user-owned knowledge does not authorize a script, agent, or integration to transmit that knowledge to an external AI or other service.
 
 A future CLI may become the preferred safe interface for structural operations, but no CLI runtime contract is part of the foundation specification yet.
 
@@ -792,7 +816,7 @@ Unless the task clearly authorizes the action, Shard must not assume permission 
 - rewrite domain data;
 - break or replace existing links;
 - move attachments across database boundaries;
-- publish, share, synchronize, or transmit private user-owned knowledge to an external service;
+- publish, share, synchronize, upload, transmit, or otherwise expose user-owned knowledge or local state outside the local environment without the user's explicit authorization or an already-authorized workflow;
 - perform destructive migrations, irreversible transformations, or large-scale refactors;
 - make consequential assumptions about privacy, visibility, ownership, identity, or deletion;
 - materialize large amounts of speculative structure.

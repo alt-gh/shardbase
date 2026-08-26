@@ -23,6 +23,7 @@ ShardBase deliberately keeps Markdown and YAML as the durable source rather than
 ## Core Design Commitments
 
 - **User-owned and privacy-focused** — the user owns and controls their core data. ShardBase does not require that data to leave the user's local environment for core operation.
+- **Local-first by default** — user-owned knowledge and local state stay on the user's machine unless the user deliberately chooses synchronization, backup, external AI, Git hosting, publishing, sharing, or another external service. Reading local data is not permission to transmit it.
 - **Markdown is the foundation** — core knowledge remains stored in human-readable Markdown and YAML so it can be inspected, edited, copied, searched, versioned, and processed independently of ShardBase-specific tooling.
 - **Obsidian is the primary target, not the data owner** — ShardBase is designed for a strong Obsidian experience, but its core knowledge and structural meaning must remain understandable outside Obsidian.
 - **Tools enhance rather than define the knowledge** — Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, while views, scripts, plugins, AI agents, and future tooling must not become the sole source of structural truth.
@@ -65,7 +66,7 @@ Structural YAML is authoritative for lineage. Filenames provide human-readable r
 
 Shard translates ordinary user intent into safe, minimal operations over the documented ShardBase architecture. It is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, retrieving and reasoning over authorized knowledge, and helping the framework evolve safely without requiring users to memorize the complete architecture. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
 
-ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. The exact repository layout for agent definitions and local user customization remains a foundation design question; any eventual layout must preserve an obvious boundary between distributable framework material and user-owned private state.
+ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. The exact repository layout for agent definitions and local user customization remains a foundation design question; any eventual layout must preserve an obvious boundary between distributable framework material and user-owned private state. The ownership policy is already established: framework agents may be distributed, live database agents follow their database, and user-owned agents and customizations remain local and private by default.
 
 When operating on a database, Shard follows this authority order:
 
@@ -172,31 +173,36 @@ Future notes may be represented by unresolved wikilinks until they justify mater
 
 ## Framework Boundaries
 
-- `app/Blueprints/` contains framework-owned database bootstrap material.
-- `app/Db/` contains local live databases.
-- `app/Docs/` contains committed framework documentation and architectural specifications.
-- `app/Inbox/` contains local unverified, pre-structural capture.
-- `app/Registry/` contains global discovery and navigation infrastructure.
-- `app/Scripts/` contains optional automation, validation, migration, and maintenance tooling.
+- `app/Blueprints/` contains framework-owned reusable database bootstrap material. ShardBase may eventually ship optional or default database packages here, including an initial specialist Agent when agent packaging is finalized.
+- `app/Db/` contains live user-owned databases and is a primary private-data boundary. Database-owned specialist Agents should travel with their databases once their canonical layout is finalized.
+- `app/Docs/` contains committed framework documentation and architectural specifications and must not embed private user data.
+- `app/Inbox/` contains local user-owned unverified, pre-structural capture.
+- `app/Registry/` contains committed discovery and navigation infrastructure; user-specific Registry output remains local by default.
+- `app/Scripts/` contains optional framework automation, validation, migration, conversion, and maintenance tooling, not generated runtimes or machine-specific dependency state.
 
-Blueprints may initialize a database, but a live database owns its state after creation. Blueprint changes must never silently rewrite existing databases.
+Blueprints may initialize a database, but a live database owns its state after creation. Blueprint changes must never silently rewrite existing databases. Users may also create their own databases and database Agents.
 
-## Git and Local Data
+## Local-First and Git Policy
 
-The framework repository is intended to be safe to publish while keeping user-owned live knowledge local by default.
+ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. ShardBase does not transmit, synchronize, publish, upload, share, or otherwise make that state available outside the local environment unless the user deliberately chooses an external service or explicitly authorizes the action. Local-first is not local-only: users remain free to choose cloud synchronization, remote backup, private or public Git hosting, external AI, publishing, database sharing, or other external services.
+
+The framework repository is intended to be safe to publish. Git policy follows ownership and intended distribution rather than filesystem path alone: committed framework surfaces are potentially public, while user-owned live state is private and untracked by default. Putting private data beneath a normally committed directory does not make it framework data, and generated output inherits the sensitivity of the information it contains.
 
 By default:
 
 - live database contents under `app/Db/` are ignored;
 - Inbox contents under `app/Inbox/` are ignored;
-- framework documentation, registry infrastructure, scripts, and blueprints are committed;
-- empty local-data boundaries are retained with `.gitkeep` files.
+- user-owned Agents, customizations, private local configuration, sensitive Registry-derived state, credentials, and other user-local state are ignored;
+- generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, and build artifacts are not durable repository content;
+- framework documentation, generic Registry infrastructure, framework scripts, blueprints, repository guidance, and eventually framework-owned Agents are committed;
+- committed Docs, Registry resources, scripts, examples, and other framework surfaces must not copy or embed private live user data;
+- empty local-data boundaries may be retained with `.gitkeep` files or an equivalent minimal mechanism.
 
-If a user intentionally wants to version a live database, that should be an explicit repository policy change rather than an accidental side effect.
+A user may deliberately version a live database or other user-owned state, including in a private Git repository. Tracking material that ShardBase ignores by default, or changing its normal distribution expectation, requires an explicit and inspectable repository-policy change rather than an accidental Git side effect. Git ignore rules prevent future accidental tracking; they do not erase private information already recorded in repository history.
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, and Universal vs Database-Specific Rules have been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, and Repository vs Local User Data have been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 

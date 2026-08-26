@@ -24,9 +24,11 @@ primary_agent: Shard
 agent_architecture_status: accepted conceptual ownership, authority, customization, and cooperation boundaries; exact repository layout remains provisional
 architectural_source_of_truth: app/Docs/Shard - System Specification.md
 database_local_authority: Each database's root-level Database.md
-repository_default: Framework material is committed; local live databases and Inbox contents are ignored by default.
+repository_default: Framework-distributed material is committed by default; user-owned live state is local and private by default, with live databases, Inbox contents, user-owned agents and customizations, and sensitive derived state excluded unless the user deliberately chooses otherwise.
+local_first_status: accepted — ShardBase keeps user-owned knowledge and local state on the user's machine by default and does not transmit, synchronize, publish, upload, share, or otherwise make that state available outside the local environment unless the user deliberately chooses an external service or explicitly authorizes the action.
 foundation_priority: Establish architecture and agent contracts before locking in implementation-specific requirements.
 universal_vs_database_specific_rules_status: accepted
+repository_vs_local_user_data_status: accepted
 foundation_workbook_status: working
 foundation_roadmap_status: approved
 foundation_completion_status: incomplete
@@ -964,15 +966,15 @@ what_is_a_database_agent:
 what_is_a_user_owned_agent_or_customization:
   - A user-owned agent is created or customized for one user's ShardBase environment rather than distributed as canonical framework behavior.
   - User-owned agent definitions and framework-distributed agent definitions must have an obvious, inspectable boundary.
-  - User-owned agent material should be capable of remaining local and private by default, subject to the repository policy that will be defined in the Repository vs Local User Data section.
+  - User-owned agent material is local and private by default and must not enter the distributable framework repository merely because it cooperates with committed framework agents.
   - The exact directory name and filesystem representation for user-local agent material remain unresolved; `Local/` is only a provisional placeholder and is not an approved architectural name.
 
 how_should_git_policy_follow_agent_ownership:
   - The Git policy of an agent follows the ownership and distribution policy of that agent, not merely whether it cooperates with Shard.
   - Framework-distributed agent definitions may be committed as framework material.
   - Live database agents follow the versioning policy of their owning live database.
-  - User-owned private agents and customizations must not become public merely because they interact with committed framework agents.
-  - Exact commit and ignore behavior should be finalized together with the broader Repository vs Local User Data policy.
+  - User-owned private agents and customizations are local and ignored by the framework repository by default; deliberate versioning or distribution requires an explicit user choice and repository policy appropriate to that destination.
+  - A database-owned agent follows the privacy and versioning policy of its owning live database, while a blueprint-supplied agent is framework-distributable only before materialization as part of that blueprint or package.
 
 how_should_agent_customization_work:
   - Agent customization may specialize personality, communication, workflows, preferences, defaults, capabilities, or permitted behavior and may further restrict what an agent can do.
@@ -1036,21 +1038,114 @@ shardbase/
   - `app/Agents/` is the working boundary for framework-distributed agent definitions.
   - Database-local `Agents/` is the working boundary for specialist agents owned by a live database or supplied by its blueprint before materialization.
   - `app/Local/Agents/` is only a placeholder illustrating the need for a user-owned local boundary. The name `Local/` and the final physical arrangement are explicitly unresolved.
-  - No canonical repository-structure document should adopt this layout until the open naming, ownership, and local-data questions are deliberately resolved.
+  - No canonical repository-structure document should adopt this full layout until the remaining agent-location and user-local-boundary naming questions are deliberately resolved. The ownership and Git-policy boundaries are now defined independently of the final physical layout.
 
 ### Repository vs Local User Data
 
-what_belongs_in_app_blueprints: 
-what_belongs_in_app_db: 
-what_belongs_in_app_docs: 
-what_belongs_in_app_inbox: 
-what_belongs_in_app_registry: 
-what_belongs_in_app_scripts: 
-what_should_be_committed_by_default: 
-what_should_be_ignored_by_default: 
-what_local_data_may_be_versioned_intentionally: 
-what_requires_an_explicit_repository_policy_change: 
-what_should_never_be_accidentally_published: 
+repository_and_local_data_principle:
+  - Git policy follows ownership and intended distribution rather than filesystem location alone. Framework-distributed material is committed by default; user-owned instance state is local and private by default; live database state follows the user's deliberate versioning and sharing choices.
+  - Commit eligibility is determined by ownership, intended distribution, and the information a file contains. Putting user data inside a normally committed framework directory does not make it framework data, and generating private state from committed framework tooling does not make the generated state publishable.
+  - A generated or derived artifact inherits the sensitivity of the information it contains. Framework tooling may inspect authorized private local state without gaining permission to copy that state into a public or distributable framework surface.
+
+local_first_means:
+  - ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. Nothing is transmitted, synchronized, published, uploaded, shared, or otherwise made available outside the local environment unless the user deliberately chooses an external service or explicitly authorizes that action.
+  - Local-first is not local-only. Users remain free to deliberately choose cloud synchronization, remote backup, private or public Git hosting, external AI providers, publishing, database sharing, or other external services.
+  - Reading or operating on local information is not permission to transmit it. Local access and external transmission are separate authorization boundaries.
+  - A fresh or ordinary ShardBase installation should not require the user to disable external transmission features in order for their knowledge to remain local.
+  - Core knowledge and architectural meaning must remain valid and usable when the user chooses not to use external services.
+
+what_belongs_in_app_blueprints:
+  - Framework-owned, reusable bootstrap material used to create new databases.
+  - A blueprint or distributable database package may contain or describe an initial `Database.md`, database structure, Views, starter resources, and other reusable material permitted by the architecture.
+  - ShardBase may ship optional or default database packages as framework-owned bootstrap material. A packaged database may include an initial specialist database Agent once agent packaging is finalized so the database can begin with domain-aware assistance.
+  - Users may create their own databases and database Agents independently of any distributed default packages.
+  - Blueprint material must represent reusable starting state rather than copies of a particular user's live database.
+  - After materialization, the live database and its database-owned Agent become user-owned state. Later blueprint changes require an explicit migration and must not silently synchronize into the live database.
+
+what_belongs_in_app_db:
+  - `app/Db/` contains live databases owned by the current user and is one of ShardBase's primary private-data boundaries.
+  - Each live database contains its canonical domain knowledge, `Database.md`, Data, Views, Attachments, and other database-owned resources permitted by the architecture.
+  - Database-owned specialist Agents should travel with their database once the agent repository layout is finalized. This allows a moved or deliberately shared database to retain domain-aware assistance about its documented structures, initialization expectations, conventions, and workflows without making the Agent a hidden source of architectural authority.
+  - Live database contents are local and private by default. They must not become part of the distributable framework repository, framework releases, public repositories, or external transmissions merely because they exist inside the ShardBase project tree.
+  - Versioning, synchronization, backup, movement, or sharing of a live database must result from a deliberate user choice.
+  - `app/Db/` should not contain framework blueprint source material, framework documentation, or unrelated global user state.
+
+what_belongs_in_app_docs:
+  - Framework-owned documentation intended to describe, explain, govern, or develop ShardBase itself, including the System Specification, the Foundation Roadmap Workbook, architectural overviews, governance documents, compatibility and migration documentation, examples, and similar project material.
+  - Because `app/Docs/` is committed and distributable by default, its contents should be written under the assumption that they may become public.
+  - Committed documentation must not contain private live-database knowledge, personal Inbox content, credentials or secrets, private agent state, or other user-owned information.
+  - Examples in committed documentation should be intentionally authored examples, sanitized fixtures, or otherwise clearly non-private material rather than copied user data.
+  - Filesystem location does not grant architectural authority; documents should identify their role, and the System Specification remains the highest architectural authority.
+
+what_belongs_in_app_inbox:
+  - Temporary, user-owned, pre-structural capture whose database ownership or final representation has not yet been determined.
+  - Inbox content may be incomplete, uncertain, unverified, private, or disposable and does not need ShardBase structural metadata or database-specific schema before promotion.
+  - Inbox items should remain text-oriented under the current foundation contract and should not own local attachments.
+  - The Inbox is neither framework documentation nor a database.
+  - Promotion transfers accepted information into the appropriate database and requires classification and conformance to that database's contract.
+  - Inbox contents are local and private by default and must be ignored by the framework repository.
+
+what_belongs_in_app_registry:
+  - Framework-owned discovery and navigation infrastructure for finding databases in the current ShardBase instance.
+  - Generic registry queries, views, templates, or discovery logic may be committed as distributable framework material.
+  - The Registry should discover local databases at runtime rather than requiring the user's actual database names or private knowledge to be written into committed source.
+  - User-specific registry output, generated database inventories, caches, or other derived state that reveal local database information are user data and must remain local by default.
+  - Because `app/Registry/` is committed by default, committed Registry resources must be designed so they do not embed private user data.
+  - Registry infrastructure may inspect authorized private local state without gaining permission to publish or persist that state into the committed framework surface.
+  - The Registry remains a discovery interface and must not redefine database identity, schema, or structural lineage.
+
+what_belongs_in_app_scripts:
+  - Framework-owned reusable automation for validation, maintenance, migration, creation, conversion, querying, and future CLI-support behavior.
+  - Scripts must implement documented architecture rather than become a hidden source of architectural authority.
+  - Private one-user automation does not become framework-distributed merely because placing it beneath `app/Scripts/` would be convenient; ownership and intended distribution remain authoritative.
+  - Generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, build artifacts, and other recreatable machine-specific state do not belong in `app/Scripts/` as durable repository content and should remain outside the ShardBase project or durable vault surface where practical.
+  - Keeping recreatable runtime state outside the project reduces filesystem noise and unnecessary synchronization burden when a user deliberately stores ShardBase in a cloud-synchronized location.
+  - Foundation policy should not standardize Poetry, another package manager, a runtime layout, or another implementation technology until an actual implementation requires it.
+
+what_should_be_committed_by_default:
+  - Framework-owned and deliberately distributable material, including the System Specification and other framework documentation, blueprints, generic Registry infrastructure, framework scripts, repository guidance such as `AGENTS.md`, and other canonical framework resources.
+  - Framework-owned Agent definitions should be committed once their canonical repository location is finalized.
+  - Empty local-data boundaries may be retained with `.gitkeep` files or another minimal mechanism when needed to preserve the repository shape without tracking private contents.
+  - Obsidian configuration should follow the same ownership rule: configuration deliberately distributed as part of ShardBase may be committed, while user-specific application state remains local. Exact allow-and-ignore details should be defined only when concrete Obsidian configuration requirements are established.
+  - Every committed-by-default surface should be treated as potentially public and must therefore avoid embedding user-owned private state.
+
+what_should_be_ignored_by_default:
+  - Live contents of `app/Db/`.
+  - Contents of `app/Inbox/`.
+  - User-owned private Agents, Shard customizations, preferences, and other user-local Agent state once their physical boundary is finalized.
+  - User-specific generated Registry state or other derived artifacts containing private local information.
+  - Machine-specific or recreatable runtime state such as virtual environments, dependency installations, caches, indexes, embeddings, temporary files, build artifacts, and generated execution state.
+  - Credentials, API keys, access tokens, authentication material, and other secrets.
+  - User-specific Obsidian or application state that is not deliberately part of ShardBase's distributed configuration.
+  - Files remain subject to their ownership and sensitivity even when accidentally placed beneath a normally committed directory.
+
+what_local_data_may_be_versioned_intentionally:
+  - A user may deliberately version a live database, but databases remain private and untracked by the framework repository by default.
+  - A user may deliberately version their own Agents, Agent customizations, local configuration, or other user-owned durable resources.
+  - Inbox contents may be deliberately versioned only through an explicit user choice; the default remains untracked because Inbox is unreviewed pre-structural capture and may contain sensitive or disposable information.
+  - Versioning does not imply publication. User-owned data may be versioned in a private repository or other private history when the user deliberately chooses that arrangement.
+  - ShardBase should not require intentional user-data versioning to occur inside the framework repository rather than a separate repository or another user-chosen arrangement unless a future implementation demonstrates a concrete requirement.
+
+what_requires_an_explicit_repository_policy_change:
+  - Tracking a live database that the framework ignores by default.
+  - Tracking Inbox contents.
+  - Tracking private user-owned Agents, Agent customizations, or other normally local user state.
+  - Publishing or distributing material whose ownership and normal distribution policy are local/private.
+  - Changing a framework-owned path from committed-by-default to local-only, or a local/private path to committed-by-default, when that changes its ownership or distribution expectation.
+  - Creating an exception that could make an ordinary framework commit, release, or publish operation include user-owned information.
+  - Such changes must be deliberate and inspectable rather than achieved through an accidental or one-off Git bypass. The implementation mechanism may later be `.gitignore`, repository configuration, tooling, or another documented method.
+
+what_should_never_be_accidentally_published:
+  - Canonical user knowledge from live databases.
+  - Pre-structural Inbox capture.
+  - Private attachments.
+  - User-owned Agent definitions, prompts, customizations, preferences, or persistent state.
+  - Credentials, tokens, secrets, account information, or authentication material.
+  - Generated caches, indexes, embeddings, logs, exports, backups, Registry artifacts, or other derived data when they contain or reveal user-owned knowledge.
+  - User-specific application state that reveals private knowledge or usage.
+  - Any other user-local information whose intended distribution has not been deliberately changed by the user.
+  - This is an accidental-publication guarantee, not a restriction on the user's authority to deliberately version, synchronize, move, share, or publish their own information.
+  - Git ignore rules protect against future accidental tracking; they are not a privacy recovery mechanism after sensitive data has already entered repository history. Repository tooling and documentation should therefore treat the first inclusion of private data in version history as a consequential privacy boundary.
 
 ### Canonical Database Experience
 
@@ -1745,7 +1840,7 @@ idea_parking_lot_01:
   - Mobile and cloud-synchronized vaults may constrain where the Obsidian vault root can practically sit relative to the repository root, which can expose framework-level files and directories in the Obsidian file experience. Verify relevant Obsidian and platform behavior before defining a universal filesystem or packaging rule.
   - Investigate whether Obsidian can exclude or hide framework-only files or folders from its file explorer and indexing in a way that works reliably across supported environments. Do not assume this capability until verified.
   - Python Poetry is a possible future implementation option for keeping Python virtual environments outside the project root because its default environment location can live under Poetry's cache directory. Do not standardize Poetry or any package manager until an actual implementation requires that choice.
-  - Revisit and incorporate this principle when defining `locality_means`, `portability_means`, `what_belongs_in_app_scripts`, `what_should_be_committed_by_default`, `what_should_be_ignored_by_default`, and implementation-specific compatibility or tooling policies.
+  - The durable/runtime separation has now been incorporated into `locality_means`, `portability_means`, `what_belongs_in_app_scripts`, `what_should_be_committed_by_default`, and `what_should_be_ignored_by_default`. Platform-specific compatibility, Obsidian exclusion behavior, and any package-manager choice remain deferred until implementation requires them.
 
 idea_parking_lot_02: 
 idea_parking_lot_03: 
