@@ -429,13 +429,13 @@ Links or descriptions for relevant Views, collection-local attachment guidance, 
 
 ShardBase's primary day-to-day interaction surface is the user's chosen compatible Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly; routine prose, heading, list, link, embed, and metadata editing must not require a CLI or AI agent.
 
-Creation and editing are distinct concerns. New databases and new canonical structural notes should preferentially be created through a ShardBase-aware creation path that can apply the documented placement, metadata, naming, lineage, and validation rules consistently. A future CLI is the intended framework-owned creation surface, but no CLI runtime or implementation is part of the foundation contract yet. A database-owned template may also provide a valid editor-based creation path when it produces a note that conforms to this specification and the database contract. Knowledgeable users retain the ability to create canonical files manually, subject to the same validation requirements.
+Creation and editing are distinct concerns. ShardBase recommends two primary paths for new notes. A note intended to become canonical knowledge under `app/Db/` should normally be created through the ShardBase CLI so placement, metadata, naming, lineage, and validation can be applied consistently. An ordinary note created ad hoc through the user's Markdown editor or directly through the filesystem should normally enter `app/Inbox/` as pre-structural capture.
 
-Ordinary ad-hoc notes created through a Markdown editor or directly through the filesystem should enter `app/Inbox/` by default when they have not been created through a ShardBase-aware canonical creation path. Promotion into a database requires classification and conformance to the destination database contract.
+The CLI is the intended framework-owned canonical creation surface, but no CLI runtime or implementation contract is part of the foundation specification yet. Database-owned templates may remain useful creation resources and knowledgeable users retain the ability to create canonical files manually, but editor-created canonical files are outside the recommended two-path workflow and remain subject to the same structural and validation requirements. Promotion from Inbox into a database requires classification and conformance to the destination database contract.
 
 Database-owned templates must remain within the portable database boundary. The optional root-level `Templates/` directory is the canonical database-owned template location for the foundation architecture. Templates are creation resources, not structural notes or architectural authority. Headings and skeleton sections inside a template remain document structure and must never be interpreted by themselves as instructions to materialize additional Shards or Pebbles.
 
-Shard and other AI agents are assistance layers rather than the primary editor. ShardBase does not require scripts, a CLI, or another built-in component to call model-provider APIs during the foundation stage. A user may deliberately provide authorized ShardBase files or context to an external AI agent or application of their choice. Such use remains subject to the local-first transmission boundary and does not make the external AI system authoritative over the canonical Markdown and YAML.
+Shard and other AI agents are assistance layers rather than the primary editor. ShardBase is not an intermediary, synchronization layer, or automatic connection between the user's local knowledge and external AI services. ShardBase does not require scripts, a CLI, or another built-in component to call model-provider APIs during the foundation stage and does not automatically broker local knowledge to services such as ChatGPT or Gemini. A user who wants an external AI or another service to receive ShardBase information must deliberately provide, move, export, upload, or otherwise authorize that information through a separate workflow. Such use remains subject to the local-first transmission boundary and does not make the external system authoritative over the canonical Markdown and YAML.
 
 A good database should remain discoverable without requiring filesystem expertise, queryable from explicit source meaning rather than query-specific invention, manually editable as ordinary Markdown, and sufficiently documented that Shard can explain or assist with the database when the user deliberately supplies the relevant authorized context.
 
@@ -707,11 +707,13 @@ Example:
 [[Hades - Future Expansion]]
 ```
 
-Use a Ghost Shard when a future note is likely but does not yet justify materialization.
+Use a Ghost Shard when a future note is plausible but does not yet justify materialization.
 
-A Ghost Shard has no structural YAML because no file exists yet.
+A Ghost Shard has no structural YAML because no file exists yet. Its existence, age, or number of references does not by itself justify creating a file.
 
-Do not materialize a Ghost Shard until independent structure provides meaningful value.
+A Ghost Shard may remain unresolved indefinitely. It should be promoted only when the represented knowledge satisfies the same materialization test as any other canonical structural note and the user chooses to create it. The recommended promotion path is the CLI, which determines or validates the current database ownership, declared data collection, Pool, root Core, immediate parent, structural type, filename, metadata, and applicable semantic schema.
+
+Promotion of one Ghost Shard must not automatically materialize neighboring Ghost Shards or implied intermediate hierarchy. If the correct canonical identity has changed since the unresolved link was written, references should be deliberately reconciled rather than creating an incorrectly named note solely to satisfy the old link.
 
 ## 12. Blueprints
 
@@ -755,7 +757,11 @@ Attachments:
 - must not be automatically deleted merely because a note is deleted;
 - must not have their unresolved references silently removed merely because the underlying file is missing or has been deliberately offloaded.
 
-Orphan cleanup must be explicit and user-authorized. A missing local attachment reference should be reported as unavailable rather than rewritten away. ShardBase may later support deliberate attachment offloading and restoration, but the exact offload representation and lifecycle mechanism remain unresolved until the Knowledge Lifecycle contract defines them.
+Attachments follow the lifecycle of their owning database without silently following the lifecycle of any one referencing note. Adding or removing a note reference does not change attachment ownership. Archiving a note does not archive, move, or delete its attachments, and deleting a note through the user's editor or filesystem must not cause ShardBase to delete attachments it referenced. An unreferenced attachment is an attachment orphan that may be reported for review but remains intact until the user deliberately handles it.
+
+Inbox remains text-oriented and does not own attachments. Attachments enter the database boundary when canonical knowledge that needs them is created or promoted. Renaming or refactoring canonical notes should preserve attachment references where tooling can do so safely.
+
+A missing local attachment reference should be reported as unavailable rather than rewritten away. Deliberate attachment offloading and restoration may be supported later, but the exact representation and mechanism remain deferred until a concrete implementation requirement justifies them.
 
 ## 15. Inbox
 
@@ -773,7 +779,9 @@ They do not require:
 
 Inbox items should be text-only local capture and should not own local attachments.
 
-During review, an Inbox item may be discarded, merged into an existing note, or promoted into a database. A future CLI or a conforming database-owned template may create canonical database notes directly; intentional manual canonical creation remains possible for knowledgeable users, but ordinary capture should not bypass classification merely because a file can physically be placed inside a database.
+During review, an Inbox item may be discarded, incorporated into an existing canonical note, promoted into a new structural note, left unresolved for later review, or represented only by a Ghost Shard when a future note is plausible but not yet justified. Successful review means an appropriate disposition, not necessarily creation of a new file.
+
+The CLI is the recommended path for creating new canonical database notes directly. Intentional manual canonical creation remains possible for knowledgeable users, but notes created ad hoc through a Markdown editor or filesystem should normally enter Inbox rather than bypass classification merely because a file can physically be placed inside a database.
 
 Promotion requires classification under this specification and conformance to the destination `Database.md`.
 
@@ -815,11 +823,88 @@ AI reasoning and deterministic tooling should complement one another. AI may int
 
 AI assistance must remain optional to the durability and structural meaning of the knowledge base. ShardBase must not require a particular AI model, provider, or service for core knowledge to remain valid. Local authorization to read user-owned knowledge does not authorize a script, agent, or integration to transmit that knowledge to an external AI or other service.
 
-A future CLI is intended to become the preferred framework-owned interface for creating databases and new canonical structural notes, as well as for other deterministic structural operations where controlled creation reduces invalid states. It is not intended to replace the Markdown editor as the user's primary reading and editing interface, and no CLI runtime contract is part of the foundation specification yet.
+The CLI is the recommended framework-owned interface for creating databases and new canonical structural notes, as well as for other deterministic structural operations where controlled creation reduces invalid states. It is not intended to replace the Markdown editor as the user's primary reading and editing interface, and no CLI runtime contract is part of the foundation specification yet.
 
-ShardBase should not initially require framework scripts or the CLI to communicate with AI models through provider APIs. Users may deliberately supply authorized ShardBase files or context to external AI agents and applications of their choice. Built-in model-provider integration remains deferred until a concrete implementation requirement justifies it.
+ShardBase is not an intermediary or automatic connection between local knowledge and external AI services. Framework scripts and the CLI should not initially communicate with AI models through provider APIs or broker local knowledge to services such as ChatGPT or Gemini. Users may deliberately supply authorized ShardBase files or context to external AI agents and applications through separate workflows of their choice. Built-in model-provider integration remains deferred until a concrete implementation requirement justifies reconsidering that boundary.
 
-## 18. Architectural Continuity
+## 18. Knowledge Lifecycle
+
+ShardBase treats lifecycle as a progression of increasingly deliberate representation rather than a mandatory pipeline that every piece of information must traverse. Knowledge may enter through Inbox capture, direct CLI creation, or incorporation into existing canonical notes. Uncertainty may remain pre-structural rather than being resolved through speculative structure.
+
+### 18.1 Entry and Review
+
+ShardBase recommends two primary entry paths for new notes:
+
+1. canonical notes intended for `app/Db/` should normally be created through the CLI;
+2. ad-hoc notes created through the user's Markdown editor or filesystem should normally enter `app/Inbox/`.
+
+Users retain direct control of their files and may intentionally create canonical notes manually, but manual canonical creation is outside the recommended path and remains subject to the complete documented contract. New information may also be incorporated into an existing canonical note without creating a new file.
+
+Pre-structural capture is user-owned information whose canonical database ownership or representation is unresolved. Inbox items may be incomplete, uncertain, unverified, temporary, retained for later review, incorporated into existing knowledge, promoted into new structural notes, represented by Ghost Shards where appropriate, or discarded by the user. Review is successful when the information receives an appropriate disposition; materialization is not required.
+
+Review should inspect relevant existing canonical knowledge before assuming a new file is needed. AI may assist with review, but review and canonical interpretation must remain possible without AI.
+
+### 18.2 Ownership and Structural Placement
+
+Every live database is user-owned local data. Within that user-owned system, canonical database ownership is determined by the semantic scope documented in each `Database.md`; physical placement follows ownership rather than defining it. A relationship to knowledge owned by another database does not transfer canonical ownership. When multiple databases plausibly claim ownership and the contracts do not resolve the ambiguity, the ambiguity must be surfaced rather than represented through duplicate authoritative copies or arbitrary selection.
+
+After database ownership is established:
+
+- Pool membership is determined from the destination database's documented Pool vocabulary. Supporting notes inherit the Pool of their root Core; changing a Core's Pool is a lineage-level classification change.
+- Every Shard or Pebble belongs to exactly one root Core. Semantic relationships, collection membership, backlinks, and physical proximity do not create Core ownership.
+- A Shard or Pebble's immediate parent is the closest existing Core or Shard whose scope genuinely contains that knowledge in the intended lineage. A Pebble may never be a parent. Intermediate Shards must not be invented merely to make a hierarchy appear balanced.
+
+If an apparently ideal parent does not exist, ShardBase should use the smallest valid existing lineage where possible or propose additional structure for deliberate user action. It must not silently materialize an extra parent merely to support the requested note.
+
+### 18.3 Materialization and Growth
+
+A separate canonical file is justified only when independent materialization provides meaningful value through growth, querying, navigation, reuse, reference, lifecycle management, structural organization, or another concrete benefit. Ordinary Markdown remains preferred when a separate file adds no meaningful value.
+
+Conceptual hierarchy does not require matching file hierarchy. For example, knowledge conceptually described as `Call of Duty Black Ops 6 > Multiplayer > Weapons > AK-47` does not require separate notes for `Multiplayer`, `Weapons`, or `AK-47` unless one or more independently earns materialization. Length may be evidence that a section has become difficult to navigate or maintain, but length alone is never sufficient justification.
+
+Information should normally grow inside existing Markdown first. Headings and sections may remain embedded indefinitely. When a section later earns independent growth, querying, navigation, reuse, reference, or lifecycle management, it may be deliberately materialized as a canonical note, normally through the CLI. If a Pebble develops a legitimate need to own structural children, it must first be deliberately reclassified as a Shard.
+
+The lifecycle principle is: **content grows freely; structure grows when it earns a purpose.**
+
+### 18.4 Refactoring
+
+Structural refactoring is a preservation-oriented operation that carries user knowledge from one coherent representation to another. It may promote embedded content into a structural note, consolidate a structural note back into ordinary Markdown, reclassify a note, change parentage or Pool membership, rename a canonical note, move canonical knowledge when ownership genuinely changes, or reorganize a larger lineage.
+
+A refactor should begin from the intended resulting knowledge model rather than from mechanical file operations. It must preserve user-authored knowledge unless rewriting that content is separately authorized, update affected authoritative metadata and dependent secondary representations, keep unrelated knowledge outside scope, and validate the resulting structure. Refactoring must not use an invalid temporary structural state as an implementation shortcut.
+
+Valid structure must not be refactored merely because another compliant representation is preferred. The smallest change that solves the actual structural problem should be favored.
+
+### 18.5 Archival
+
+Archiving retains canonical knowledge while marking it as no longer active. It is distinct from deletion. Structural notes normally remain in their canonical data collection with `status: archived`; ShardBase does not require a separate archive directory. Archived knowledge remains readable, searchable, queryable, and referenceable, and views may hide it without redefining its existence or meaning.
+
+Archiving a structural parent is a subtree-level lifecycle decision. Archiving a Core normally archives its structural lineage, and archiving a Shard normally archives its descendants. Descendants that should remain active must first be deliberately reparented or otherwise restructured into a valid active lineage. Archiving an entire database is represented through `database_status: archived` and does not require repeating that state on every contained note.
+
+Restoration normally changes the applicable lifecycle status back to `active` when the existing structure remains valid. If the surrounding architecture has changed, restoration should be reviewed against the current contracts.
+
+### 18.6 Deletion
+
+The normal Foundation-stage deletion path is deliberate user action through Obsidian, another Markdown editor, or the filesystem. ShardBase itself must not autonomously delete user-owned canonical knowledge. Shard and other tooling may report consequences of a deletion, but detection is not permission to delete related notes, attachments, references, or other user-owned content.
+
+Archived, obsolete, inactive, superseded, unused, orphaned, duplicate-looking, invalid, or unreferenced information must never be inferred to be deletable. When the intent is merely to retain knowledge without treating it as active, archival should normally be preferred.
+
+Future CLI commands for deliberate note or database deletion may be considered, but their behavior and safeguards are outside the Foundation contract. The Foundation does not standardize a Trash directory, recycle-bin behavior, recovery mechanism, or permanent-erasure workflow.
+
+### 18.7 Orphans
+
+A structural orphan is a Shard or Pebble whose required Core or immediate parent cannot be validly resolved. Structural orphans are invalid and must be reported without guessing a replacement parent or modifying the orphan's content. Possible user-directed resolutions include restoring the missing parent, reparenting, reclassifying, consolidating content elsewhere, or deleting the note through the user's normal file interface.
+
+A broken ordinary wikilink is not automatically a structural orphan, and an intentional Ghost Shard is not an orphan.
+
+An attachment orphan is an attachment that no canonical note currently references. It may be reported for review but must not be deleted automatically. Orphan detection is diagnostic; orphan cleanup is a user decision.
+
+### 18.8 External-Service Boundary
+
+ShardBase is not an intermediary, synchronization layer, or automatic connection between the user's local knowledge and external AI services or other external systems. If the user wants another service to receive ShardBase information, the user must deliberately provide, move, export, upload, or otherwise authorize that information through a separate workflow. ShardBase does not automatically broker the exchange.
+
+Local access to user-owned knowledge and permission to transmit that knowledge remain separate authorization boundaries.
+
+## 19. Architectural Continuity
 
 When operating inside an existing database, Shard must preserve established local conventions that are valid under both this specification and the database's `Database.md`. Such conventions guide continuity only where more than one compliant choice remains.
 
@@ -840,7 +925,7 @@ A migration proposal should identify:
 - expected benefits;
 - compatibility or data-integrity concerns.
 
-## 19. Change Safety
+## 20. Change Safety
 
 Shard must distinguish:
 
@@ -848,9 +933,10 @@ Shard must distinguish:
 - **proposal** — the exact change Shard recommends;
 - **approved change** — a change the user or authorized workflow has permitted.
 
+During the Foundation stage, Shard must not delete user-owned canonical files or content; normal deletion remains a deliberate user action through the user's Markdown editor or filesystem, and future CLI deletion behavior is deferred.
+
 Unless the task clearly authorizes the action, Shard must not assume permission to:
 
-- delete files or content;
 - rename or move existing notes;
 - change a database schema, manifest contract, universal architecture, or major local convention;
 - rewrite domain data;
@@ -866,11 +952,11 @@ Authorization is scoped to the requested task. Context, brainstorming, side comm
 
 The ability to perform an action is not permission to perform it. When authorization is unclear for a consequential operation, Shard should stop at a recommendation or proposal. When a safe, non-destructive interpretation exists within the authorized scope, prefer it.
 
-## 20. Validation Protocol
+## 21. Validation Protocol
 
 When auditing structural content, validate the following.
 
-### 20.1 Database Contract
+### 21.1 Database Contract
 
 - The database is a direct child of `app/Db/`.
 - `Database.md` exists at the database root.
@@ -882,7 +968,7 @@ When auditing structural content, validate the following.
 - Required manifest body sections exist.
 - Database-specific rules do not override universal invariants.
 
-### 20.2 Metadata
+### 21.2 Metadata
 
 - Required structural fields exist.
 - `type` is `core`, `shard`, or `pebble`.
@@ -894,7 +980,7 @@ When auditing structural content, validate the following.
 - Core `parent_note` is empty.
 - Domain semantics do not overload structural fields.
 
-### 20.3 Naming
+### 21.3 Naming
 
 - Core filenames use the canonical Core name.
 - Direct Core children use `Core - Current Node.md` naming.
@@ -904,16 +990,19 @@ When auditing structural content, validate the following.
 - Filename collisions are reported and are not resolved by appending more ancestor components.
 - Filename context and metadata describe the same intended structure.
 
-### 20.4 Integrity
+### 21.4 Integrity
 
 - No note is its own parent.
 - No circular lineage exists.
 - No note is its own ancestor.
 - Shards and Pebbles resolve to a valid Core.
 - Pebbles do not act as structural parents.
-- Missing parents are reported unless the reference is intentionally only a Ghost Shard in ordinary note content.
+- Active structural descendants do not remain beneath an archived Core or Shard; descendants intended to remain active are deliberately restructured first.
+- Missing structural parents or root Cores are reported as structural orphans; they are not repaired by guessing a replacement parent.
+- Broken ordinary wikilinks are not treated as structural orphans merely because they are unresolved.
+- Intentional Ghost Shards are not treated as structural orphans.
 
-### 20.5 Markdown Hierarchy
+### 21.5 Markdown Hierarchy
 
 - Heading levels are sequential.
 - Headings are followed by exactly one blank line.
@@ -921,32 +1010,33 @@ When auditing structural content, validate the following.
 - Empty structural headings are avoided unless they are deliberate skeleton or template structure.
 - Heading-only skeletons are not treated as instructions to materialize separate structural notes.
 
-### 20.6 Fragmentation
+### 21.6 Fragmentation
 
 - Separate structural notes provide meaningful independent value.
 - Pebbles are not used where an ordinary heading would suffice.
 - Empty or near-empty structural notes are flagged for review.
 - Duplicate or overlapping Shards are flagged.
-- Ghost Shards are not prematurely materialized.
-- Additional structural notes are not materialized solely from headings, templates, skeleton sections, or semantic categories without independent-value justification and deliberate user authorization when they extend beyond the requested note.
+- Ghost Shards are not prematurely materialized and their existence, age, or reference count is not treated as sufficient materialization evidence.
+- Additional structural notes are not materialized solely from headings, templates, skeleton sections, conceptual hierarchy, semantic categories, or note length without independent-value justification and deliberate user authorization when they extend beyond the requested note.
 
-### 20.7 Attachments
+### 21.7 Attachments
 
 - Local attachments live in `Data/<declared collection>/Attachments/` within the owning database.
 - Attachment directories are excluded from structural-note discovery.
 - Local references resolve, or unresolved references are reported as unavailable without being silently removed.
 - References do not cross database boundaries.
-- Orphans are reported rather than automatically deleted.
+- Attachment orphans are reported rather than automatically deleted.
+- Archiving or deleting a referencing note does not automatically move or delete its attachments.
 
-### 20.8 Inbox
+### 21.8 Inbox
 
 - Inbox files are treated as pre-structural.
 - Inbox files are not required to satisfy database schemas.
 - Inbox contents are ignored by Git.
-- Ordinary ad-hoc editor or filesystem capture defaults to Inbox unless it was created through a conforming ShardBase-aware canonical creation path.
-- Promotion applies proper classification and destination-database rules.
+- Ordinary ad-hoc editor or filesystem capture defaults to Inbox; canonical `app/Db/` note creation should normally use the CLI.
+- Promotion or incorporation applies proper classification and destination-database rules, and review does not require every Inbox item to become a new file.
 
-## 21. Shard Response Contract
+## 22. Shard Response Contract
 
 When proposing a structural entity, Shard should provide enough information to make the architecture inspectable:
 
@@ -973,7 +1063,7 @@ When auditing, Shard should report:
 
 Responses should prioritize architectural reasoning over unnecessary implementation detail. Architectural decisions should be explained first in terms of the user's knowledge and intended outcome, with framework terminology introduced when useful. For consequential decisions, Shard should distinguish universal requirements, database-local conventions, recommendations, and implementation choices; surface significant assumptions; explain meaningful tradeoffs; and provide the nearest valid alternative when rejecting an invalid requested structure. Explanations should be proportionate to the importance and ambiguity of the decision.
 
-## 22. Core Mission
+## 23. Core Mission
 
 Shard exists to answer, for every structural decision:
 

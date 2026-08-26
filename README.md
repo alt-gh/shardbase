@@ -131,7 +131,7 @@ Contains local non-structural files owned by the database and associated with th
 
 ### `Templates/`
 
-Optional database-owned note templates may live with the database so they remain portable with its schema and conventions. Templates may provide a ShardBase-aware creation path in Markdown editors, but headings or skeleton sections inside a template do not by themselves justify creating additional structural notes.
+Optional database-owned note templates may live with the database so they remain portable with its schema and conventions. Templates may assist knowledgeable users with manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Headings or skeleton sections inside a template do not by themselves justify creating additional structural notes.
 
 ### `Views/`
 
@@ -139,9 +139,9 @@ Contains database-local views and queries. Dataview is a primary and canonical S
 
 ## Canonical Database Experience
 
-ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. New databases and new canonical structural notes should preferentially be created through a ShardBase-aware creation path, such as the future CLI or a valid database-owned template, so required placement, metadata, naming, and lineage rules can be applied consistently. Ordinary ad-hoc notes created through an editor or filesystem belong in `app/Inbox/` by default until reviewed and promoted; knowledgeable users may still create canonical files manually when they intentionally satisfy the documented contract.
+ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. The intended normal workflow recommends two primary entry paths for new notes: canonical notes intended for `app/Db/` should normally be created through the ShardBase CLI, while ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Inbox/` for review. The CLI runtime is not yet part of the Foundation implementation contract; until it exists, and for knowledgeable users who deliberately choose otherwise, canonical files may still be created manually subject to the documented contract.
 
-The foundation does not require ShardBase scripts or a CLI to call AI-model APIs. Users may deliberately provide authorized ShardBase files or context to external AI agents and applications of their choice. AI assistance should reduce architectural burden without becoming the primary editor, a hidden source of truth, or a prerequisite for using the underlying Markdown knowledge.
+The foundation does not require ShardBase scripts or the CLI to call AI-model APIs. ShardBase is not an intermediary, synchronization layer, or automatic connection between local knowledge and external AI services such as ChatGPT or Gemini. Users who want an external service to receive ShardBase information must deliberately provide, move, export, upload, or otherwise authorize that information through a separate workflow. AI assistance should reduce architectural burden without becoming the primary editor, a hidden source of truth, or a prerequisite for using the underlying Markdown knowledge.
 
 ## Structural Metadata
 
@@ -188,6 +188,12 @@ A new structural note should exist only when it provides meaningful value throug
 
 Future notes may be represented by unresolved wikilinks until they justify materialization.
 
+## Knowledge Lifecycle
+
+ShardBase allows knowledge to begin simply and gain structure only when that structure earns a purpose. Inbox capture may be incorporated into existing notes, promoted into new structural notes, left unresolved, represented by Ghost Shards, or discarded by the user. A separate canonical file is justified by meaningful independent growth, querying, navigation, reuse, reference, or lifecycle management rather than by conceptual hierarchy or note length alone.
+
+Archived knowledge remains canonical and in place with an archived lifecycle status; archiving is not deletion. During the Foundation stage, normal deletion is a deliberate user action through Obsidian, another Markdown editor, or the filesystem rather than an autonomous ShardBase operation. Structural and attachment orphans may be reported for review but are never repaired or deleted through guesswork. Attachments remain database-owned resources whose existence does not silently follow the lifecycle of any one referencing note. Ghost Shards remain unresolved until the knowledge earns materialization and the user deliberately creates the real note.
+
 ## Framework Boundaries
 
 - `app/Blueprints/` contains framework-owned reusable database bootstrap material. ShardBase may eventually ship optional or default database packages here, including an initial specialist Agent when agent packaging is finalized.
@@ -219,7 +225,7 @@ A user may deliberately version a live database or other user-owned state, inclu
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, and Canonical Database Experience have been defined in the Foundation Roadmap Workbook, while the remaining lifecycle, conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, and Knowledge Lifecycle have been defined in the Foundation Roadmap Workbook, while the remaining conceptual language, governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation establishes product and architectural contracts before locking in implementation details such as a CLI runtime, compatibility matrix, migration engine, or blueprint materialization format. Those concerns should be added only when an implementation requires them.
 
