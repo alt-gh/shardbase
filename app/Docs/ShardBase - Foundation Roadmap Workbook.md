@@ -21,7 +21,7 @@ audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
 supporting_filename_strategy: Bounded Core context — `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants, capped at three structural context components; collisions are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
-agent_architecture_status: accepted conceptual ownership, authority, customization, and cooperation boundaries; database-local `Agents/` is canonical and optional, while framework-agent and user-local-agent locations remain provisional
+agent_architecture_status: accepted conceptual ownership, authority, customization, and cooperation boundaries; database-local `Agents/` is canonical and optional, while framework-agent and user-local-agent filesystem locations are intentionally deferred until concrete requirements justify them
 architectural_source_of_truth: app/Docs/Shard - System Specification.md
 database_local_authority: Each database's root-level Database.md
 repository_default: Framework-distributed material is committed by default; user-owned live state is local and private by default, with live databases, Inbox contents, user-owned agents and customizations, and sensitive derived state excluded unless the user deliberately chooses otherwise.
@@ -33,6 +33,7 @@ canonical_database_experience_status: accepted
 knowledge_lifecycle_status: accepted
 foundation_boundaries_status: accepted
 breaking_change_definition_status: accepted
+foundation_exit_criteria_status: accepted
 data_collection_model: accepted — each database declares one or more database-specific data collections beneath `Data/`; canonical notes live at collection roots and each collection reserves its own non-structural `Attachments/` subdirectory.
 development_usage_status:
   - ShardBase currently has one active development user operating a live ShardBase instance while the Foundation architecture is being developed.
@@ -61,7 +62,7 @@ what_is_shardbase:
   - Privacy is an explicit ShardBase design objective rather than merely a side effect of local Markdown storage.
   - The user owns and controls their core data. ShardBase should not require that data to leave the user's local environment.
   - External synchronization, backup, cloud storage, publishing, or sharing services such as iCloud or Obsidian Sync are choices made by the user and are separate from ShardBase's core operation.
-  - ShardBase should eventually understand the intended visibility of information so private knowledge can remain private while information deliberately intended for sharing can be identified and handled appropriately. The exact universal `visibility` model remains a Foundation architectural question.
+  - ShardBase should eventually understand the intended visibility of information so private knowledge can remain private while information deliberately intended for sharing can be identified and handled appropriately. The exact universal `visibility` model is explicitly deferred beyond Foundation because no current canonical behavior requires a universal field; local-first privacy and deliberate external-exposure boundaries remain authoritative in the meantime.
   - ShardBase can be compared to a private, personal Wikipedia as an explanatory analogy: an interconnected body of knowledge belonging to one user.
   - ShardBase's broader long-term vision is to become a user-owned digital brain: a growing, interconnected and AI-assisted source of truth that remains under the user's control.
 
@@ -1545,11 +1546,11 @@ what_is_in_scope_for_foundation:
   - Define and deliberately approve ShardBase's product contract, conceptual language, universal architecture, database-local extension boundaries, knowledge lifecycle, ownership model, Agent authority model, local-first and privacy boundaries, change-safety model, and structural decision framework.
   - Define enough governance for those contracts to evolve safely, including breaking-change categories, specification and manifest versioning principles, migration principles, compatibility boundaries, and architectural decision-record expectations.
   - Define the permanent product boundary that ShardBase manages AI-related knowledge but does not integrate with AI systems. ShardBase may structure, manage, validate, package, and export user-owned resources such as Agents and Prompts, but it does not execute, invoke, authenticate with, orchestrate, connect to, or transmit data to AI models or AI-agent services.
-  - Standardize the optional database-local `Agents/` resource boundary because Agent ownership and portability now provide a concrete architectural reason for it, while leaving unrelated framework-agent and user-local-agent locations unresolved until their requirements are clear.
-  - Define the smallest implementation necessary to prove the architecture, including a minimal database blueprint, Registry discovery behavior, deterministic validation of documented contracts, representative valid and invalid fixtures, a canonical example database, and an end-to-end workflow.
+  - Standardize the optional database-local `Agents/` resource boundary because Agent ownership and portability now provide a concrete architectural reason for it, while treating unrelated framework-agent and user-local-agent filesystem locations as safe deferrals until concrete requirements justify them.
+  - Define the smallest implementation necessary to prove the architecture, including a minimal database blueprint focused on deterministic YAML metadata and structural scaffolding rather than substantive note-body prose, Registry discovery behavior, deterministic validation of documented contracts, representative valid and invalid fixtures, a canonical example database, and an end-to-end workflow.
   - Allow an early minimal CLI vertical slice once the contracts it operates on are sufficiently settled. The CLI should prove and exercise those contracts through real use rather than expand Foundation into full product development.
   - Require canonical CLI creation to be type-safe in behavior: applicable templates may provide starting shape, while structural and database semantic contracts determine validity; proposed canonical state should be validated before a write. The exact schema-validation technology is not a Foundation requirement.
-  - Treat any unresolved question that could materially change canonical meaning, ownership, privacy, authority, integrity, compatibility, safety, or deterministic interpretation as Foundation work unless it is deliberately classified as safe to defer. The unresolved visibility model is one such question: Foundation should settle the architectural boundary or explicitly record a safe deferral without inventing a universal `visibility` field merely for completeness.
+  - Treat any unresolved question that could materially change canonical meaning, ownership, privacy, authority, integrity, compatibility, safety, or deterministic interpretation as Foundation work unless it is deliberately classified as safe to defer. The exact universal `visibility` model is an approved safe deferral: Foundation retains its existing local-first, privacy, authorization, and external-exposure boundaries without inventing a universal `visibility` field merely for completeness.
   - Treat the current live development instance as real user data. Foundation does not need generalized legacy-user migration infrastructure for an installed user base, but changes that affect the live instance require an explicit preservation-oriented transition path.
 
 what_is_out_of_scope_for_foundation:
@@ -1575,7 +1576,7 @@ what_can_safely_wait_until_later:
   - A mature, feature-rich CLI can wait even though a minimal usable CLI should arrive early. Interactive wizards, broad command coverage, sophisticated batch operations, advanced migrations, shell completion, extensive configuration, and other convenience features should follow concrete needs.
   - Automated Inbox classification, generalized database and schema migration engines, an Obsidian plugin, an API server, a web UI, packaging and distribution systems, extensive dashboards, and other large convenience surfaces may wait until their requirements are demonstrated.
   - Advanced Agent orchestration protocols, runtime mechanisms, delegation transports, prompt interchange formats, and machine-readable Agent schemas may wait. AI-provider integration is not in this category because it is outside the ShardBase product boundary rather than deferred work.
-  - Attachment offloading and restoration mechanisms, performance optimizations, caches, indexes, broad platform adaptation, and comprehensive compatibility work may wait until concrete requirements justify them, provided the canonical source remains durable and understandable without them.
+  - Attachment offloading and restoration mechanisms, the exact universal `visibility` model, performance optimizations, caches, indexes, broad platform adaptation, and comprehensive compatibility work may wait until concrete requirements justify them, provided the canonical source remains durable and understandable without them and existing privacy and external-exposure boundaries remain intact.
   - The mature implementation details of schema-aware CLI validation may wait. Foundation requires deterministic, type-safe creation behavior but does not require an early commitment to JSON Schema, TypeScript, Pydantic, or another particular validation technology.
 
 what_would_be_premature_to_standardize:
@@ -1679,16 +1680,62 @@ what_backward_compatibility_should_mean_for_shardbase:
 
 ### Foundation Exit Criteria
 
-when_is_the_product_definition_complete: 
-when_is_the_conceptual_language_complete: 
-when_is_the_architecture_demonstrable: 
-when_is_project_governance_complete: 
-when_are_canonical_implementation_artifacts_sufficient: 
-when_has_the_foundation_been_proven: 
-what_questions_must_have_explicit_answers_before_foundation_complete: 
-what_unresolved_questions_are_safe_to_defer: 
-who_or_what_decides_foundation_is_complete: 
-foundation_completion_statement: 
+when_is_the_product_definition_complete:
+  - Product definition is complete when ShardBase's purpose, core problem, target and secondary users, intended user experience, central value, design priorities, goals, non-goals, product boundaries, and major privacy and human-control expectations are explicit enough to answer both what ShardBase should become and what it should reject without implementation having to invent new product principles.
+  - Foundation completion does not require every future feature, user-interface detail, workflow, or implementation mechanism to be designed.
+
+when_is_the_conceptual_language_complete:
+  - Conceptual language is complete when every concept required to interpret the Foundation architecture has one sufficiently precise and consistently used meaning across authoritative and supporting documentation.
+  - The Foundation vocabulary must cover the concepts needed to reason about databases, data collections, Pools, Cores, Shards, Pebbles, Ghost Shards, structural and semantic metadata, lineage, ownership, materialization, lifecycle, manifests, blueprints, migrations, Views, attachments, Inbox, Registry, Agents, authority, and other Foundation-level contracts.
+  - Humans, deterministic tooling, and appropriately informed AI agents should be able to use the vocabulary without relying on undocumented synonyms, hidden definitions, or contradictory meanings.
+  - New terminology for future features, domain-specific concepts, or implementation internals may be introduced later when concrete requirements justify it.
+
+when_is_the_architecture_demonstrable:
+  - Architecture is demonstrable when its rules can be shown through concrete canonical examples rather than understood only as abstract specification text.
+  - Foundation demonstration should include at least one complete database contract; valid Core, Shard, Pebble, heading, and Ghost Shard classifications; valid recursive lineage; bounded filename behavior; semantic extensions; Inbox-to-canonical handling; attachments; growth and lifecycle behavior; and representative invalid or ambiguous cases.
+  - Demonstrations should include both correct and incorrect examples so structural boundaries and failure behavior are inspectable.
+  - The canonical walkthroughs, classification examples, lineage examples, manifest example, and common-mistake examples planned in Milestone 3 provide the primary evidence for this criterion.
+
+when_is_project_governance_complete:
+  - Project governance is complete for Foundation when ShardBase can evolve without architectural changes becoming ambiguous, untraceable, or silent.
+  - Foundation governance must establish change classification, System Specification version boundaries, manifest-version boundaries, migration principles, backward-compatibility expectations, Architectural Decision Record expectations, approval boundaries, and the kinds of changes that must never occur silently.
+  - A future architectural change should be classifiable, reviewable, documentable, explicitly approved at the appropriate scope, migratable when necessary, and traceable to an inspectable decision.
+  - Foundation does not require committee structures, enterprise release processes, or other governance machinery that exceeds the needs of the project.
+
+when_are_canonical_implementation_artifacts_sufficient:
+  - Canonical implementation artifacts are sufficient when Foundation architecture has been converted into the smallest practical set of artifacts capable of exercising its deterministic contracts.
+  - At minimum, Foundation should provide representative database blueprint material, Registry discovery behavior, deterministic validation of manifests and documented structural contracts, and representative valid and invalid fixtures.
+  - Database blueprints should focus on deterministic bootstrap structure and YAML metadata rather than prescribing substantive note-body content. Database-local templates may provide minimal document shape where useful, but they should not become competing authorities for domain knowledge or silently dictate what a canonical note must say.
+  - When AI-assisted note development is used, the applicable database-owned specialist Agent should develop or assist with the substantive document body according to that database's `Database.md`, semantic schema, conventions, and the user's intent. AI assistance remains optional: knowledgeable users must retain a valid manual path for authoring canonical note bodies.
+  - The purpose of these artifacts is to prove that rules claimed to be deterministic can actually be implemented deterministically, not to complete the mature CLI, production packaging, broad platform support, or the full end-user product.
+
+when_has_the_foundation_been_proven:
+  - Foundation has been proven when its parts operate together as a coherent system rather than succeeding only as isolated documents or examples.
+  - A canonical example database should exercise the architecture, and an end-to-end workflow should demonstrate knowledge entering the system, being classified, materialized or incorporated appropriately, validated, queried or navigated, grown, and archived.
+  - Documentation should be teachable without requiring source-code archaeology or undocumented prior knowledge.
+  - Deterministic validation should accept representative known-valid fixtures and reject representative known-invalid fixtures within its documented scope.
+  - Real use of the live development instance and canonical examples must not reveal an unresolved Foundation-level architectural contradiction that would force initial implementation to guess about canonical meaning, ownership, lineage, safety, privacy, or other foundational contracts.
+
+what_questions_must_have_explicit_answers_before_foundation_complete:
+  - Any unresolved question must have an explicit answer before Foundation completion when its answer could materially change canonical meaning, structural identity, database ownership, lineage, structural or semantic authority, privacy or locality boundaries, meaningful user control, preservation expectations, compatibility, migration requirements, deterministic validation, or the contracts required by the initial canonical implementation.
+  - Foundation must not close while initial implementation still has to invent architecture in order to determine whether canonical state is valid or how user-owned knowledge should be interpreted safely.
+
+what_unresolved_questions_are_safe_to_defer:
+  - A question is safe to defer when materially different future answers would leave Foundation-compliant canonical knowledge valid and correctly interpreted, would not weaken established ownership, privacy, preservation, safety, or authority expectations, and would not prevent the initial canonical implementation artifacts from behaving deterministically.
+  - Safe deferrals may include implementation technologies, package managers, runtime layouts, internal algorithms, mature CLI syntax and UX, performance strategies, caches and indexes, broad compatibility matrices, advanced migration-engine behavior, packaging details, and optional features whose observable contracts are not yet required.
+  - Framework-Agent and user-local-Agent filesystem locations may remain deferred because their ownership, authority, privacy, and distribution boundaries are already defined and no current canonical operation requires a universal location.
+  - The exact universal `visibility` model is explicitly deferred beyond Foundation. No universal `visibility` field should be invented merely to close the stage; until a concrete requirement justifies such a contract, ShardBase's existing local-first, privacy, user-authorization, and external-exposure boundaries remain authoritative.
+  - Every safe deferral should be deliberate and documented with enough reasoning that later implementation cannot mistake absence of a decision for permission to invent one silently.
+
+who_or_what_decides_foundation_is_complete:
+  - Foundation completion requires explicit project-owner approval against documented evidence.
+  - The System Specification, roadmap criteria, canonical examples, validators, fixtures, Shard, and other tooling may provide evidence, expose gaps, and identify blockers, but none independently has authority to declare Foundation complete.
+  - The project owner makes the final Foundation sign-off after the documented exit criteria are satisfied and any remaining unresolved questions have been deliberately accepted as safe deferrals.
+  - Automated passing checks are evidence of compliance within their scope, not a substitute for architectural sign-off.
+
+foundation_completion_statement:
+  - ShardBase Foundation is complete when its product contract, conceptual language, universal architecture, governance model, minimum canonical implementation artifacts, and end-to-end proof have been deliberately approved; all Foundation-critical architectural questions have explicit answers; remaining questions have been consciously classified as safe to defer; authoritative and supporting documentation agree; and the resulting architecture is stable enough that post-Foundation implementation can proceed without inventing foundational meaning.
+  - Foundation is complete when implementation can discover details, but no longer has to invent architecture.
 
 ---
 

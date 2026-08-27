@@ -91,7 +91,7 @@ Additional data collections, `Agents/`, and `Templates/` are optional; a minimal
 
 Data collections organize database-owned files; they do not define Pool membership, Core lineage, or parentage. Do not introduce nested database roots or undeclared data-collection directories unless the framework specification is explicitly changed.
 
-Database-owned templates must remain within the database boundary so they travel with the database. They may assist knowledgeable users with manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Template headings or skeleton sections never imply separate structural-note materialization.
+Database-owned templates must remain within the database boundary so they travel with the database. Reusable template and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the documented database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, prefer the applicable database-owned specialist Agent to develop or assist with the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid note bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Template headings or skeleton sections never imply separate structural-note materialization.
 
 ## Core Structural Rules
 
@@ -164,7 +164,7 @@ Never silently change existing canonical meaning, invalidate previously valid st
 
 ## Blueprint Rule
 
-Blueprints are framework-owned bootstrap material. They may be used to create a new database.
+Blueprints are framework-owned bootstrap material. They may be used to create a new database. Their note-level bootstrap content should emphasize deterministic YAML metadata, placement, and structural scaffolding rather than substantive domain-specific body prose.
 
 After creation, the live database owns its `Database.md`, declared Data collections, collection-local Attachments, Views, database-owned templates, and other local resources. Later blueprint changes are not automatically authoritative for that database.
 
