@@ -32,6 +32,7 @@ repository_vs_local_user_data_status: accepted
 canonical_database_experience_status: accepted
 knowledge_lifecycle_status: accepted
 foundation_boundaries_status: accepted
+breaking_change_definition_status: accepted
 data_collection_model: accepted — each database declares one or more database-specific data collections beneath `Data/`; canonical notes live at collection roots and each collection reserves its own non-structural `Attachments/` subdirectory.
 development_usage_status:
   - ShardBase currently has one active development user operating a live ShardBase instance while the Foundation architecture is being developed.
@@ -1596,16 +1597,85 @@ what_should_remain_implementation_defined:
 
 ### Breaking Change Definition
 
-what_counts_as_an_architectural_clarification: 
-what_counts_as_an_architectural_extension: 
-what_counts_as_a_schema_change: 
-what_counts_as_a_migration: 
-what_counts_as_a_breaking_change: 
-what_changes_require_a_specification_version_change: 
-what_changes_require_a_manifest_version_change: 
-what_changes_require_database_migration: 
-what_changes_must_never_be_silent: 
-what_backward_compatibility_should_mean_for_shardbase: 
+what_counts_as_an_architectural_clarification:
+  - An architectural clarification explains an existing rule more precisely without changing what compliant existing knowledge, databases, or tooling are required to do.
+  - A clarification may resolve unclear wording, add examples, make an already-implied boundary explicit, or remove ambiguity where the existing architecture already supports one interpretation.
+  - A clarification must not make previously valid canonical state invalid, change the authoritative meaning of existing data, introduce a new required field or behavior, remove an allowed behavior, or require migration.
+  - Editorial changes, reorganized documentation, terminology explanations, and non-normative examples are clarifications when they leave the actual contract unchanged.
+  - If resolving an ambiguity requires choosing between two interpretations that were both reasonably permitted by the previous contract, the change is not merely a clarification; it is an architectural change whose compatibility impact must be evaluated.
+
+what_counts_as_an_architectural_extension:
+  - An architectural extension adds a new permitted capability, concept, field, behavior, resource, or contract while preserving the validity and intended meaning of previously compliant state.
+  - Extensions should normally be additive. Existing databases should not need to adopt the new capability merely to remain valid unless the change is explicitly established as a new baseline requirement.
+  - An optional new manifest field, newly supported resource type, or additional explicitly permitted workflow may be an extension when older databases remain valid without it.
+  - An extension stops being merely additive if existing canonical state must change, previously valid behavior becomes invalid, or existing information acquires a different meaning.
+  - An extension may still require a System Specification version change because the universal contract has grown even when the extension is backward-compatible and requires no database migration.
+
+what_counts_as_a_schema_change:
+  - A schema change modifies a documented machine-interpretable contract governing the shape, meaning, requirement, allowed values, or constraints of canonical structured data.
+  - Schema changes may occur in the universal structural schema, the database-manifest schema, or a database-specific semantic schema.
+  - Adding, removing, renaming, changing the meaning of, changing the required or optional status of, or changing the permitted values or shape of a schema field counts as a schema change.
+  - A schema change may be backward-compatible or breaking. Adding an optional semantic field may require no migration, while renaming a required structural field may be both a schema change and a breaking change.
+  - Changes to prose, examples, views, implementation internals, or conventions that do not alter a structured contract are not automatically schema changes.
+  - Schema change describes the nature of a change; breaking change describes its compatibility effect.
+
+what_counts_as_a_migration:
+  - A migration is an explicit, bounded transformation that carries existing ShardBase state from one documented valid or legacy representation to another intended representation.
+  - A migration may affect canonical notes, metadata, filenames, placement, manifests, database-local schemas, repository structure, references, or other durable state when an approved architectural or schema change requires it.
+  - Migration is an operation rather than a category of specification change. Not every architectural or schema change requires migration.
+  - A migration should have a defined source condition, target condition, preservation expectations, scope, validation criteria, and known compatibility implications.
+  - Migration must preserve unrelated user-authored knowledge and must never use silent rewriting as a substitute for explicit architectural governance.
+  - During current development, changes that affect the live development instance should have an explicit preservation-oriented transition even though Foundation does not yet require generalized installed-user migration infrastructure.
+
+what_counts_as_a_breaking_change:
+  - A breaking change is an approved change to an observable ShardBase contract that causes previously compliant canonical knowledge, databases, tooling assumptions, or documented workflows to become invalid, be interpreted differently, lose supported meaning, or require modification in order to remain compliant.
+  - Making previously valid canonical state invalid or changing the authoritative meaning of existing stored information is breaking.
+  - Removing or renaming a required or previously supported structural field or value is breaking when existing state cannot remain compliant unchanged.
+  - Changing lineage, ownership, naming, placement, manifest, or other universal semantics in a way existing databases cannot satisfy unchanged is breaking.
+  - Removing a documented capability or contract that compliant tooling or databases could rely on is breaking.
+  - Changing observable deterministic behavior may be breaking when previously compliant implementations become incompatible even if no Markdown file needs modification.
+  - A change remains breaking even when an automated migration can transform affected state safely.
+  - An implementation change is not necessarily breaking merely because code must change; replaceable internals may evolve without changing observable architectural compatibility.
+
+what_changes_require_a_specification_version_change:
+  - A System Specification version change is required when the normative universal architectural contract changes.
+  - Architectural extensions, universal schema changes, added or removed universal invariants, materially changed authoritative meanings, changed compatibility or interoperability requirements, and changes to universal ownership, privacy, safety, or other architectural obligations require a specification-version change.
+  - Every breaking universal architectural change requires a specification-version change.
+  - Purely editorial corrections, formatting changes, non-normative examples, and true architectural clarifications that do not alter normative behavior do not require a specification-version change.
+  - Foundation defines what requires a version boundary without yet standardizing the version-number syntax or scheme; that belongs in the dedicated Specification Versioning Policy.
+
+what_changes_require_a_manifest_version_change:
+  - `manifest_version` changes only when the database-manifest contract itself changes in a way that readers, validators, creators, or migrations need to distinguish.
+  - Changes to required manifest fields, field meanings, required value shapes, manifest-level constraints, or required manifest body structure may require a manifest-version change.
+  - A System Specification change does not automatically require a manifest-version change.
+  - An additive manifest change that older and newer tooling can interpret unambiguously may or may not require an increment according to the future compatibility and versioning policy; Foundation does not yet lock that finer-grained rule.
+  - Database-local semantic schema changes do not increment the universal `manifest_version` merely because they are documented in `Database.md`.
+  - `manifest_version` identifies the database-manifest schema and must not be used as a generic ShardBase or System Specification version.
+
+what_changes_require_database_migration:
+  - A database migration is required when an approved change means an existing database cannot remain correctly conformant, correctly interpreted, or safely operated in its present durable representation.
+  - Migration is required when existing required metadata must change, structural meanings or allowed values change, canonical files must be renamed or relocated, lineage or ownership representation changes, manifest state must be transformed, a database semantic-schema change requires rewriting existing canonical data, or a repository or database-layout change alters where canonical database-owned state must live.
+  - Migration is not required merely because documentation becomes clearer, an optional capability is added, new databases may use a new optional feature, tooling internals change, a new view or validator becomes available, or existing files already satisfy the new contract unchanged.
+  - When compatibility can be preserved safely by reading existing state as-is, ShardBase should not force migration merely to normalize everything to the newest representation.
+
+what_changes_must_never_be_silent:
+  - Any change that alters the intended meaning of existing canonical knowledge must never be silent.
+  - Breaking changes, database migrations, changes that invalidate previously valid state, and required schema transformations must never be silent.
+  - Changes to structural identity, ownership, lineage, naming, placement, lifecycle semantics, privacy, locality, publication, synchronization, Git-distribution, or external-transmission boundaries must never be silent when they affect existing state or expectations.
+  - Destructive or irreversible transformations and blueprint changes applied to already-materialized live databases must never be silent.
+  - Compatibility decisions that cause older supported state to stop being accepted must never be silent.
+  - A version mismatch that tooling cannot safely interpret must be surfaced rather than guessed through.
+  - A compatibility boundary should be inspectable before it becomes a data transformation.
+
+what_backward_compatibility_should_mean_for_shardbase:
+  - Backward compatibility means a newer ShardBase contract or compliant implementation can safely recognize and preserve the intended meaning of older supported ShardBase state without silently reinterpreting it.
+  - When older state remains valid under the newer contract, it should continue working without unnecessary migration.
+  - When a newer implementation directly supports an older schema or specification version, it must interpret that state according to its documented meaning rather than pretending it was authored under the newest rules.
+  - When safe direct compatibility is impossible, the version difference must be detected explicitly and an appropriate migration path must precede rewriting canonical state.
+  - Unsupported older state must fail visibly rather than being guessed through, partially normalized, or silently interpreted according to current rules.
+  - Backward compatibility prioritizes preservation of knowledge and meaning over preservation of every historical implementation detail, user-interface behavior, view, plugin behavior, runtime, or convenience.
+  - ShardBase does not promise indefinite support for every historical version. Exact support windows and tooling compatibility matrices should be defined when actual released versions create a concrete need.
+  - Backward compatibility means preserving old meaning, not pretending architecture never changes.
 
 ### Foundation Exit Criteria
 

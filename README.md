@@ -229,9 +229,17 @@ By default:
 
 A user may deliberately version a live database or other user-owned state, including in a private Git repository. Tracking material that ShardBase ignores by default, or changing its normal distribution expectation, requires an explicit and inspectable repository-policy change rather than an accidental Git side effect. Git ignore rules prevent future accidental tracking; they do not erase private information already recorded in repository history.
 
+## Architectural Evolution and Compatibility
+
+ShardBase distinguishes architectural clarification, extension, schema change, migration, and breaking change rather than treating all architectural evolution as equivalent. A breaking change is one that makes previously compliant knowledge, databases, documented workflows, or observable tooling assumptions invalid, changes their intended meaning, removes supported meaning, or requires modification for continued compliance. The existence of a migration does not make such a change non-breaking.
+
+Normative changes to the universal System Specification require an explicit specification-version boundary, while `manifest_version` identifies only the database-manifest schema. Existing databases should not be migrated merely to normalize them when the newer contract can safely interpret them unchanged. When migration is required, it must be explicit and preservation-oriented; compatibility boundaries, unsupported versions, changes to existing canonical meaning, and other breaking transformations must never be silently guessed through or applied.
+
+Backward compatibility means preserving the documented meaning of older supported state. It does not mean ShardBase architecture can never change or that every historical implementation detail must be supported indefinitely.
+
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, and Foundation Boundaries have been defined in the Foundation Roadmap Workbook, while breaking-change governance, exit criteria, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
+ShardBase is in its foundation stage. Product Identity, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, Foundation Boundaries, and the Breaking Change Definition have been defined in the Foundation Roadmap Workbook, while detailed versioning, migration, and compatibility governance, exit criteria, canonical implementation artifacts, validation behavior, and foundation proof are still in progress.
 
 The foundation standardizes durable and observable contracts before locking in replaceable implementation details. A minimal CLI may begin as soon as the creation contracts it depends on are sufficiently settled so those contracts can be exercised through real use; mature CLI UX, compatibility matrices, migration engines, validation libraries, and blueprint packaging details should be added only when implementation demonstrates the need. AI-provider integration, synchronization systems, and general-purpose search/indexing engines are not deferred ShardBase implementation targets: AI integration remains outside the product boundary, while synchronization and search/indexing are provided by user-selected external tools.
 

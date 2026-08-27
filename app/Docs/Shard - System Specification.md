@@ -341,9 +341,9 @@ database_status: active
 
 #### `manifest_version`
 
-Identifies the ShardBase database-manifest schema version.
+Identifies the ShardBase database-manifest schema version. It is not a generic ShardBase or System Specification version.
 
-The foundation version is `1`.
+The foundation version is `1`. A `manifest_version` change is required when the manifest contract itself changes in a way that readers, validators, creators, or migrations need to distinguish, such as materially changed required fields, field meanings, value shapes, manifest-level constraints, or required manifest structure. A System Specification change or database-local semantic-schema change does not automatically change `manifest_version`. Finer-grained rules for compatible additive manifest evolution may be defined by the dedicated versioning and compatibility policy when implementation requires them.
 
 #### `database_id`
 
@@ -946,6 +946,51 @@ A migration proposal should identify:
 - the reason for change;
 - expected benefits;
 - compatibility or data-integrity concerns.
+
+### 19.1 Architectural Change Classification
+
+ShardBase distinguishes the nature of a change from its compatibility impact and from any transformation used to apply it.
+
+- An **architectural clarification** explains an existing rule more precisely without changing what compliant existing knowledge, databases, or tooling are required to do. Editorial changes, examples, and ambiguity reduction are clarifications only when they leave the normative contract unchanged. If two interpretations were reasonably permitted before and a change selects one of them, the change must be evaluated as an architectural change rather than disguised as a clarification.
+- An **architectural extension** adds a permitted capability, concept, field, behavior, resource, or contract while preserving the validity and intended meaning of previously compliant state. Extensions should normally be additive; an extension that requires existing state to change, invalidates previously valid behavior, or changes existing meaning must be evaluated for breaking impact.
+- A **schema change** modifies a documented machine-interpretable contract governing the shape, meaning, requirement, allowed values, or constraints of canonical structured data. Schema changes may affect the universal structural schema, the database-manifest schema, or a database-local semantic schema, and may be either backward-compatible or breaking.
+- A **migration** is an explicit, bounded transformation that carries existing ShardBase state from one documented valid or legacy representation to another intended representation. Migration is an operation rather than a change category, and not every architectural or schema change requires one.
+- A **breaking change** changes an observable ShardBase contract such that previously compliant canonical knowledge, databases, tooling assumptions, or documented workflows become invalid, are interpreted differently, lose supported meaning, or require modification to remain compliant. The existence of an automated migration does not make a breaking change non-breaking. Internal implementation changes are not breaking merely because implementation code changes when observable architectural compatibility is preserved.
+
+Schema change therefore describes what changed, breaking change describes its compatibility effect, and migration describes a transformation that may be required because of a change.
+
+### 19.2 Version Boundaries
+
+The System Specification must change version whenever its normative universal architectural contract changes, including architectural extensions, universal schema changes, added or removed universal invariants, materially changed authoritative meanings, breaking universal changes, or changed universal compatibility, interoperability, ownership, privacy, or safety obligations. Purely editorial corrections, non-normative examples, formatting changes, and true architectural clarifications do not require a new specification version. The exact specification-version numbering scheme remains intentionally deferred to the dedicated Specification Versioning Policy.
+
+`manifest_version` is narrower. It changes only when the database-manifest contract changes in a way that compatible readers, validators, creators, or migrations need to distinguish. A System Specification version change does not automatically require a manifest-version change, and database-local semantic-schema changes do not use `manifest_version` as their version identifier.
+
+### 19.3 Database Migration and Backward Compatibility
+
+A database migration is required when an approved change means an existing database cannot remain correctly conformant, correctly interpreted, or safely operated in its present durable representation. This includes required transformations to metadata, structural meaning or allowed values, canonical filenames or placement, lineage or ownership representation, manifest state, database-local semantic state, or database layout. A migration is not required merely because documentation becomes clearer, an optional capability is introduced, implementation internals change, a new view or validator becomes available, or existing state already satisfies the newer contract unchanged. When old state can be interpreted safely as-is, ShardBase should not force migration merely to normalize it to the newest representation.
+
+A migration should define its source condition, target condition, authorized scope, preservation expectations, validation criteria, and known compatibility implications. It must preserve unrelated user-authored knowledge. During Foundation development, generalized legacy-user migration infrastructure is not required, but any architectural change affecting the live development instance requires an explicit preservation-oriented transition path.
+
+Backward compatibility means a newer ShardBase contract or compliant implementation can safely recognize and preserve the intended meaning of older supported ShardBase state without silently reinterpreting it. Older state that remains valid should continue working without unnecessary migration. If a newer implementation supports an older schema or specification version directly, it must interpret that state according to the documented meaning of that version rather than pretending the state was authored under current rules. When safe direct compatibility is impossible, the mismatch must be detected explicitly and an appropriate migration path must precede rewriting canonical state. Unsupported older state must fail visibly rather than be guessed through or partially normalized.
+
+ShardBase does not promise indefinite support for every historical version. Backward compatibility prioritizes preservation of knowledge and intended meaning over preservation of every historical implementation detail, interface behavior, view, plugin behavior, runtime, or convenience. Backward compatibility means preserving old meaning, not pretending architecture never changes.
+
+### 19.4 Changes That Must Never Be Silent
+
+A compatibility boundary must be inspectable before it becomes a data transformation. The following must never occur silently when they affect existing state or documented expectations:
+
+- changes to the intended meaning of canonical knowledge;
+- breaking changes or required schema transformations;
+- database migrations;
+- changes that invalidate previously valid state;
+- changes to structural identity, ownership, lineage, naming, placement, or lifecycle semantics;
+- changes to privacy, locality, publication, synchronization, Git-distribution, or external-transmission boundaries;
+- destructive or irreversible transformations;
+- blueprint changes applied to an already-materialized live database;
+- compatibility decisions that cause older supported state to stop being accepted;
+- version mismatches that tooling cannot safely interpret.
+
+Tooling must surface such conditions and stop before guessing through a compatibility boundary or rewriting canonical state without the required authorization and migration path.
 
 ## 20. Change Safety
 

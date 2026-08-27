@@ -146,6 +146,22 @@ Authorization is scoped to the requested task. Context, brainstorming, side comm
 
 Structural normalization may correct clear metadata, naming, or lineage violations when the requested task authorizes that scope, but it must preserve unrelated user-owned knowledge.
 
+### Compatibility and Architectural Change Governance
+
+When a task changes an architectural contract, distinguish the nature of the change from its compatibility effect and from any transformation required to apply it:
+
+- Treat a clarification as non-normative only when existing compliant state and behavior remain unchanged. Do not label a decision a clarification merely to avoid acknowledging compatibility impact.
+- Treat an additive architectural capability as an extension only while previously compliant state preserves its validity and intended meaning.
+- Treat changes to machine-interpretable field shape, meaning, requiredness, allowed values, or constraints as schema changes; separately determine whether they are breaking.
+- Treat migration as an explicit bounded transformation of existing durable state, not as a synonym for architectural change.
+- Treat a change as breaking when previously compliant knowledge, databases, documented workflows, or observable tooling assumptions become invalid, change meaning, lose supported meaning, or require modification to remain compliant. A migration does not make a breaking change non-breaking.
+
+A normative universal architectural change requires a System Specification version boundary; true clarifications and editorial changes do not. `manifest_version` changes only when the manifest contract itself changes in a way compatible readers, validators, creators, or migrations need to distinguish; it is not a generic ShardBase version.
+
+Require a database migration when existing durable state cannot remain correctly conformant, correctly interpreted, or safely operated unchanged. Do not force migration merely to normalize old state when it can still be interpreted safely. When an older supported version cannot be interpreted safely under the current contract, surface the mismatch and require the appropriate migration path before rewriting canonical state. Unsupported older state must fail visibly rather than be guessed through.
+
+Never silently change existing canonical meaning, invalidate previously valid state, perform a migration or required schema transformation, change structural identity or lineage semantics, alter privacy or external-exposure boundaries, apply blueprint changes to live databases, or cross an unsupported version boundary. During Foundation development, changes affecting the live development instance require an explicit preservation-oriented transition path even though generalized installed-user migration infrastructure is not yet required.
+
 ## Blueprint Rule
 
 Blueprints are framework-owned bootstrap material. They may be used to create a new database.
