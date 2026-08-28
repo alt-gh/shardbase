@@ -2080,27 +2080,27 @@ milestone_2_goal: Give ShardBase a canonical vocabulary and decision model so hu
 ### Commit 6 — Terminology Glossary
 
 commit_06_subject: docs: add shardbase terminology glossary
-commit_06_status: planned
-term_pool: 
-term_core: 
-term_shard: 
-term_pebble: 
-term_ghost_shard: 
-term_database: 
-term_database_manifest: 
-term_structural_metadata: 
-term_semantic_metadata: 
-term_lineage: 
-term_root_core: 
-term_immediate_parent: 
-term_materialization: 
-term_migration: 
-term_blueprint: 
-term_registry: 
-term_inbox: 
-term_view: 
-term_attachment: 
-additional_terms_needed: 
+commit_06_status: complete
+term_pool: logical database-local `pool` metadata grouping shared by a Core and its structural descendants; not a required folder or note
+term_core: canonical root structural note; self-references through `core`, has empty `parent_note`, and may parent Shards or Pebbles
+term_shard: meaningful reusable subdivision of a Core or Shard with one root Core and an immediate parent; may have structural children
+term_pebble: terminal structural note with a valid immediate parent; must never parent another structural note
+term_ghost_shard: unresolved wikilink for plausible future structure that has not earned materialization; no file or structural YAML
+term_database: self-contained user-owned direct child of `app/Db/`, governed by root `Database.md` and containing declared data collections
+term_database_manifest: root-level `Database.md`, the canonical local contract for identity, scope, collections, schema, conventions, and resources
+term_structural_metadata: universal YAML frontmatter for a structural note's architectural placement: `type`, `pool`, `core`, `parent_note`, and `status`
+term_semantic_metadata: database-defined YAML describing domain meaning, separate from structural metadata and documented in `Database.md`
+term_lineage: Core-to-note structural ancestry expressed by `core` and `parent_note`, not inferred from names, paths, links, or collection membership
+term_root_core: the canonical root Core referenced through `core`; every Core references itself
+term_immediate_parent: directly preceding structural note identified by `parent_note`; empty for a Core
+term_materialization: deliberate creation of a separate canonical structural file after knowledge earns independent value and meets applicable contracts
+term_migration: explicit bounded preservation-oriented transformation required for correct conformance, interpretation, or operation after a changed contract
+term_blueprint: framework-owned reusable database bootstrap; materialized live state is database-owned and updates require explicit migration
+term_registry: framework-owned database discovery and navigation projection, never authority over `Database.md`
+term_inbox: private-by-default user-owned pre-structural capture outside a database, awaiting review and disposition
+term_view: database-local non-authoritative query, presentation, or navigation resource over canonical content
+term_attachment: non-structural resource owned by one database in a collection-local `Attachments/` directory; note references do not control ownership
+additional_terms_needed: data collection, canonical note, structural orphan, and attachment orphan; tool-specific terms remain deferred until implementation requires them
 
 ### Commit 7 — Structural vs Semantic Concepts
 

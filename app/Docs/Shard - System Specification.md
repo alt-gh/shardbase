@@ -503,6 +503,100 @@ Shard and other external AI agents are assistance layers rather than the primary
 
 A good database should remain discoverable without requiring filesystem expertise, queryable from explicit source meaning rather than query-specific invention, manually editable as ordinary Markdown, and sufficiently documented that Shard can explain or assist with the database when the user deliberately supplies the relevant authorized context.
 
+## Glossary
+
+### Pool
+
+A logical, database-local grouping expressed by the `pool` structural metadata value. It does not require a folder or note and is shared by a Core and all of its structural descendants.
+
+### Core
+
+The canonical root structural note of one lineage. It self-references through `core`, has an empty `parent_note`, and may parent Shards or Pebbles.
+
+### Shard
+
+A meaningful, reusable structural subdivision of a Core or another Shard, with an immediate parent and one root Core. A Shard may have structural children.
+
+### Pebble
+
+A terminal structural note in a Core lineage. It has a valid immediate parent but must never parent another structural note.
+
+### Ghost Shard
+
+An unresolved wikilink for a plausible future structural note that does not yet earn materialization. It has no file or structural YAML and may remain unresolved indefinitely.
+
+### Database
+
+A self-contained, user-owned knowledge boundary that is a direct child of `app/Db/`, governed by its root `Database.md`, and contains one or more declared data collections.
+
+### Database Manifest
+
+The root-level `Database.md` that is the canonical manifest and local contract for a database, defining identity, scope, collections, semantic schema, conventions, and resources.
+
+### Structural Metadata
+
+Universal YAML frontmatter that authoritatively states where a structural note belongs: `type`, `pool`, `core`, `parent_note`, and `status`.
+
+### Semantic Metadata
+
+Database-defined YAML metadata that describes what a note represents in its domain, separate from universal structural metadata and documented in `Database.md`.
+
+### Lineage
+
+The authoritative Core-to-note structural ancestry expressed by `core` and `parent_note`, not inferred from filenames, folders, links, or collection membership.
+
+### Root Core
+
+The one canonical Core at the root of every structural note's lineage, referenced by `core`; a Core references itself.
+
+### Immediate Parent
+
+The directly preceding structural note in a supporting note's lineage, authoritatively identified by `parent_note`; it is empty for a Core.
+
+### Materialization
+
+The deliberate creation of a separate canonical structural file from embedded, captured, or unresolved knowledge after it earns independent value and satisfies applicable contracts.
+
+### Migration
+
+An explicit, bounded, preservation-oriented transformation of existing durable state required to keep it correctly conformant, interpreted, or safely operable under a changed contract.
+
+### Blueprint
+
+Framework-owned reusable bootstrap material for creating a new database. Once materialized, the live database owns its state and later blueprint changes require explicit migration.
+
+### Registry
+
+Framework-owned discovery and navigation infrastructure for databases in the current ShardBase instance. It is a projection and never authority over `Database.md`.
+
+### Inbox
+
+Local, user-owned, pre-structural capture outside any database, awaiting review and appropriate disposition. It is private by default and is not a documentation directory.
+
+### View
+
+A database-local query, presentation, or navigation resource that consumes canonical metadata and content without defining structural truth.
+
+### Attachment
+
+A non-structural resource owned by one database and stored in its declared collection's `Attachments/` directory. It does not gain or lose ownership from a note reference.
+
+### Data Collection
+
+A database-defined filesystem grouping for canonical notes. It is declared in the manifest and does not define Pool membership, Core lineage, structural type, or parentage.
+
+### Canonical Note
+
+A Core, Shard, or Pebble Markdown file located directly in a declared data collection and conforming to the applicable universal and database-local contracts.
+
+### Structural Orphan
+
+A Shard or Pebble whose required Core or immediate parent cannot be validly resolved. It is invalid and must be reported without guessing a replacement parent.
+
+### Attachment Orphan
+
+An attachment that no canonical note currently references. It may be reported for review but must not be deleted automatically.
+
 ## 6. Structural Model
 
 ShardBase uses the following hierarchy:
