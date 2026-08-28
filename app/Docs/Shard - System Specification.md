@@ -18,6 +18,24 @@ Universal rules define what it means to participate in ShardBase; they do not de
 
 Implementation-specific requirements such as a future CLI runtime, package manager, plugin version, or operating-system matrix are not architectural invariants unless this specification explicitly makes them one.
 
+### 1.1 Product Goals and Scope Boundaries
+
+This subsection summarizes accepted product direction that is already reflected in the normative contracts throughout this specification. It guides interpretation and future scope, but it does not independently introduce a new structural schema, compatibility requirement, or architectural invariant. Where a statement below has architectural force, that force comes from the corresponding normative sections of this specification.
+
+The universal architecture should serve five product goals:
+
+- make accumulated knowledge increasingly useful as it grows without requiring organizational burden to increase at the same rate;
+- preserve durable user ownership and meaningful control through directly accessible canonical Markdown and YAML, local-first defaults, and deliberate authorization for consequential or external-exposure decisions;
+- provide enough explicit documented structure for humans, deterministic tooling, Obsidian, Dataview, validators, scripts, and deliberately used external AI systems to share a reliable interpretation of important architectural meaning;
+- make knowledge safe to evolve through preservation-oriented, inspectable, and contract-governed creation, materialization, refactoring, reclassification, archival, migration, and other structural change; and
+- support many knowledge domains through a small stable universal framework with database-local semantic contracts rather than a monolithic universal schema.
+
+These goals do not authorize ShardBase to expand into adjacent products. ShardBase is not a proprietary or cloud-owned knowledge platform; an AI runtime, AI-service integration layer, or autonomous knowledge manager; a synchronization, backup, publishing, general-purpose search, or indexing service; a replacement for a traditional transactional database or cloud-first simultaneous multi-user collaboration platform; or a universal ontology that formalizes every useful domain concept.
+
+The AI boundary is especially strict: ShardBase may manage, validate, package, convert, and export user-owned Agent, Prompt, instruction, context, or related files, but it must not execute models, authenticate with AI providers, invoke agents, orchestrate model conversations, automatically transmit local knowledge to AI services, or become an intermediary between the user's knowledge and external AI services. This is a product boundary rather than a deferred implementation choice.
+
+Architectural work should be treated as potential scope creep when it moves canonical meaning into hidden or proprietary state, makes optional tooling necessary for interpretation or recovery, promotes local requirements into universal rules without independent justification, adds substantial structure without concrete value, reduces meaningful user control, prematurely standardizes replaceable implementation technology, or begins implementing one of the adjacent product categories above.
+
 ## 2. Shard's Identity
 
 Shard is the canonical primary AI agent for ShardBase.

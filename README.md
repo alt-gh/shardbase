@@ -64,6 +64,26 @@ Secondary use cases include maintaining a deep single-domain collection, buildin
 
 The product succeeds when accumulated knowledge becomes easier to understand, retrieve, connect, evolve, and build upon without organizational burden growing at the same rate. In the strongest form of that outcome: **ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.**
 
+## Product Goals and Non-Goals
+
+ShardBase pursues five product goals:
+
+1. **Make accumulated knowledge increasingly useful as it grows** — knowledge should become more connected, discoverable, understandable, reusable, and valuable without organizational burden increasing at the same rate.
+2. **Preserve durable user ownership and control** — canonical knowledge remains directly accessible as user-controlled Markdown and YAML, local-first by default, with consequential and external-exposure decisions under meaningful user control.
+3. **Create a shared, explicit interpretation of knowledge** — humans, deterministic tooling, Obsidian, Dataview, validators, scripts, and deliberately used external AI systems should be able to operate over the same canonical source with a substantially shared understanding of important architectural meaning.
+4. **Make knowledge safe to evolve** — users should be able to expand, materialize, reorganize, refactor, reclassify, archive, migrate, and otherwise evolve knowledge without routinely losing lineage, context, user-authored content, or intended meaning.
+5. **Support extensible knowledge without creating a monolithic system** — a small stable universal framework should support modular databases whose domain-specific schemas, relationships, conventions, resources, and workflows remain local to the databases that need them.
+
+ShardBase also has explicit product non-goals:
+
+- It is **not a proprietary knowledge platform or cloud data service** that users must depend on to access or recover their canonical knowledge.
+- It is **not an AI runtime, AI-service integration layer, or autonomous knowledge manager**. ShardBase may manage, validate, package, convert, and export AI-related knowledge, but it must not execute models, authenticate with AI providers, invoke agents, orchestrate model conversations, automatically transmit local knowledge to AI services, or become an intermediary between the user's knowledge and services such as ChatGPT or Gemini.
+- It is **not a synchronization, backup, publishing, general-purpose search, or indexing service**; those responsibilities belong to user-selected tools.
+- It is **not a replacement for a traditional database engine or cloud-first collaborative application platform** and does not target transactions, ACID guarantees, high-concurrency writes, machine-scale relational workloads, or simultaneous multi-user collaboration as core product responsibilities.
+- It is **not a universal ontology or maximum-structure system**. Domain-specific complexity remains database-local, and new structure must justify itself through concrete value.
+
+A proposed feature should be treated as possible scope creep when it moves canonical meaning into hidden or proprietary state, turns an optional tool into a prerequisite, universalizes a local requirement without independent justification, introduces substantial structure without concrete user value, reduces meaningful user control, prematurely standardizes implementation technology, or starts turning ShardBase into one of the adjacent products listed above.
+
 ## Structural Model
 
 ShardBase organizes structural knowledge through four concepts:
@@ -255,7 +275,7 @@ Backward compatibility means preserving the documented meaning of older supporte
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
+ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Goals and Non-Goals, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
 
 The foundation standardizes durable and observable contracts before locking in replaceable implementation details. A minimal CLI may begin as soon as the creation contracts it depends on are sufficiently settled so those contracts can be exercised through real use; mature CLI UX, compatibility matrices, migration engines, validation libraries, and blueprint packaging details should be added only when implementation demonstrates the need. AI-provider integration, synchronization systems, and general-purpose search/indexing engines are not deferred ShardBase implementation targets: AI integration remains outside the product boundary, while synchronization and search/indexing are provided by user-selected external tools.
 

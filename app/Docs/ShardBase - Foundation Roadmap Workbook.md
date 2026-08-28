@@ -18,6 +18,7 @@ current_goal: Let a knowledge base grow without losing lineage, portability, rea
 product_identity_status: accepted
 product_thesis_status: accepted
 target_users_and_use_cases_status: accepted
+goals_and_non_goals_status: accepted
 differentiation_status: accepted
 audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
@@ -1878,18 +1879,71 @@ user_success_outcomes:
 ### Commit 3 — Goals and Non-Goals
 
 commit_03_subject: docs: define project goals and non-goals
-commit_03_status: planned
-goal_1: 
-goal_2: 
-goal_3: 
-goal_4: 
-goal_5: 
-non_goal_1: 
-non_goal_2: 
-non_goal_3: 
-non_goal_4: 
-non_goal_5: 
-scope_creep_warning_signs: 
+commit_03_status: accepted
+goal_1:
+  - Make accumulated knowledge increasingly useful as it grows.
+  - ShardBase should help a user's accumulated knowledge become more connected, discoverable, understandable, reusable, and valuable over time without requiring organizational effort to increase at the same rate.
+  - The framework should support knowledge that begins simply and becomes richer as real needs for relationships, structure, querying, navigation, reuse, or lifecycle management emerge.
+  - The desired outcome is not merely a larger collection of notes. It is a body of knowledge whose usefulness compounds as information accumulates.
+  - ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.
+goal_2:
+  - Preserve durable user ownership and control.
+  - ShardBase should keep canonical knowledge directly accessible to the user in durable, human-readable Markdown and YAML that can be inspected, edited, copied, moved, backed up, transformed, and recovered without depending on ShardBase-specific tooling.
+  - Core operation should remain local-first, with external synchronization, hosting, publishing, AI use, sharing, or other transmission occurring only through deliberate user choice.
+  - The user should remain meaningfully in control of consequential outcomes involving their knowledge, especially destructive changes, privacy boundaries, external exposure, and material changes to canonical meaning.
+  - Applications and services may enhance the knowledge, but they should not become its owner.
+goal_3:
+  - Create a shared, explicit interpretation of knowledge.
+  - ShardBase should provide enough explicit and documented structure that humans, deterministic tooling, Obsidian, Dataview, validators, scripts, and deliberately used external AI systems can operate over the same canonical knowledge with substantially the same understanding of important architectural meaning.
+  - Fundamental facts such as ownership, structural role, lineage, authority, and database-specific semantics should not have to be repeatedly reconstructed from filenames, folders, prose, hidden state, or tool-specific assumptions.
+  - The goal is shared understanding, not maximum formalization. Ordinary knowledge should remain ordinary Markdown wherever additional structure provides no concrete value.
+goal_4:
+  - Make knowledge safe to evolve.
+  - ShardBase should allow users to expand, materialize, reorganize, refactor, reclassify, archive, migrate, and otherwise evolve accumulated knowledge without routinely losing context, lineage, user-authored content, or intended meaning.
+  - Structural evolution should be preservation-oriented, inspectable, and governed by explicit contracts so users can change their understanding without feeling that previously accumulated knowledge is too fragile to reorganize.
+  - Where outcomes are deterministic, tooling should be able to validate and safely automate the mechanical work. Ambiguous, destructive, privacy-sensitive, or consequential decisions should remain under meaningful user control.
+goal_5:
+  - Support extensible knowledge without creating a monolithic system.
+  - ShardBase should support many different knowledge domains through a small stable universal framework combined with modular database-local contracts.
+  - New databases should be able to define the semantic concepts, relationships, schemas, conventions, views, templates, Agent resources, and workflows their domains actually require without forcing unrelated databases to inherit those concepts.
+  - New tooling, interfaces, queries, automation, export formats, and AI-assisted workflows should be able to build on the durable architecture without becoming prerequisites for existing knowledge to remain valid.
+  - This lets ShardBase grow in capability while keeping the universal architectural surface deliberately bounded.
+non_goal_1:
+  - ShardBase is not a proprietary knowledge platform or cloud data service.
+  - ShardBase should not become a hosted platform, proprietary storage system, bespoke database-backed application, or other intermediary that users must depend on simply to access, understand, or recover their canonical knowledge.
+  - A richer ShardBase interface could exist someday, but it must remain an interface over user-owned durable knowledge rather than becoming the exclusive home or authoritative representation of that knowledge.
+non_goal_2:
+  - ShardBase is not an AI runtime, integration, or autonomous knowledge manager.
+  - ShardBase may manage, validate, package, convert, and export user-owned AI-related knowledge such as Agents, Prompts, instructions, and context.
+  - It must not execute models, authenticate with AI providers, invoke agents, orchestrate model conversations, automatically transmit local knowledge to AI services, or become an intermediary between the user's knowledge and services such as ChatGPT or Gemini.
+  - It should also not evolve into an autonomous system that independently manages a person's knowledge in place of meaningful user control.
+  - This is a permanent product boundary rather than merely a Foundation-stage deferral.
+non_goal_3:
+  - ShardBase is not a synchronization, backup, publishing, search, or indexing service.
+  - ShardBase should make its files portable, queryable, and compatible with user-selected tools, but it should not duplicate the responsibilities of dedicated synchronization, backup, remote-storage, publishing, filesystem-search, or general-purpose indexing systems.
+  - Users should remain free to choose tools such as Obsidian Sync, iCloud, Git, filesystem utilities, or future alternatives independently of ShardBase.
+  - ShardBase's responsibility is to make the canonical knowledge explicit enough that compatible tools can work with it reliably.
+non_goal_4:
+  - ShardBase is not a replacement for a traditional database or collaborative application platform.
+  - ShardBase should not attempt to compete with traditional databases on transactions, ACID guarantees, high-concurrency writes, machine-scale relational workloads, or database-engine performance.
+  - It should likewise not become a cloud-first simultaneous multi-user collaboration platform merely because collaboration is a useful adjacent capability.
+  - Traditional databases and collaborative applications remain appropriate when those properties are the primary requirement; ShardBase is solving a different problem.
+non_goal_5:
+  - ShardBase is not a universal ontology or maximum-structure system.
+  - ShardBase should not attempt to define one universal schema for every domain a person might store, nor should it standardize every useful semantic field, taxonomy, relationship, workflow, or note category at the framework level.
+  - It should not encourage users to turn every concept, heading, relationship, or piece of information into a separate structural entity merely because ShardBase can represent it.
+  - Domain-specific complexity should remain with the databases that need it, and structure should be introduced only when it produces concrete value.
+scope_creep_warning_signs:
+  - A capability is being built primarily because ShardBase could provide it rather than because it advances the accepted user problems, use cases, or goals.
+  - A proposed feature starts turning ShardBase into an AI integration layer, synchronization system, backup service, publishing platform, general-purpose search/indexing engine, cloud service, collaborative application, or traditional database engine.
+  - A concept is being promoted into universal architecture mainly because one database, example, Agent, tool, or current development environment finds it useful.
+  - Canonical meaning begins moving out of Markdown, YAML, `Database.md`, or documented contracts and into hidden state, generated indexes, application databases, prompts, caches, embeddings, or proprietary representations.
+  - A feature requires substantially more metadata, files, hierarchy, classifications, or workflow steps without a demonstrated improvement in ownership, lineage, retrieval, querying, navigation, reuse, integrity, lifecycle management, or future growth.
+  - Implementation technology is being standardized before interoperability, compatibility, data preservation, or another observable requirement makes that standardization necessary.
+  - Optional tooling begins becoming necessary to understand, edit, recover, or correctly interpret otherwise valid canonical knowledge.
+  - Automation reduces meaningful user authority over destructive, privacy-sensitive, externally transmitted, ambiguous, or architecturally consequential operations.
+  - Product expansion begins optimizing for feature count, technical sophistication, or automation rather than reducing the long-term burden of owning and using accumulated knowledge.
+  - Foundation work starts growing into mature product infrastructure instead of implementing only enough functionality to prove and safely exercise the architectural contracts already being defined.
 
 ### Commit 4 — Design Principles
 

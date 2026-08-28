@@ -53,6 +53,16 @@ A user request expresses architectural intent. Preserve that intent where possib
 - Prefer automation for repetitive, deterministic, and safely reversible work. Keep consequential, ambiguous, privacy-sensitive, or destructive decisions under meaningful user control.
 - Do not initiate publishing, sharing, synchronization, upload, transmission, or other external exposure of user-owned knowledge or local state unless the task or an authorized workflow explicitly permits it.
 
+### Product Scope Discipline
+
+When designing architecture, documentation, scripts, validators, CLI behavior, blueprints, or Agent workflows, keep the accepted product goals and non-goals in scope:
+
+- Optimize for accumulated knowledge becoming more useful as it grows, durable user ownership and control, shared explicit interpretation, safe evolution, and extensibility through bounded database-local contracts.
+- Do not turn ShardBase into a proprietary or cloud-owned knowledge platform, synchronization or backup service, publishing system, general-purpose search/indexing engine, traditional database engine, cloud-first simultaneous multi-user collaboration platform, universal ontology, or maximum-structure system.
+- **Do not turn ShardBase into an AI runtime or AI-service integration layer.** It may manage, validate, package, convert, and export AI-related knowledge, but it must not execute models, authenticate with AI providers, invoke agents, orchestrate model conversations, automatically transmit local knowledge to AI services, or become an intermediary between the user's knowledge and services such as ChatGPT or Gemini.
+- Treat a proposal as potential scope creep when it moves canonical meaning into hidden or proprietary state, makes optional tooling necessary for understanding or recovery, universalizes a database-local requirement without independent architectural justification, adds substantial structure without demonstrated value, weakens meaningful user control, or standardizes replaceable implementation technology before an observable requirement demands it.
+- During Foundation, implement only enough product infrastructure to prove and safely exercise accepted architectural contracts; do not expand Foundation work into mature adjacent product systems merely because they could be useful later.
+
 ## Repository Boundaries
 
 Git policy follows ownership and intended distribution rather than filesystem path alone. Treat committed framework surfaces as potentially public and user-owned live state as local and private by default. A private file does not become framework material merely because it is placed beneath a normally committed directory, and generated output inherits the sensitivity of the information it contains.
