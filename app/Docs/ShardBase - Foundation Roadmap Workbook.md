@@ -20,6 +20,7 @@ product_thesis_status: accepted
 target_users_and_use_cases_status: accepted
 goals_and_non_goals_status: accepted
 design_principles_status: accepted
+foundation_success_criteria_status: accepted
 differentiation_status: accepted
 audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
@@ -1745,7 +1746,7 @@ foundation_completion_statement:
 
 ## 3. Milestone 1 — Define the Product
 
-milestone_1_status: approved
+milestone_1_status: complete
 milestone_1_goal: Define why ShardBase exists, who it serves, what it is trying to accomplish, and what it deliberately will not become.
 
 ### Commit 1 — Product Thesis
@@ -2010,14 +2011,64 @@ principle_priority_when_conflicts_occur:
 ### Commit 5 — Foundation Success Criteria
 
 commit_05_subject: docs: define foundation success criteria
-commit_05_status: planned
-foundation_success_product: 
-foundation_success_architecture: 
-foundation_success_safety: 
-foundation_success_understandability: 
-foundation_success_implementability: 
-foundation_success_stability: 
-foundation_failure_conditions: 
+commit_05_status: accepted
+foundation_success_product:
+  - The Foundation succeeds at the product level when ShardBase has a sufficiently explicit product contract that future architecture, features, and implementation choices can be evaluated against it without inventing new foundational product principles.
+  - Its problem, target users, core use cases, goals, non-goals, design principles, scope boundaries, and central value proposition should reinforce one another rather than describe competing versions of the product.
+  - A proposed capability should be meaningfully judgeable as aligned, misaligned, or outside ShardBase's scope from the documented product contract.
+  - The Foundation should preserve the accepted distinction between core product identity and optional capabilities: Obsidian, Dataview, automation, external AI, synchronization, Git, and other tools may enhance ShardBase without redefining what ShardBase is.
+  - Permanent product boundaries—especially that ShardBase manages AI-related knowledge but does not integrate with AI systems—must be clear enough that later implementation cannot reinterpret them as merely unfinished Foundation work.
+  - The strongest product-level test remains: ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.
+foundation_success_architecture:
+  - The Foundation succeeds architecturally when the universal contracts necessary to create, interpret, relate, evolve, validate, and preserve ShardBase knowledge are explicit, internally coherent, and compatible with the accepted product principles.
+  - Architectural authority must be unambiguous: universal meaning belongs to the System Specification, database-specific meaning belongs to the applicable `Database.md`, and existing conventions or tools must not become hidden competing authorities.
+  - Canonical meaning, ownership, lineage, structural identity, and other foundational facts must be recoverable from user-controlled files and documented contracts rather than undocumented runtime, application, AI, cache, index, or service state.
+  - The universal architecture should be small enough to support substantially different databases without forcing domain-specific concepts into the framework, while still defining enough shared structure for compliant humans and tools to interpret those databases consistently.
+  - Where the architecture defines a deterministic answer, independently implemented compliant tools or agents given the same authoritative inputs should be capable of reaching the same architectural conclusion.
+  - The architecture should permit ordinary future growth and extension without requiring foundational concepts to be routinely redefined.
+foundation_success_safety:
+  - The Foundation succeeds on safety when preservation of user-owned knowledge, meaningful user control, privacy, locality, authorization, and structural integrity are built into normal architecture rather than added later as exceptional safeguards.
+  - Reading or operating on local knowledge must remain distinct from authorization to transmit, publish, synchronize, share, or otherwise expose it.
+  - Destructive, irreversible, privacy-sensitive, ambiguous, breaking, and architecturally consequential changes must have explicit authorization and change-safety boundaries.
+  - Deterministic low-risk mechanics should be safely automatable without turning meaningful user control into approval of every implementation detail.
+  - Migrations, compatibility boundaries, changes to canonical meaning, and other consequential transformations must be inspectable and must never be silently guessed through.
+  - Existing live development knowledge must be treated as real user-owned data, so Foundation evolution must preserve it through explicit transition paths rather than treating it as disposable test state.
+  - No convenience, automation, feature, or implementation shortcut should qualify as Foundation success if it weakens the accepted ownership, preservation, privacy, or authorization guarantees.
+foundation_success_understandability:
+  - The Foundation succeeds in understandability when ShardBase can be explained at multiple levels without requiring contradictory explanations.
+  - An ordinary user should be able to understand the practical model well enough to use ShardBase without memorizing the complete architecture, structural YAML, naming algorithms, migration mechanics, or implementation details.
+  - A power user, tooling author, or appropriately informed AI agent should be able to inspect the documented contracts deeply enough to understand why valid structure behaves as it does without source-code archaeology or hidden knowledge.
+  - Canonical Markdown and YAML should remain understandable as knowledge even when Obsidian, Dataview, the CLI, Shard, external AI, or another enhanced interface is unavailable.
+  - Universal requirements, database-local requirements, recommendations, existing conventions, and implementation choices should be distinguishable rather than blended into ambiguous guidance.
+  - Authoritative and supporting documentation should use consistent terminology and tell substantially the same architectural story.
+  - Complexity may be progressively disclosed, but necessary complexity must never be made superficially simple by hiding it.
+foundation_success_implementability:
+  - The Foundation succeeds in implementability when its deterministic contracts are precise enough that initial CLI behavior, validators, blueprints, Registry behavior, fixtures, and other canonical implementation artifacts can implement them without inventing architectural meaning.
+  - Requirements that determine whether canonical state is valid—such as required structural metadata, lineage constraints, manifest rules, ownership boundaries, placement, naming, and applicable database-semantic constraints—must eventually be expressible and testable deterministically.
+  - Contextual decisions should be clearly distinguishable from deterministic ones so implementation does not accidentally turn AI inference or undocumented heuristics into architectural rules.
+  - Foundation should specify observable behavior and validity requirements without unnecessarily fixing replaceable technologies such as programming language, validation library, package manager, internal algorithms, or mature CLI UX.
+  - A minimal implementation should be able to prove the architecture without needing to become the complete ShardBase product.
+  - Implementation should be a process of encoding and exercising already-defined contracts—not discovering what ShardBase fundamentally means while writing the code.
+foundation_success_stability:
+  - The Foundation succeeds in stability when its product and architectural contracts are settled enough that subsequent implementation can build upon them without routinely reopening foundational questions about ownership, meaning, authority, lineage, safety, privacy, or product scope.
+  - Stability does not mean the architecture is frozen or that future breaking changes are forbidden.
+  - It means future change can occur through explicit clarification, extension, schema change, versioning, and migration processes rather than through accidental reinterpretation.
+  - Foundation-level abstractions should have demonstrated enough value and coherence that they are worth treating as durable contracts rather than temporary design vocabulary.
+  - Questions may remain deferred when materially different future answers would not invalidate existing compliant knowledge, weaken established guarantees, or prevent initial deterministic implementation.
+  - Ordinary product growth should primarily discover implementation details and new requirements rather than reveal that the initial architecture never established what canonical knowledge means.
+  - A useful shorthand is the one already established in the Foundation Exit Criteria: implementation may still discover details; it should no longer have to invent architecture.
+foundation_failure_conditions:
+  - Foundation should be considered unsuccessful or not yet ready if implementation still has to guess about canonical meaning, database ownership, structural identity, lineage, authority, privacy, preservation, authorization, or another Foundation-level contract.
+  - It fails if authoritative and supporting documentation materially contradict one another or use foundational concepts with incompatible meanings.
+  - It fails if a supposedly deterministic architectural rule cannot be implemented consistently without undocumented heuristics or AI judgment.
+  - It fails if essential knowledge meaning or architectural behavior depends on hidden state, proprietary storage, an optional application, generated state, AI memory, a provider, or another representation the user cannot inspect and control.
+  - It fails if preserving structural consistency requires sacrificing unrelated user-authored knowledge or silently guessing through ambiguity.
+  - It fails if the architecture turns optional tooling into a prerequisite for reading, editing, recovering, or correctly interpreting canonical knowledge.
+  - It fails if ShardBase begins becoming an AI runtime or integration layer, synchronization or backup system, publishing service, general-purpose search/indexing engine, traditional database engine, cloud-first collaborative platform, or universal ontology contrary to the accepted non-goals.
+  - It fails if universal structure grows primarily from speculative future needs or one database's requirements rather than demonstrated cross-database necessity.
+  - It fails if real use of the live development instance or later canonical examples exposes an unresolved architectural contradiction that would require foundational reinterpretation.
+  - Passing documentation, examples, or automated tests independently is not sufficient if the resulting system still violates the accepted product principles.
+  - Most fundamentally, the Foundation has failed its purpose if ShardBase can become more capable only by making the user's knowledge less theirs.
 
 ---
 

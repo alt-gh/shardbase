@@ -36,6 +36,20 @@ The AI boundary is especially strict: ShardBase may manage, validate, package, c
 
 Architectural work should be treated as potential scope creep when it moves canonical meaning into hidden or proprietary state, makes optional tooling necessary for interpretation or recovery, promotes local requirements into universal rules without independent justification, adds substantial structure without concrete value, reduces meaningful user control, prematurely standardizes replaceable implementation technology, or begins implementing one of the adjacent product categories above.
 
+### 1.2 Foundation Success Standard
+
+This subsection records the accepted Foundation-stage success standard used to evaluate whether the product and architecture are ready for later implementation. It does not independently create a new structural schema or universal data invariant; the normative force of specific architectural requirements continues to come from the corresponding sections of this specification.
+
+Foundation is successful when the product contract is explicit enough to evaluate future capabilities without inventing new foundational product principles; the universal architecture is coherent, small, explicit, and deterministic where the documented contracts define one answer; preservation, privacy, locality, authorization, meaningful user control, and structural integrity are normal architectural properties rather than optional safeguards; and the same architecture can be explained at progressively deeper levels without contradictory meanings or hidden knowledge.
+
+The deterministic contracts must be precise enough that initial CLI behavior, validators, blueprints, Registry behavior, fixtures, and other canonical implementation artifacts can encode and exercise them without inventing architectural meaning. Foundation should define observable validity and behavior while leaving replaceable implementation technologies open until concrete requirements justify them. A minimal implementation must be capable of proving the architecture without becoming the complete product.
+
+Foundation stability means subsequent implementation can build on the accepted product and architectural contracts without routinely reopening foundational questions about ownership, canonical meaning, authority, lineage, safety, privacy, or product scope. Stability does not freeze the architecture; later changes may occur through explicit clarification, extension, schema change, versioning, and migration rather than accidental reinterpretation. Questions may remain deferred when materially different future answers would not invalidate compliant knowledge, weaken accepted guarantees, or block deterministic implementation.
+
+Foundation is not ready when implementation must guess about a Foundation-level contract; authoritative and supporting documentation materially contradict one another; a supposedly deterministic rule requires undocumented heuristics or AI judgment; essential meaning depends on hidden, proprietary, generated, provider-controlled, or optional-tool state; structural consistency requires sacrificing unrelated user-authored knowledge or guessing through ambiguity; optional tooling becomes necessary for reading, editing, recovery, or correct interpretation; or ShardBase expands into an accepted product non-goal. Passing documentation, examples, or automated tests individually is insufficient when the resulting system still violates the accepted product principles.
+
+The strongest product-level test remains: **ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.** The corresponding Foundation shorthand is: **implementation may still discover details; it should no longer have to invent architecture.**
+
 ## 2. Shard's Identity
 
 Shard is the canonical primary AI agent for ShardBase.

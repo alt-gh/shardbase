@@ -75,6 +75,20 @@ When designing architecture, documentation, scripts, validators, CLI behavior, b
 - Treat a proposal as potential scope creep when it moves canonical meaning into hidden or proprietary state, makes optional tooling necessary for understanding or recovery, universalizes a database-local requirement without independent architectural justification, adds substantial structure without demonstrated value, weakens meaningful user control, or standardizes replaceable implementation technology before an observable requirement demands it.
 - During Foundation, implement only enough product infrastructure to prove and safely exercise accepted architectural contracts; do not expand Foundation work into mature adjacent product systems merely because they could be useful later.
 
+### Foundation Success Standard
+
+When evaluating Foundation-stage architecture, documentation, examples, or implementation work, apply the accepted success criteria as a quality gate:
+
+- Product direction must be explicit enough that future capabilities can be judged against the documented product contract without inventing new foundational principles.
+- Universal architecture must be internally coherent, small enough to avoid unnecessary domain universalization, explicit enough to recover canonical meaning from user-controlled files and documented contracts, and deterministic wherever the architecture defines one correct result.
+- Preservation, privacy, locality, authorization, meaningful user control, and structural integrity must be normal operating properties rather than optional safeguards. Reading local knowledge is never by itself permission to expose it externally.
+- The architecture must remain understandable at ordinary-user, power-user, tooling, and appropriately informed Agent levels without contradictory explanations, source-code-only meaning, or hidden architectural state.
+- Initial CLI behavior, validators, blueprints, Registry behavior, fixtures, and other canonical artifacts must be able to implement deterministic contracts without inventing architectural meaning. Specify observable validity rather than prematurely locking in replaceable implementation technology.
+- Stability means implementation can build on accepted contracts without routinely reopening foundational questions. Future change remains possible through explicit clarification, extension, schema change, versioning, and migration.
+- Treat Foundation as not ready if implementation must guess about canonical meaning, ownership, identity, lineage, authority, privacy, preservation, authorization, or another Foundation-level contract; if documentation materially contradicts itself; if deterministic rules require undocumented heuristics or AI judgment; if optional or hidden state becomes necessary for interpretation or recovery; or if ShardBase expands into an accepted product non-goal.
+
+The product-level test remains: **ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.** The Foundation-stage shorthand is: **implementation may still discover details; it should no longer have to invent architecture.**
+
 ## Repository Boundaries
 
 Git policy follows ownership and intended distribution rather than filesystem path alone. Treat committed framework surfaces as potentially public and user-owned live state as local and private by default. A private file does not become framework material merely because it is placed beneath a normally committed directory, and generated output inherits the sensitivity of the information it contains.
