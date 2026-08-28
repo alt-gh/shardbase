@@ -17,6 +17,7 @@ current_definition: A privacy-focused, user-owned structured Markdown knowledge-
 current_goal: Let a knowledge base grow without losing lineage, portability, readability, or control.
 product_identity_status: accepted
 product_thesis_status: accepted
+target_users_and_use_cases_status: accepted
 differentiation_status: accepted
 audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
@@ -1798,17 +1799,81 @@ product_thesis_success_looks_like:
 ### Commit 2 — Target Users and Use Cases
 
 commit_02_subject: docs: define target users and use cases
-commit_02_status: planned
-primary_user_profile: 
-secondary_user_profiles: 
-core_use_case_1: 
-core_use_case_2: 
-core_use_case_3: 
-secondary_use_cases: 
-anti_use_cases: 
-user_jobs_to_be_done: 
-user_pain_points: 
-user_success_outcomes: 
+commit_02_status: accepted
+primary_user_profile:
+  - The primary ShardBase user is an individual building a body of personal knowledge that they expect to remain useful and grow over years rather than days.
+  - They want that knowledge to become increasingly interconnected, discoverable, queryable, and reusable without surrendering ownership of the canonical source or becoming trapped in a proprietary platform.
+  - They value structure when it reduces long-term organizational burden, but they do not want knowledge management itself to become a system that consumes more effort than the knowledge provides.
+  - The primary user may use Obsidian, Dataview, automation, Git, or external AI extensively, but ordinary ShardBase use should not require programming, database administration, Git expertise, advanced YAML knowledge, or detailed understanding of the complete ShardBase architecture.
+  - They should be able to begin with ordinary Markdown-oriented knowledge work and encounter deeper architectural concepts progressively as needed.
+  - The primary profile is defined by the knowledge problem and desired ownership model rather than by profession, age, or another demographic category.
+secondary_user_profiles:
+  - Obsidian and personal-knowledge-management power users who already maintain substantial note collections and want stronger consistency, lineage, querying, and maintainability.
+  - Researchers, writers, students, professionals, developers, and other knowledge-intensive users whose work creates information that needs to remain connected and reusable over time.
+  - Users who adopt ShardBase for one substantial domain without initially intending to build a comprehensive personal digital brain.
+  - Technically inclined users who want a predictable Markdown and YAML architecture on which to build Dataview views, validators, scripts, exports, or other tooling.
+  - AI use is not a separate user profile. AI-assisted interaction may support any of these profiles, but ShardBase adoption does not depend on AI use because AI remains optional and external to ShardBase itself.
+core_use_case_1:
+  - Build and grow a durable personal source of truth.
+  - A user captures, develops, and organizes knowledge across one or many areas of life while allowing structure to emerge as the knowledge grows.
+  - ShardBase helps preserve ownership, context, relationships, lineage, and predictable organization without forcing the user to design the complete future knowledge model in advance.
+core_use_case_2:
+  - Find, connect, and use accumulated knowledge.
+  - A user returns to knowledge collected over time and can rediscover it through search, links, relationships, metadata, queries, views, and other compatible tools rather than depending primarily on remembering filenames or folder locations.
+  - The same explicit structure should help the user compare, connect, synthesize, learn from, and reason over accumulated knowledge.
+  - When the user deliberately provides authorized ShardBase context to an external AI system, the documented structure can make AI-assisted retrieval and reasoning more reliable without making AI part of the ShardBase runtime.
+core_use_case_3:
+  - Safely evolve a knowledge base as understanding changes.
+  - A user can expand notes, materialize useful structure, reorganize relationships, refactor lineages, change classifications, archive knowledge, add databases, and otherwise evolve the system without routinely losing context, breaking meaning, or rebuilding the knowledge base from scratch.
+  - ShardBase should make growth and reorganization increasingly trustworthy by preserving explicit ownership, lineage, documented semantics, inspectable changes, and user-controlled canonical files.
+secondary_use_cases:
+  - Maintain a deep structured collection for a single subject such as research, learning, media, projects, or another personal domain.
+  - Create Dataview views and other projections over predictable canonical knowledge.
+  - Validate and audit structural consistency.
+  - Use deterministic tooling to reduce repetitive note-creation and maintenance work.
+  - Create or use database-specific templates, blueprints, and specialist Agent resources.
+  - Deliberately package, convert, or export user-owned knowledge for other tools or external AI systems.
+  - Intentionally move, back up, synchronize, version, or share databases through tools chosen by the user.
+  - Core use cases explain why someone adopts ShardBase; secondary use cases describe valuable capabilities the architecture enables once they have it.
+anti_use_cases:
+  - Disposable or short-lived notes that gain little or nothing from durable structure, relationships, querying, growth, or lifecycle management.
+  - Machine-scale transactional or highly relational workloads whose primary requirements are traditional database guarantees or database-engine performance.
+  - Cloud-hosted collaborative applications whose primary requirement is simultaneous multi-user operation.
+  - An autonomous AI system that independently manages a person's information or replaces meaningful user control.
+  - An AI-provider integration, execution, or orchestration layer.
+  - A synchronization, backup, publishing, or general-purpose search and indexing service.
+  - A knowledge system whose primary purpose is maximizing metadata, hierarchy, automation, or organizational complexity.
+  - Using ShardBase to structure everything simply because the framework can represent it; information that does not benefit from durable ownership, relationships, querying, growth, or lifecycle management should not be forced into elaborate structure.
+user_jobs_to_be_done:
+  - When I accumulate knowledge over time, help me keep it understandable and connected without continually redesigning my organizational system.
+  - When I learn or capture something new, help me put it somewhere sensible without requiring me to understand the entire architecture first.
+  - When I need something I already know, help me rediscover it through its meaning and relationships rather than requiring me to remember exactly where I stored it.
+  - When my understanding changes, help me safely reorganize or expand my knowledge without losing what I already built.
+  - When I use different tools, including Markdown editors, Obsidian, Dataview, scripts, validators, or external AI, give them a shared and inspectable interpretation of the same canonical knowledge.
+  - When tools change or disappear, let the knowledge itself remain mine, readable, editable, portable, and recoverable.
+user_pain_points:
+  - The organizational burden of a growing note collection can increase faster than the value of the knowledge itself.
+  - It can be difficult to know where new knowledge belongs or whether it should become a separate note, remain embedded, or connect to multiple areas.
+  - Related knowledge can fragment across inconsistent files, metadata, folders, tags, links, applications, or organizational schemes.
+  - Context and lineage can be lost as information is subdivided, renamed, moved, or reorganized.
+  - Rediscovering knowledge can depend too heavily on remembering exact filenames, folders, tags, or storage locations.
+  - Inconsistent metadata and conventions weaken reliable querying, navigation, validation, automation, and shared interpretation.
+  - Software and AI may require repeated reconstruction of ownership, relationships, and meaning when those facts are not explicit.
+  - Users may avoid useful refactoring because they fear breaking relationships, losing context, or damaging accumulated knowledge.
+  - Knowledge can become dependent on particular applications, plugins, services, AI systems, or hidden state.
+  - Attempts to solve these problems can create the opposite failure mode: an over-engineered knowledge system whose maintenance becomes work of its own.
+user_success_outcomes:
+  - A user can accumulate substantially more knowledge without their organizational burden increasing at the same rate.
+  - They can capture and develop knowledge without having to perfectly predict its future structure.
+  - They can reliably understand where important information belongs and how it relates to surrounding knowledge.
+  - They can rediscover and use accumulated knowledge rather than merely storing it.
+  - They can grow from simple notes into richer structures only when additional structure provides meaningful value.
+  - They can query and navigate consistent information without maintaining multiple competing sources of truth.
+  - They can reorganize and extend their knowledge with confidence that existing meaning and user-authored information will be preserved.
+  - They can change optional applications, views, automation, AI systems, or other tooling without losing access to the canonical source.
+  - They can use automation and external AI when valuable without making either one necessary for the durability or meaning of the knowledge.
+  - They remain in meaningful control of what happens to their knowledge.
+  - ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.
 
 ### Commit 3 — Goals and Non-Goals
 
