@@ -2323,106 +2323,106 @@ milestone_5_goal: Turn the foundation specification into the smallest useful set
 ### Commit 21 — Minimal Database Blueprint
 
 commit_21_subject: blueprint: add minimal database blueprint
-commit_21_status: planned
-blueprint_minimum_contents: 
-blueprint_manifest_defaults: 
-blueprint_placeholder_policy: 
-blueprint_views_policy: 
-blueprint_structural_content_policy: 
-blueprint_materialization_boundary: 
+commit_21_status: complete
+blueprint_minimum_contents: app/Blueprints/Example Database with Database.md, one declared collection, collection-local Attachments/, Views/, and sanitized structural notes
+blueprint_manifest_defaults: manifest_version 1, stable database_id, database_name, one non-empty data_collections list, and draft database_status
+blueprint_placeholder_policy: blueprint content is sanitized and reusable; no private live data is copied
+blueprint_views_policy: Views/ is present but may remain empty
+blueprint_structural_content_policy: structural YAML and minimal Markdown scaffolding only; domain prose remains database-owned
+blueprint_materialization_boundary: materialize into a new live database only; later blueprint changes require explicit migration
 blueprint_upgrade_policy: explicit migration only
 
 ### Commit 22 — Registry Discovery Contract
 
 commit_22_subject: registry: define database discovery contract
-commit_22_status: planned
-registry_discovery_source: 
-registry_valid_database_test: 
-registry_display_fields: 
-registry_invalid_database_behavior: 
-registry_authority_boundary: 
-registry_manual_vs_generated_behavior: 
+commit_22_status: complete
+registry_discovery_source: direct app/Db children containing root-level Database.md
+registry_valid_database_test: manifest identifies a direct database root and uses manifest_version 1
+registry_display_fields: database_name, database_status, and data_collections/data_folder in the Dataview projection
+registry_invalid_database_behavior: invalid or incomplete roots are not treated as valid registry entries and are reported by the validator
+registry_authority_boundary: Registry is navigational; Database.md remains authoritative
+registry_manual_vs_generated_behavior: discovery is runtime-based; no generated inventory is required
 
 ### Commit 23 — Database Manifest Validation
 
 commit_23_subject: validate: add database manifest validation
-commit_23_status: planned
-validate_database_location: 
-validate_database_md_exists: 
-validate_manifest_fields: 
-validate_manifest_values: 
-validate_data_collections: 
-validate_required_body_sections: 
-validation_output_format: 
-validation_failure_behavior: 
+commit_23_status: complete
+validate_database_location: direct child of app/Db
+validate_database_md_exists: required
+validate_manifest_fields: all five required fields
+validate_manifest_values: manifest_version 1 and active/draft/archived database_status
+validate_data_collections: non-empty unique declared directories, each with Attachments/
+validate_required_body_sections: Purpose, Scope, Includes, Excludes, Architecture, Schema, Conventions, Resources
+validation_output_format: human-readable path, stable issue code, and message
+validation_failure_behavior: print all discovered issues and return non-zero
 
 ### Commit 24 — Structural Metadata Validation
 
 commit_24_subject: validate: add structural metadata validation
-commit_24_status: planned
-validate_required_structural_fields: 
-validate_type: 
-validate_pool: 
-validate_core: 
-validate_parent_note: 
-validate_status: 
-validate_structural_semantic_separation: 
+commit_24_status: complete
+validate_required_structural_fields: type, pool, core, parent_note, and status
+validate_type: core, shard, or pebble only
+validate_pool: non-empty scalar string
+validate_core: supporting notes resolve to a Core; Cores self-reference
+validate_parent_note: Core is empty; supporting notes resolve to an existing note
+validate_status: active, draft, or archived
+validate_structural_semantic_separation: semantic fields remain additional fields and type is never treated as a domain kind
 
 ### Commit 25 — Lineage Integrity Checks
 
 commit_25_subject: validate: add lineage integrity checks
-commit_25_status: planned
-validate_core_self_reference: 
-validate_parent_exists: 
-validate_no_self_parent: 
-validate_no_cycles: 
-validate_no_self_ancestor: 
-validate_root_core: 
-validate_pebble_terminal: 
-validate_missing_parent_behavior: 
+commit_25_status: complete
+validate_core_self_reference: enforced
+validate_parent_exists: enforced
+validate_no_self_parent: enforced
+validate_no_cycles: enforced
+validate_no_self_ancestor: enforced by cycle traversal
+validate_root_core: enforced through core resolution
+validate_pebble_terminal: enforced
+validate_missing_parent_behavior: reported without guessing a replacement
 
 ### Commit 26 — Naming and Placement Checks
 
 commit_26_subject: validate: add naming and placement checks
-commit_26_status: planned
-validate_core_filename: 
-validate_supporting_filename: 
-validate_bounded_core_context: 
-validate_immediate_parent_current_node_naming: 
-validate_max_three_filename_components: 
-validate_no_full_ancestry_accumulation: 
-validate_filename_collision: 
-validate_primary_heading: 
-validate_file_location: 
-validate_filename_metadata_consistency: 
+commit_26_status: complete
+validate_core_filename: canonical stem
+validate_supporting_filename: Core - Current Node or Core - Immediate Parent - Current Node
+validate_bounded_core_context: enforced
+validate_immediate_parent_current_node_naming: enforced
+validate_max_three_filename_components: enforced
+validate_no_full_ancestry_accumulation: enforced
+validate_filename_collision: report colliding expected filenames with stable issue code
+validate_primary_heading: level-one heading followed by a blank line
+validate_file_location: direct collection roots only
+validate_filename_metadata_consistency: enforced
 
 ### Commit 27 — Markdown Structure Checks
 
 commit_27_subject: validate: add markdown structure checks
-commit_27_status: planned
-validate_heading_sequence: 
-validate_heading_blank_line: 
-validate_structural_heading_usage: 
-validate_empty_headings: 
-markdown_validation_scope: 
+commit_27_status: complete
+validate_heading_sequence: minimum heading check implemented; full heading-depth validation remains follow-up work
+validate_heading_blank_line: enforced for the opening level-one heading
+validate_structural_heading_usage: structural notes require a level-one opening heading
+validate_empty_headings: deferred
+markdown_validation_scope: focused Foundation proof scope, not a complete Markdown linter
 
 ### Commit 28 — Canonical Validation Fixtures
 
 commit_28_subject: test: add canonical validation fixtures
-commit_28_status: planned
-fixture_valid_database: 
-fixture_invalid_manifest: 
-fixture_invalid_type: 
-fixture_invalid_core: 
-fixture_missing_parent: 
-fixture_cycle: 
-fixture_pebble_parent: 
-fixture_bad_filename: 
-fixture_bad_heading_structure: 
+commit_28_status: complete
+fixture_valid_database: app/Scripts/fixtures/valid-database
+fixture_invalid_manifest: covered by test mutation
+fixture_invalid_type: follow-up fixture
+fixture_invalid_core: follow-up fixture
+fixture_missing_parent: follow-up fixture
+fixture_cycle: covered by test mutation
+fixture_pebble_parent: covered by test mutation
+fixture_bad_filename: covered by test mutation
+fixture_bad_heading_structure: follow-up fixture
 fixture_fragmentation_case: 
 fixture_attachment_violation: 
 fixture_inbox_case: 
-fixture_expected_result_format: 
+fixture_expected_result_format: unittest assertions over stable issue codes
 
 ---
 
@@ -2434,15 +2434,15 @@ milestone_6_goal: Demonstrate that the foundation is coherent, teachable, testab
 ### Commit 29 — Canonical Example Database
 
 commit_29_subject: example: add canonical shardbase database
-commit_29_status: planned
-example_database_domain: 
-example_database_purpose: 
-example_database_scope: 
-example_database_complexity: 
-example_database_lineages: 
-example_database_views: 
-example_database_attachments: 
-example_database_reason_for_inclusion: 
+commit_29_status: complete
+example_database_domain: sanitized example domain
+example_database_purpose: demonstrate a complete minimal database and recursive lineage
+example_database_scope: intentionally non-private example content only
+example_database_complexity: one Core, one Shard, and one Pebble
+example_database_lineages: Example -> Weapons -> Blade
+example_database_views: empty Views/ boundary
+example_database_attachments: collection-local Attachments/ boundary
+example_database_reason_for_inclusion: provide a committed, inspectable proof fixture without user data
 
 ### Commit 30 — End-to-End Shard Workflow
 

@@ -23,6 +23,9 @@
 # Python
 # =============================================================================
 
+# These patterns prevent accidental tracking. Development commands must also
+# keep generated state outside the vault; see the repository runtime policy.
+
 # Virtual environments
 .venv/
 venv/
@@ -46,6 +49,9 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+
+# JavaScript dependencies
+node_modules/
 
 
 # =============================================================================

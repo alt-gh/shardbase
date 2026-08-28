@@ -270,7 +270,7 @@ By default:
 - live database contents under `app/Db/` are ignored;
 - Inbox contents under `app/Inbox/` are ignored;
 - user-owned Agents, customizations, private local configuration, sensitive Registry-derived state, credentials, and other user-local state are ignored;
-- generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, and build artifacts are not durable repository content;
+- generated runtimes, virtual environments, installed dependencies such as `node_modules`, Python bytecode such as `__pycache__`, caches, indexes, embeddings, temporary files, and build artifacts must remain outside the ShardBase vault and are not durable repository content;
 - framework documentation, generic Registry infrastructure, framework scripts, blueprints, repository guidance, and eventually framework-owned Agents are committed;
 - committed Docs, Registry resources, scripts, examples, and other framework surfaces must not copy or embed private live user data;
 - empty local-data boundaries may be retained with `.gitkeep` files or an equivalent minimal mechanism.
