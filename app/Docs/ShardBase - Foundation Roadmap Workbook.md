@@ -19,6 +19,7 @@ product_identity_status: accepted
 product_thesis_status: accepted
 target_users_and_use_cases_status: accepted
 goals_and_non_goals_status: accepted
+design_principles_status: accepted
 differentiation_status: accepted
 audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
@@ -1948,23 +1949,63 @@ scope_creep_warning_signs:
 ### Commit 4 — Design Principles
 
 commit_04_subject: docs: define shardbase design principles
-commit_04_status: planned
-principle_1_name: 
-principle_1_meaning: 
-principle_1_tradeoff: 
-principle_2_name: 
-principle_2_meaning: 
-principle_2_tradeoff: 
-principle_3_name: 
-principle_3_meaning: 
-principle_3_tradeoff: 
-principle_4_name: 
-principle_4_meaning: 
-principle_4_tradeoff: 
-principle_5_name: 
-principle_5_meaning: 
-principle_5_tradeoff: 
-principle_priority_when_conflicts_occur: 
+commit_04_status: accepted
+principle_1_name:
+  - User-Owned Knowledge First
+principle_1_meaning:
+  - The user's durable knowledge is the primary thing ShardBase is designed to protect and improve.
+  - Canonical knowledge should remain under the user's possession and meaningful control, directly accessible through user-controlled files.
+  - Local-first behavior should be the default, and reading or operating on local knowledge must never itself imply permission to transmit, publish, synchronize, or otherwise expose it.
+  - Product and architectural decisions should be evaluated first by whether they preserve the user's ownership, privacy, recoverability, intended meaning, and meaningful authority over consequential outcomes.
+principle_1_tradeoff:
+  - ShardBase should reject or constrain convenience, automation, monetization opportunities, integrations, technical elegance, or feature designs that require the user to surrender meaningful ownership or control of their canonical knowledge.
+  - A more seamless experience is not worth making essential knowledge dependent on a service, account, provider, or state the user does not control.
+principle_2_name:
+  - Durable Source, Replaceable Tools
+principle_2_meaning:
+  - Canonical Markdown and YAML should carry the durable knowledge and architectural meaning; applications and tooling should operate over that source rather than become its owner or only interpreter.
+  - Obsidian, Dataview, the CLI, scripts, validators, AI agents, views, indexes, exports, and future tooling may substantially improve the experience, but their loss or replacement must not erase or redefine essential knowledge.
+  - Tool-specific capabilities may be layered on top of ShardBase as long as the underlying source remains readable, editable, inspectable, portable, and recoverable without them.
+principle_2_tradeoff:
+  - ShardBase may accept less seamless integration, reduced feature parity outside the primary environment, or additional implementation work rather than move canonical meaning into proprietary or tool-specific state.
+  - Portability protects the source and its meaning; it does not require every enhanced feature to work identically everywhere.
+principle_3_name:
+  - Explicit Shared Meaning, One Authority
+principle_3_meaning:
+  - Architectural and semantic facts that matter for reliable interpretation should be explicit, inspectable, and documented so humans, deterministic tooling, and deliberately used AI can substantially agree on what the same canonical source means.
+  - Each important fact should have one designated authoritative representation. Secondary representations may repeat useful context, but they must not create competing sources of truth.
+  - Universal meaning belongs in the System Specification; database-specific meaning belongs in the applicable `Database.md`; replaceable tools and hidden implementation state must not silently become architectural authorities.
+  - Deterministic facts should be encoded explicitly when doing so avoids repeated guesswork.
+principle_3_tradeoff:
+  - ShardBase should accept some deliberate metadata, documentation, and validation burden where shared interpretation genuinely requires it.
+  - It should reject both extremes: implicit architecture that requires inference and redundant formalization that duplicates the same authoritative fact merely for visibility.
+principle_4_name:
+  - Structure Must Earn Its Complexity
+principle_4_meaning:
+  - Files, metadata, hierarchy, schemas, abstractions, workflows, and universal concepts should be introduced only when they provide concrete value through ownership, lineage, retrieval, querying, navigation, reuse, lifecycle management, integrity, safety, or demonstrated future growth.
+  - Knowledge should be allowed to begin simply and acquire additional structure as real requirements emerge rather than requiring users or designers to predict every future need in advance.
+  - Domain-specific complexity should remain database-local unless independent architectural justification shows that every compliant database must share it.
+  - Simplicity must mean avoiding unnecessary complexity, not hiding necessary complexity.
+principle_4_tradeoff:
+  - ShardBase should be willing to defer speculative schemas, abstractions, metadata, hierarchy, automation, and universalization even when they might eventually become useful.
+  - Some deliberate future refactoring is preferable to carrying permanent complexity introduced only to anticipate hypothetical requirements.
+principle_5_name:
+  - Evolve Safely Under Meaningful User Control
+principle_5_meaning:
+  - ShardBase should make knowledge easy to grow, refactor, reclassify, migrate, archive, and otherwise evolve without casually losing user-authored content, lineage, context, or intended meaning.
+  - Repetitive, deterministic, low-risk, and safely reversible work should be automatable, while destructive, ambiguous, privacy-sensitive, breaking, or architecturally consequential changes remain under meaningful user control.
+  - Compatibility boundaries, migrations, changes to canonical meaning, and other consequential transformations must be explicit and inspectable rather than silently guessed through.
+  - User control should focus on meaningful decisions rather than requiring approval for every deterministic mechanical detail.
+principle_5_tradeoff:
+  - ShardBase should accept additional validation, explicit migration work, review, or operational friction when necessary to preserve knowledge and avoid unsafe or silent changes.
+  - Speed, maximum automation, implementation simplicity, and technical elegance should yield when they conflict with preservation, authorization, structural integrity, or inspectability.
+principle_priority_when_conflicts_occur:
+  - Preservation of user-owned knowledge and meaningful user control comes first.
+  - Structural integrity and explicit shared meaning come next.
+  - Durability, readability, editability, portability, and replaceability of tooling should then be protected.
+  - Within those boundaries, ShardBase should prefer the minimum necessary structure and the simplest design that can support safe future growth.
+  - Convenience, feature richness, performance, automation, and technical elegance should be optimized only after the preceding priorities are satisfied.
+  - No lower-priority benefit should justify sacrificing the preservation, ownership, privacy, recoverability, or intended meaning of user-owned knowledge.
 
 ### Commit 5 — Foundation Success Criteria
 

@@ -53,6 +53,18 @@ A user request expresses architectural intent. Preserve that intent where possib
 - Prefer automation for repetitive, deterministic, and safely reversible work. Keep consequential, ambiguous, privacy-sensitive, or destructive decisions under meaningful user control.
 - Do not initiate publishing, sharing, synchronization, upload, transmission, or other external exposure of user-owned knowledge or local state unless the task or an authorized workflow explicitly permits it.
 
+### Product Design Principle Priority
+
+Apply the accepted product design principles when evaluating architecture, features, tooling, and tradeoffs:
+
+1. **User-Owned Knowledge First**
+2. **Durable Source, Replaceable Tools**
+3. **Explicit Shared Meaning, One Authority**
+4. **Structure Must Earn Its Complexity**
+5. **Evolve Safely Under Meaningful User Control**
+
+When principles compete, preserve user-owned knowledge and meaningful user control first, then structural integrity and explicit shared meaning, then durability, readability, editability, portability, and replaceability of tooling. Within those constraints, prefer minimum necessary structure and the simplest design that supports safe future growth. Convenience, feature richness, performance, automation, and technical elegance must remain subordinate to preservation, ownership, privacy, recoverability, and intended meaning.
+
 ### Product Scope Discipline
 
 When designing architecture, documentation, scripts, validators, CLI behavior, blueprints, or Agent workflows, keep the accepted product goals and non-goals in scope:
