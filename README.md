@@ -42,6 +42,16 @@ ShardBase deliberately keeps Markdown and YAML as the durable source rather than
 
 External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
 
+### Approved Future Context Packs
+
+ShardBase has an approved future **Context Pack** capability for packaging selected authorized context into a single local, provider-neutral artifact that a user can deliberately take to an external AI system or other tool. Context Packs will not make ShardBase an AI integration layer: generation remains local and ShardBase will not transmit the resulting artifact to ChatGPT, Gemini, DeepSeek, Claude, or another service.
+
+A reusable Context Pack Definition will describe what to include, while each generated Context Pack Snapshot will be a timestamped, derived, non-authoritative, isolated snapshot with inspectable provenance. Different packs may select different databases, `Database.md` contracts, representative files, or knowledge for different purposes. Regeneration will create a new snapshot rather than modifying an older one in place.
+
+Privacy-oriented packs will favor explicit inclusion of the minimum necessary context and deterministic filtering rules rather than AI inference. ShardBase will never create, store, manage, export, or require an identity or re-identification map connecting pseudonyms to real identities. A user who chooses to maintain such a mapping must keep it entirely outside ShardBase. Exact Context Pack schemas, locations, CLI syntax, privacy-transformation algorithms, and the relationship to any future universal visibility model remain deliberately deferred until implementation requirements justify standardization.
+
+Context Packs are approved product direction but are **not part of the current Foundation implementation scope**.
+
 ### Product Design Principles
 
 The commitments above are summarized by five product-level design principles that should guide feature, architecture, and implementation decisions:
@@ -291,7 +301,7 @@ ShardBase is in its foundation stage. Product Identity, the Product Thesis, Targ
 
 The foundation standardizes durable and observable contracts before locking in replaceable implementation details. Its accepted success standard is that product direction is explicit, architecture is coherent and deterministic where appropriate, safety and user control are built into normal operation, the system remains understandable without hidden dependencies, and initial tooling can implement the documented contracts without inventing foundational meaning. Stability does not mean freezing ShardBase; implementation may still discover details, but it should no longer have to invent architecture.
 
-A minimal CLI may begin as soon as the creation contracts it depends on are sufficiently settled so those contracts can be exercised through real use; mature CLI UX, compatibility matrices, migration engines, validation libraries, and blueprint packaging details should be added only when implementation demonstrates the need. AI-provider integration, synchronization systems, and general-purpose search/indexing engines are not deferred ShardBase implementation targets: AI integration remains outside the product boundary, while synchronization and search/indexing are provided by user-selected external tools.
+A minimal CLI may begin as soon as the creation contracts it depends on are sufficiently settled so those contracts can be exercised through real use; mature CLI UX, compatibility matrices, migration engines, validation libraries, blueprint packaging details, and the approved Context Pack generator should be added only when implementation demonstrates the need and the contracts they depend on are sufficiently settled. Context Packs are approved post-Foundation product direction, not current Foundation implementation scope. AI-provider integration, synchronization systems, and general-purpose search/indexing engines are not deferred ShardBase implementation targets: AI integration remains outside the product boundary, while synchronization and search/indexing are provided by user-selected external tools.
 
 The architectural source of truth is:
 

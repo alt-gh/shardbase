@@ -1560,6 +1560,7 @@ what_is_in_scope_for_foundation:
 
 what_is_out_of_scope_for_foundation:
   - Building the complete end-user ShardBase product is outside Foundation. Foundation should implement only enough functionality to prove and begin using the architecture safely.
+  - The approved Context Pack capability is post-Foundation implementation work. Foundation may preserve its product boundaries and accepted design constraints, but it should not standardize or build Context Pack definitions, generators, output locations, privacy-transformation mechanisms, or CLI UX before the feature's implementation stage is deliberately opened.
   - AI-model and AI-agent service integration is outside ShardBase's intended product responsibility, not merely deferred Foundation work. ShardBase must not call AI-model APIs, authenticate with providers, invoke external agents, orchestrate model conversations, automatically provide local knowledge to external AI systems, or otherwise act as the intermediary between notes and services such as ChatGPT or Gemini.
   - ShardBase may manage provider-neutral AI-related files and may produce local export, conversion, or packaging artifacts. Creating a local artifact is distinct from transmitting it; the user chooses the external system and performs the separate transfer or import workflow.
   - Synchronization is not a ShardBase product responsibility. Users may choose Obsidian Sync, iCloud, Git, backup software, filesystem synchronization, or other systems independently. ShardBase should preserve compatibility with deliberate user choices where practical without implementing its own synchronization system.
@@ -1579,6 +1580,7 @@ what_must_exist_before_implementation_expands:
 
 what_can_safely_wait_until_later:
   - A mature, feature-rich CLI can wait even though a minimal usable CLI should arrive early. Interactive wizards, broad command coverage, sophisticated batch operations, advanced migrations, shell completion, extensive configuration, and other convenience features should follow concrete needs.
+  - Context Pack generation may wait until post-Foundation implementation. The approved direction is a deterministic, local-only packaging/export capability that creates user-selected, timestamped, inspectable, reproducible, non-authoritative snapshots for deliberate use with external tools or AI systems; implementation timing should follow completion of the Foundation contracts it depends on.
   - Automated Inbox classification, generalized database and schema migration engines, an Obsidian plugin, an API server, a web UI, packaging and distribution systems, extensive dashboards, and other large convenience surfaces may wait until their requirements are demonstrated.
   - Advanced Agent orchestration protocols, runtime mechanisms, delegation transports, prompt interchange formats, and machine-readable Agent schemas may wait. AI-provider integration is not in this category because it is outside the ShardBase product boundary rather than deferred work.
   - Attachment offloading and restoration mechanisms, the exact universal `visibility` model, performance optimizations, caches, indexes, broad platform adaptation, and comprehensive compatibility work may wait until concrete requirements justify them, provided the canonical source remains durable and understandable without them and existing privacy and external-exposure boundaries remain intact.
@@ -1586,6 +1588,7 @@ what_can_safely_wait_until_later:
 
 what_would_be_premature_to_standardize:
   - A programming language, runtime, package manager, dependency manager, virtual-environment arrangement, module layout, or deployment mechanism before implementation proves one is required.
+  - The exact Context Pack definition schema, filesystem location, output naming convention, mature CLI syntax, source-fingerprint algorithm, privacy-rule syntax, or pseudonymization algorithm before a concrete implementation proves the required observable behavior.
   - Mature CLI syntax, command taxonomy, interactive UX, configuration format, or presentation conventions before real workflows demonstrate the necessary surface.
   - Specific Obsidian or plugin versions, an operating-system support matrix, synchronization providers, cloud architecture, search or indexing technology, cache formats, embedding formats, API frameworks, web stacks, or packaging systems.
   - A particular schema-validation technology such as JSON Schema, TypeScript-style types, Pydantic, generated models, or a custom validator before the CLI implementation demonstrates which representation best satisfies the documented contracts. The required validation behavior is architectural; the mechanism is not yet.
@@ -2618,13 +2621,26 @@ idea_parking_lot_03:
 idea_parking_lot_04: 
 idea_parking_lot_05: 
 
-future_feature_idea_01: 
+future_feature_idea_01:
+  - Context Packs are an approved future ShardBase capability for creating deterministic, local-only, provider-neutral context artifacts that a user may deliberately provide to ChatGPT, Gemini, DeepSeek, Claude, another AI system, or another external tool through a separate workflow controlled by the user. ShardBase generates the artifact; it never performs the external transfer.
+  - A Context Pack Definition is persistent user-owned configuration describing what a particular pack should include and which explicit privacy or transformation rules should apply. A definition may select universal Shard context, a database's `Database.md`, explicit database files, representative examples, structural selections, or other authorized sources. Different definitions for the same database may deliberately include different examples or knowledge.
+  - A Context Pack Snapshot is generated output from a definition. It is derived, isolated, non-authoritative state and must never redefine, update, or compete with its canonical source files. If a snapshot conflicts with canonical knowledge or documented contracts, the canonical sources control.
+  - Generation and regeneration should be deterministic and AI-free where the documented rules define the result. Regeneration creates a new snapshot rather than updating an older snapshot in place. Generated snapshots should be treated as immutable ShardBase output; manual edits fall outside the reproducibility guarantee.
+  - Every generated snapshot must include a generation timestamp and sufficient provenance to identify the definition, source set, generator behavior/version where relevant, applied transformations, and source fingerprints or equivalent integrity evidence needed to inspect which canonical state produced the artifact. Exact metadata syntax and fingerprint technology remain implementation-defined until the feature is built.
+  - Context Packs should default toward minimum necessary context. Externally intended packs should favor explicit inclusion/allowlisting over exporting broad database contents and attempting to remove unwanted material afterward. Privacy filtering is a second defensive layer rather than permission to over-collect source knowledge.
+  - Privacy filtering must operate from explicit documented rules or user selections rather than AI inference or undocumented heuristics. The generator must not claim that pseudonymized output is anonymous merely because direct identifiers were transformed.
+  - Context Packs may support filtering, removal of explicitly identified sensitive fields or content, and pseudonymization when a deterministic mechanism can satisfy the privacy contract. Exact sensitivity and visibility semantics remain subject to the approved post-Foundation visibility deferral and should be introduced only when concrete Context Pack requirements justify them.
+  - ShardBase must never create, store, persist, synchronize, export, manage, or require a re-identification or identity map connecting pseudonyms in a Context Pack to real identities. If a user chooses to maintain such a mapping, it exists entirely outside ShardBase and may be kept offline or in physical form. ShardBase must not depend on that external mapping for canonical meaning or normal Context Pack operation.
+  - Context Pack output inherits the sensitivity of the source information it contains. Generated packs containing user-owned knowledge remain local and private by default and must be excluded from framework commits, releases, publication, synchronization, or transmission unless the user deliberately chooses otherwise.
+  - The intended minimum sharing model is: project development may use one project Context Pack; database architecture may use a database-scoped Context Pack containing or packaging the applicable `Database.md`; knowledge-specific work may additionally include only the relevant authorized knowledge required for that task. The exact UX for composing these scopes remains deferred.
+  - Context Packs are approved as a future product capability, not Foundation implementation scope. Their implementation should begin only when the underlying source-selection, privacy, provenance, export, and CLI contracts are mature enough to implement without inventing foundational meaning.
 future_feature_idea_02: 
 future_feature_idea_03: 
 future_feature_idea_04: 
 future_feature_idea_05: 
 
-decision_needing_research_01: 
+decision_needing_research_01:
+  - Determine the safest deterministic privacy-transformation model for Context Packs that can support useful pseudonymization or redaction without ShardBase ever creating or retaining a re-identification map. Evaluate reproducibility, within-pack consistency, cross-pack correlation risk, indirect identifiers, structured versus prose data, and the relationship to any future visibility/sensitivity contract before standardizing an algorithm.
 decision_needing_research_02: 
 decision_needing_research_03: 
 
