@@ -133,16 +133,20 @@ Database-owned templates must remain within the database boundary so they travel
 
 - Preserve **Pool → Core → Shard → Pebble** semantics.
 - YAML metadata is authoritative for structural lineage.
+- Treat `type`, `pool`, `core`, `parent_note`, and `status` as reserved universal structural fields. Their field names and universal meanings must not be repurposed for database-domain semantics.
 - `type` is reserved for `core`, `shard`, and `pebble`.
-- `pool` is a logical metadata value and does not require a Pool folder or Pool note. A Core and its structural descendants use the same canonical Pool value.
+- `pool` is a logical metadata value and does not require a Pool folder or Pool note. A Core and its structural descendants use the same canonical Pool value. A database may define its permitted Pool vocabulary but must not redefine what `pool` means structurally.
 - `core` identifies the canonical root Core.
 - `parent_note` identifies the immediate structural parent.
+- `status` carries the universal structural lifecycle state; database-specific workflow, publication, completion, ownership, or other domain states require separately named semantic fields.
 - A Core self-references through `core` and leaves `parent_note` empty.
 - A Pebble is terminal and must not parent another structural note.
 - Supporting filenames use bounded Core context: direct Core children use `Core - Current Node.md`; deeper descendants use `Core - Immediate Parent - Current Node.md`, capped at three structural context components. The immediate-parent component uses the parent's current-node name, not its full filename. Filename collisions must be reported and resolved through meaningful disambiguation rather than by adding more ancestry.
 - Prefer the minimum necessary structure. A heading, including a heading in a template or skeleton document, is not evidence by itself that a Shard or Pebble should be created.
 - If completing the requested note suggests creating additional structural notes beyond the note the user intended to create, propose those additional notes and require deliberate user action before materializing them.
-- Keep semantic metadata separate from structural metadata.
+- Keep semantic metadata separate from structural metadata. Structural fields carry framework-level role, placement, lineage, and lifecycle meaning; semantic fields carry database-domain identity, properties, taxonomy, state, and relationships.
+- Semantic metadata may inform structural classification but must never substitute for or override authoritative structural metadata. Do not treat folders, data collections, tags, links, backlinks, taxonomies, semantic containers, or similar domain relationships as structural lineage.
+- When a proposed field could be structural or semantic, identify the fact it represents and ask whether every compliant database must share that meaning for ShardBase to establish or validate a universal invariant. Reuse an existing universal field when it already represents the fact; otherwise keep the field semantic and document it in `Database.md`. If a genuinely universal requirement cannot fit the current contract, propose a framework-level change rather than overloading a reserved field or inventing a local exception. When uncertainty remains, prefer database-local semantic meaning unless demonstrated cross-database necessity requires universalization.
 - Views may query structure but do not define it.
 
 ## Shard Workflow

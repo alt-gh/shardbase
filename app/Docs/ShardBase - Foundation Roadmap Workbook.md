@@ -2091,8 +2091,8 @@ term_pebble: terminal structural note with a valid immediate parent; must never 
 term_ghost_shard: unresolved wikilink for plausible future structure that has not earned materialization; no file or structural YAML
 term_database: self-contained user-owned direct child of `app/Db/`, governed by root `Database.md` and containing declared data collections
 term_database_manifest: root-level `Database.md`, the canonical local contract for identity, scope, collections, schema, conventions, and resources
-term_structural_metadata: universal YAML frontmatter for a structural note's architectural placement: `type`, `pool`, `core`, `parent_note`, and `status`
-term_semantic_metadata: database-defined YAML describing domain meaning, separate from structural metadata and documented in `Database.md`
+term_structural_metadata: universal YAML frontmatter that records a structural note's framework-level role, placement, lineage, and lifecycle state: `type`, `pool`, `core`, `parent_note`, and `status`
+term_semantic_metadata: database-defined YAML describing what a note represents in its domain, including domain-specific properties, classifications, and relationships needed for reliable interpretation, querying, validation, or automation
 term_lineage: Core-to-note structural ancestry expressed by `core` and `parent_note`, not inferred from names, paths, links, or collection membership
 term_root_core: the canonical root Core referenced through `core`; every Core references itself
 term_immediate_parent: directly preceding structural note identified by `parent_note`; empty for a Core
@@ -2108,14 +2108,38 @@ additional_terms_needed: data collection, canonical note, structural orphan, and
 ### Commit 7 — Structural vs Semantic Concepts
 
 commit_07_subject: docs: define structural versus semantic concepts
-commit_07_status: planned
-structural_metadata_purpose: 
-semantic_metadata_purpose: 
-reserved_structural_fields: 
-examples_of_semantic_fields: 
-structural_semantic_boundary_rule: 
-common_category_mistakes: 
-how_to_resolve_ambiguous_fields: 
+commit_07_status: complete
+structural_metadata_purpose:
+  - Universal metadata that records a structural note's framework-level role, placement, lineage, and lifecycle state so humans and compliant tooling can interpret and validate its ShardBase structure consistently.
+semantic_metadata_purpose:
+  - Database-defined metadata that describes what a note represents in its domain, including domain-specific properties, classifications, and relationships needed for reliable interpretation, querying, validation, or automation.
+reserved_structural_fields:
+  - `type`, `pool`, `core`, `parent_note`, and `status` are the reserved universal structural fields.
+  - Their field names and universal meanings must not be repurposed for database-domain semantics.
+  - Database contracts may define the permitted Pool vocabulary, but they do not redefine what `pool` means structurally.
+examples_of_semantic_fields:
+  - Illustrative, non-universal examples include `entity_kind`, `developer`, `author`, `publisher`, `release_date`, `series`, `genre`, `project_phase`, `relationship_kind`, and `source_kind`.
+  - Their applicability, meanings, value shapes, and allowed values are defined by the owning database rather than by ShardBase universally.
+structural_semantic_boundary_rule:
+  - A field is structural when its meaning must be shared across every compliant ShardBase database to establish or validate ShardBase architectural role, placement, lineage, or universal lifecycle state.
+  - A field is semantic when it describes domain-specific identity, properties, taxonomy, state, or relationships.
+  - Semantic metadata may inform a structural classification decision, but it never substitutes for or overrides authoritative structural metadata.
+common_category_mistakes:
+  - Using semantic categories in reserved structural `type`, such as `type: person`, `type: game`, or `type: project`.
+  - Assuming a semantic container such as a series, collection, franchise, organization, category, or project must automatically become a Core or structural parent.
+  - Treating data-collection membership, folder placement, tags, wikilinks, backlinks, or another semantic relationship as evidence of structural lineage.
+  - Treating every level of a domain taxonomy as a matching Pool → Core → Shard → Pebble hierarchy.
+  - Using structural `status` for database-specific states such as publication state, completion state, ownership state, or workflow phase instead of defining an appropriately named semantic field.
+  - Using `pool` as a generic tag or cross-cutting category when the value is not intended to classify the entire Core lineage.
+  - Promoting a useful semantic field into universal ShardBase structure merely because several databases happen to use a similar concept.
+how_to_resolve_ambiguous_fields:
+  - Identify the fact the field is intended to represent rather than starting from its proposed name.
+  - Determine whether ShardBase requires that fact to have the same meaning across every compliant database in order to establish or validate architectural role, placement, lineage, lifecycle, ownership, or another universal invariant.
+  - If an existing universal field already represents that fact, use the existing field rather than creating a duplicate.
+  - Otherwise, keep the field semantic and define it in the applicable `Database.md`, including its meaning, applicability, value shape, requiredness, bounded values, and relationship semantics where relevant.
+  - If the requirement genuinely appears universal but no existing structural concept can represent it, propose a framework-level architectural change rather than overloading a reserved field or inventing a private database exception.
+  - If material ambiguity remains and choosing incorrectly would change canonical interpretation, surface the ambiguity rather than guessing.
+  - When uncertainty remains after applying these tests, prefer keeping the field semantic and database-local unless a demonstrated cross-database requirement proves that ShardBase itself must own its meaning.
 
 ### Commit 8 — Knowledge Lifecycle Model
 

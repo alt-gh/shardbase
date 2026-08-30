@@ -207,7 +207,7 @@ ShardBase is designed to be used primarily through the user's chosen Markdown ed
 
 ShardBase manages AI-related knowledge; it does not integrate with AI systems. Framework scripts and the CLI do not call model-provider APIs, authenticate with providers, invoke or orchestrate external agents, or automatically broker local knowledge to services such as ChatGPT or Gemini. ShardBase may structure, validate, package, convert, or export local user-owned Agent, Prompt, instruction, context, or related files. Users who want an external AI system to receive those files or other ShardBase information perform that transfer through a separate deliberate workflow using the external system of their choice.
 
-## Structural Metadata
+## Structural and Semantic Metadata
 
 Every Core, Shard, and Pebble uses the universal structural fields:
 
@@ -221,9 +221,9 @@ status: active
 ---
 ```
 
-For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty. A Core and its structural descendants use the same canonical `pool` value.
+These fields record framework-level role, placement, lineage, and lifecycle state. `type`, `pool`, `core`, `parent_note`, and `status` are reserved structural fields whose universal meanings must not be repurposed for database-domain semantics. For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty. A Core and its structural descendants use the same canonical `pool` value. A database may define its permitted Pool vocabulary, but it does not redefine what `pool` means structurally.
 
-Domain-specific meaning belongs in separate database-defined metadata. The reserved `type` field is never repurposed for semantic categories such as person, project, game, book, source, or organization.
+Domain-specific meaning belongs in separate database-defined semantic metadata, such as `entity_kind`, `developer`, `author`, `release_date`, `project_phase`, or `relationship_kind`. These are illustrative rather than universal fields; their meanings and constraints belong to the owning database's `Database.md`. Semantic metadata may inform a structural classification decision, but it never substitutes for or overrides structural metadata. In particular, `type` is never repurposed for semantic categories such as person, project, game, book, source, or organization, and structural `status` is not a substitute for a database-specific workflow or domain-state field.
 
 ## Naming
 

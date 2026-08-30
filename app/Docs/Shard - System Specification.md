@@ -116,11 +116,15 @@ None of these layers should silently substitute for another.
 
 ### 3.3 Structural and Semantic Separation
 
-ShardBase structural metadata answers where a note belongs in the architecture.
+ShardBase structural metadata is universal metadata that records a structural note's framework-level role, placement, lineage, and lifecycle state so humans and compliant tooling can interpret and validate its ShardBase structure consistently. The reserved universal structural fields are `type`, `pool`, `core`, `parent_note`, and `status`. Their field names and universal meanings must not be repurposed for database-domain semantics. Database contracts may define the permitted Pool vocabulary, but they do not redefine what `pool` means structurally.
 
-Database-specific semantic metadata answers what the note represents in its domain.
+Database-specific semantic metadata describes what a note represents in its domain, including domain-specific properties, classifications, and relationships needed for reliable interpretation, querying, validation, or automation. Illustrative semantic fields include `entity_kind`, `developer`, `author`, `publisher`, `release_date`, `series`, `genre`, `project_phase`, `relationship_kind`, and `source_kind`. These examples are not universal ShardBase fields; their applicability, meanings, value shapes, and allowed values are defined by the owning database.
 
-The reserved structural field `type` must never be overloaded with semantic values such as `person`, `game`, `project`, `book`, `source`, or `organization`.
+A field is structural when its meaning must be shared across every compliant ShardBase database to establish or validate ShardBase architectural role, placement, lineage, or universal lifecycle state. A field is semantic when it describes domain-specific identity, properties, taxonomy, state, or relationships. Semantic metadata may inform a structural classification decision, but it never substitutes for or overrides authoritative structural metadata.
+
+Common category errors include using semantic values such as `person`, `game`, or `project` in structural `type`; treating semantic containers, data-collection membership, folder placement, tags, links, backlinks, or taxonomies as structural lineage; using structural `status` for database-specific workflow or domain states; using `pool` as a generic cross-cutting tag rather than lineage-level grouping; and promoting a reused semantic concept into universal structure merely because several databases happen to use it.
+
+When a proposed field could plausibly be structural or semantic, first identify the fact the field represents. Determine whether ShardBase itself requires that fact to have the same meaning across every compliant database in order to establish or validate a universal invariant. If an existing universal field already represents the fact, use that field rather than creating a duplicate. Otherwise, keep the field semantic and document it in the applicable `Database.md`. If a genuinely universal requirement cannot be represented by the existing structural contract, propose a framework-level architectural change rather than overloading a reserved field or inventing a private database exception. If material ambiguity remains and choosing incorrectly would change canonical interpretation, surface the ambiguity rather than guessing. When uncertainty remains after these tests, prefer keeping the field semantic and database-local unless a demonstrated cross-database requirement proves that ShardBase itself must own its meaning.
 
 ### 3.4 Locality and Portability
 
@@ -535,11 +539,11 @@ The root-level `Database.md` that is the canonical manifest and local contract f
 
 ### Structural Metadata
 
-Universal YAML frontmatter that authoritatively states where a structural note belongs: `type`, `pool`, `core`, `parent_note`, and `status`.
+Universal YAML frontmatter that records a structural note's framework-level role, placement, lineage, and lifecycle state: `type`, `pool`, `core`, `parent_note`, and `status`.
 
 ### Semantic Metadata
 
-Database-defined YAML metadata that describes what a note represents in its domain, separate from universal structural metadata and documented in `Database.md`.
+Database-defined YAML metadata that describes what a note represents in its domain, including domain-specific properties, classifications, and relationships needed for reliable interpretation, querying, validation, or automation; it remains separate from universal structural metadata and is documented in `Database.md`.
 
 ### Lineage
 
@@ -765,7 +769,7 @@ status: active
 
 ### 8.9 Semantic Extensions
 
-Database-specific metadata may be added below the universal structural fields.
+Database-specific semantic metadata may be added below the universal structural fields when the owning database needs explicit domain properties, classifications, relationships, or other facts for reliable interpretation, querying, validation, or automation.
 
 Example:
 
@@ -778,10 +782,11 @@ parent_note:
 status: active
 entity_kind: game
 developer: Supergiant Games
+release_date: 2020-09-17
 ---
 ```
 
-`entity_kind` describes domain meaning. It does not alter structural type.
+`entity_kind`, `developer`, and `release_date` describe domain meaning. They do not alter structural type, lineage, Pool membership, or lifecycle state. Their applicability, meanings, value shapes, and allowed values belong to the owning database's documented semantic schema rather than to ShardBase universally.
 
 ## 9. Lineage and Naming
 
