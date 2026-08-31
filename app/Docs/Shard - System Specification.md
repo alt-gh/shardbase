@@ -108,7 +108,7 @@ YAML frontmatter is authoritative for structural lineage.
 
 Filenames provide human-readable relationship context.
 
-Filesystem paths provide database ownership and organizational context.
+Filesystem paths provide database-boundary and organizational context; physical placement does not by itself determine canonical semantic ownership.
 
 Markdown headings provide internal document hierarchy.
 
@@ -130,9 +130,9 @@ When a proposed field could plausibly be structural or semantic, first identify 
 
 ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. A fresh or ordinary ShardBase environment must not require the user to disable external transmission features merely to keep their knowledge local.
 
-A database should remain understandable and movable as one self-contained root.
+A database should remain understandable and movable as one self-contained root. Its owned canonical knowledge and documented local meaning must remain coherent when the database root is deliberately moved independently. Cross-database semantic relationships may become unresolved when their targets do not travel with the database, but that must not destroy, silently change, or make ambiguous the meaning of the knowledge that remains.
 
-Database-local declared data collections, views, collection-local attachments, database-owned templates, schema, conventions, and database-owned agent resources should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework.
+Database-local declared data collections, views, collection-local attachment storage, database-owned templates, schema, conventions, and database-owned agent resources should not depend on hidden state elsewhere in the vault unless explicitly defined by the framework. Cross-database Views and semantic relationships may enhance the experience, but another database, Registry state, generated indexes, AI memory, or other external local state must not become a prerequisite for interpreting the database's owned canonical knowledge.
 
 Core knowledge and structural meaning must remain understandable and editable without requiring Obsidian, Dataview, AI assistance, scripts, synchronization services, or other optional tooling.
 
@@ -423,7 +423,7 @@ Data/
     └── Attachments/
 ```
 
-Each declared collection owns canonical note locations at its root and reserves its own `Attachments/` child as non-structural resources. Declaring a collection does not establish Pool membership, Core lineage, structural type, or parentage. `Database.md` must document the domain meaning and intended use of each collection.
+Each declared collection provides canonical note locations at its root and reserves its own `Attachments/` child as non-structural resources. Declaring a collection does not establish Pool membership, Core lineage, structural type, or parentage. `Database.md` must document the domain meaning and intended use of each collection.
 
 #### `database_status`
 
@@ -469,7 +469,7 @@ Why the database exists.
 
 #### Scope
 
-What the database owns and what it intentionally does not own. Scope defines the database's semantic ownership boundary rather than merely describing the files currently present. `Includes` should identify owned kinds of knowledge, while `Excludes` should clarify realistic nearby concepts that could otherwise create ownership ambiguity. Relationships to knowledge owned elsewhere do not automatically transfer ownership or justify duplicate authoritative copies.
+What the database owns and what it intentionally does not own. Within ShardBase, database ownership means canonical semantic responsibility inside the user's knowledge system; it does not replace the user's ownership of the live database data. Scope defines the database's semantic ownership boundary rather than merely describing the files currently present. `Includes` should identify owned kinds of knowledge, while `Excludes` should clarify realistic nearby concepts that could otherwise create ownership ambiguity. Relationships to knowledge owned elsewhere do not automatically transfer ownership or justify duplicate authoritative copies, and physical placement must follow determined ownership rather than silently define it.
 
 #### Architecture
 
@@ -507,6 +507,20 @@ Shard and other external AI agents are assistance layers rather than the primary
 
 A good database should remain discoverable without requiring filesystem expertise, queryable from explicit source meaning rather than query-specific invention, manually editable as ordinary Markdown, and sufficiently documented that Shard can explain or assist with the database when the user deliberately supplies the relevant authorized context.
 
+### 5.4 Database Ownership and Cross-Database Boundaries
+
+Within ShardBase, **database ownership** means canonical semantic responsibility for knowledge within the scope documented by a database's `Database.md`. It is distinct from user data ownership: every live database remains user-owned local data. A database is responsible for the canonical domain knowledge within its documented scope, the canonical notes in its declared data collections, its local semantic contract, and its database-local resources. It does not acquire ownership of excluded or externally owned knowledge merely by linking to, mentioning, querying, or physically containing a misplaced copy of that knowledge.
+
+Physical placement should follow canonical ownership rather than establish it after the fact. A relationship to knowledge owned elsewhere does not transfer ownership and does not justify a duplicate authoritative copy when one canonical source is intended.
+
+Cross-database semantic relationships are permitted when useful. They must not create structural ancestry: structural lineage is database-local, so a structural note's `core` and `parent_note`, when populated, must resolve to canonical structural notes in the same database, and the lineage uses that database's documented Pool vocabulary. Each endpoint remains governed by its owning database. When a source database needs a specific cross-database relationship meaning beyond an ordinary link, it should document that relationship in its own semantic schema or conventions without redefining the target database's schema.
+
+Each database defines and owns only its own semantic schema. A database must not redefine, extend, constrain, or override another database's semantic fields, note kinds, or local meanings. It may reference another database's canonical knowledge according to that database's documented contract, but correct interpretation of its own owned knowledge must not silently depend on undocumented conventions in another database. Similar concepts used by several databases remain database-local unless a deliberate framework decision establishes a universal requirement.
+
+Ownership ambiguity should be resolved from documented meaning before physical location. Compare the plausible databases' Purpose, `Scope > Includes`, `Scope > Excludes`, and relevant domain definitions, and select the database responsible for the canonical meaning being captured. Existing placement and valid conventions may provide evidence but do not override scope. If the contracts do not resolve a material ambiguity, ShardBase must not guess or create duplicate authoritative copies; the information should remain unresolved or pre-structural where practical until the ambiguity is clarified. Recurring ambiguity is evidence that the affected database scopes need clarification. Moving established canonical knowledge to a different owner is a deliberate preservation-oriented refactor rather than an incidental file move.
+
+A portable database should remain a coherent, understandable, usable ownership unit when moved independently. Its portable boundary includes `Database.md`, declared data collections and canonical notes, collection-local attachment storage, Views, optional Templates, optional Agents, and other resources required by its documented local contract. Cross-database relationships and query results may become unavailable when external targets do not travel with it, but the database's owned knowledge and documented meaning must remain interpretable without another database, Registry state, generated indexes, AI memory, or other undocumented external state.
+
 ## Glossary
 
 ### Pool
@@ -532,6 +546,14 @@ An unresolved wikilink for a plausible future structural note that does not yet 
 ### Database
 
 A self-contained, user-owned knowledge boundary that is a direct child of `app/Db/`, governed by its root `Database.md`, and contains one or more declared data collections.
+
+### Database Ownership
+
+Canonical semantic responsibility for knowledge within the scope documented by a database's `Database.md`. Database ownership determines which database is authoritative for representing and interpreting that knowledge inside ShardBase; it is distinct from the user's ownership of all live database data.
+
+### Cross-Database Relationship
+
+A semantic relationship between canonical knowledge owned by different databases. It may connect knowledge across domains but does not transfer canonical ownership, redefine either database's schema, or create structural lineage across database boundaries.
 
 ### Database Manifest
 
@@ -579,11 +601,11 @@ Local, user-owned, pre-structural capture outside any database, awaiting review 
 
 ### View
 
-A database-local query, presentation, or navigation resource that consumes canonical metadata and content without defining structural truth.
+A database-owned query, presentation, or navigation resource that consumes canonical metadata and content without defining structural truth. It may read other authorized databases when its purpose requires a cross-database projection.
 
 ### Attachment
 
-A non-structural resource owned by one database and stored in its declared collection's `Attachments/` directory. It does not gain or lose ownership from a note reference.
+A non-structural resource owned by one database with one physical home in a declared collection's `Attachments/` directory. Canonical notes may reference it across data collections within that database; it does not gain or lose ownership from a note reference.
 
 ### Data Collection
 
@@ -902,6 +924,10 @@ A database's `Views/` directory contains read-oriented projections, queries, das
 
 Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian. Other supported query mechanisms may also be used.
 
+Database-local Views are local-first but not necessarily local-only. A database-owned View may read other authorized databases when its documented purpose genuinely requires a cross-database projection. Such a View remains non-authoritative and must not define ownership, semantic schema, structural lineage, or canonical meaning for another database. The owning database's canonical knowledge must remain correctly interpretable if the external database or cross-database View is unavailable.
+
+Cross-database projections whose primary purpose is general instance-wide discovery or aggregation should normally live in framework-level Registry infrastructure. A database-specific cross-domain View may remain within the database when the projection primarily serves that database's documented use case.
+
 Views are never authoritative for structural validity.
 
 A missing or broken view must not change the meaning of otherwise valid structural YAML.
@@ -910,19 +936,23 @@ Structural rules must not exist only inside a query that Shard cannot infer from
 
 ## 14. Attachments
 
-Each declared data collection reserves `Data/<collection>/Attachments/` for local non-structural files owned by the database. Keeping attachments beneath the collection containing canonical notes supports editor workflows that place new attachments in a subfolder under the current note directory while preserving database portability.
+Each declared data collection reserves `Data/<collection>/Attachments/` as a collection-local physical home for non-structural files owned by the database. Keeping attachments beneath a declared collection supports editor workflows that place new attachments in a subfolder under the current note directory while preserving database portability. Attachment ownership remains database-level: the collection containing an attachment is its storage and organizational context, not an ownership or reference boundary.
 
 Attachments:
 
 - are not Cores, Shards, Pebbles, Pools, or structural-note candidates;
 - do not use structural YAML;
 - must be excluded from recursive structural discovery even if an attachment has a `.md` extension;
-- may be referenced by multiple notes inside the same database;
+- may be referenced by canonical notes in any declared data collection within the same database;
+- should not be duplicated into another collection merely because a note in that collection needs to reference the same resource;
 - should not be referenced across database boundaries;
+- must not be automatically copied or moved across database boundaries to satisfy a reference;
 - must not be automatically deleted merely because a note is deleted;
 - must not have their unresolved references silently removed merely because the underlying file is missing or has been deliberately offloaded.
 
-Attachments follow the lifecycle of their owning database without silently following the lifecycle of any one referencing note. Adding or removing a note reference does not change attachment ownership. Archiving a note does not archive, move, or delete its attachments, and deleting a note through the user's editor or filesystem must not cause ShardBase to delete attachments it referenced. An unreferenced attachment is an attachment orphan that may be reported for review but remains intact until the user deliberately handles it.
+For a newly introduced attachment, prefer the `Attachments/` directory associated with the collection whose canonical knowledge most naturally contextualizes the resource. If an attachment is genuinely shared across collections and no collection is clearly primary, choose one reasonable physical home rather than creating duplicate copies. A recurring need for database-global attachment placement may justify a later architectural decision, but the Foundation contract does not add another attachment location.
+
+Attachments follow the lifecycle of their owning database without silently following the lifecycle of any one referencing note. Adding or removing a note reference does not change attachment ownership. Moving an attachment between collection-local `Attachments/` directories within the same database is a deliberate refactor when its appropriate physical home changes, and affected references should be preserved where tooling can do so safely. Archiving a note does not archive, move, or delete its attachments, and deleting a note through the user's editor or filesystem must not cause ShardBase to delete attachments it referenced. An unreferenced attachment is an attachment orphan that may be reported for review but remains intact until the user deliberately handles it.
 
 Inbox remains text-oriented and does not own attachments. Attachments enter the database boundary when canonical knowledge that needs them is created or promoted. Renaming or refactoring canonical notes should preserve attachment references where tooling can do so safely.
 
@@ -1011,7 +1041,7 @@ Review should inspect relevant existing canonical knowledge before assuming a ne
 
 ### 18.2 Ownership and Structural Placement
 
-Every live database is user-owned local data. Within that user-owned system, canonical database ownership is determined by the semantic scope documented in each `Database.md`; physical placement follows ownership rather than defining it. A relationship to knowledge owned by another database does not transfer canonical ownership. When multiple databases plausibly claim ownership and the contracts do not resolve the ambiguity, the ambiguity must be surfaced rather than represented through duplicate authoritative copies or arbitrary selection.
+Every live database is user-owned local data. Within that user-owned system, canonical database ownership is determined by the semantic scope documented in each `Database.md`; physical placement follows ownership rather than defining it. A relationship to knowledge owned by another database does not transfer canonical ownership. When multiple databases plausibly claim ownership, classification should compare their Purpose, `Scope > Includes`, `Scope > Excludes`, and relevant domain definitions and choose the database responsible for the canonical meaning being captured. Existing placement and valid conventions may provide evidence but do not override documented scope. If the contracts still do not resolve a material ambiguity, the ambiguity must be surfaced rather than represented through duplicate authoritative copies or arbitrary selection; the information should remain unresolved or pre-structural where practical until clarified. Recurring ambiguity is evidence that the affected database scopes need clarification.
 
 After database ownership is established:
 

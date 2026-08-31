@@ -127,6 +127,18 @@ Additional data collections, `Agents/`, and `Templates/` are optional; a minimal
 
 Data collections organize database-owned files; they do not define Pool membership, Core lineage, or parentage. Do not introduce nested database roots or undeclared data-collection directories unless the framework specification is explicitly changed.
 
+### Database Ownership and Cross-Database Boundaries
+
+- Treat every live database as user-owned local data. Within ShardBase, **database ownership** means canonical semantic responsibility for knowledge within the scope documented by that database's `Database.md`.
+- Determine canonical ownership from the plausible databases' Purpose, `Scope > Includes`, `Scope > Excludes`, and relevant domain definitions. Physical placement and incidental links are evidence only; they do not override documented scope.
+- Allow cross-database semantic relationships when useful, but do not let them transfer canonical ownership or create structural ancestry. A structural note's `core` and `parent_note`, when populated, must resolve within the same database.
+- Do not duplicate another database's canonical knowledge merely to avoid a cross-database relationship when one canonical source of truth is intended.
+- Each database defines only its own semantic schema. Do not redefine, extend, constrain, or override another database's fields, note kinds, or local semantic meanings. Reuse across databases is evidence, not automatic grounds for universalization.
+- Database-local Views are local-first but may query other authorized databases when their documented purpose requires it. Keep cross-database Views non-authoritative; general instance-wide discovery or aggregation should normally use Registry infrastructure.
+- Treat attachments as database-owned resources with one collection-local physical home. Any canonical note in the same database may reference an attachment across collection boundaries. Do not duplicate an attachment merely to satisfy another collection, avoid cross-database attachment references, and do not automatically copy or move attachments across database boundaries.
+- When ownership remains materially ambiguous after applying the documented scopes, do not guess or create duplicate authoritative copies. Keep the information unresolved or pre-structural where practical and surface the ambiguity; recurring ambiguity should be resolved by clarifying the affected database contracts.
+- Preserve database portability. A moved database should retain coherent owned meaning from its `Database.md`, declared data collections, canonical notes, collection-local attachments, Views, optional Templates, optional Agents, and required local resources even if external links, cross-database Views, Registry state, or other databases are unavailable.
+
 Database-owned templates must remain within the database boundary so they travel with the database. Reusable template and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the documented database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, prefer the applicable database-owned specialist Agent to develop or assist with the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid note bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Template headings or skeleton sections never imply separate structural-note materialization.
 
 ## Core Structural Rules
@@ -239,7 +251,7 @@ Promotion from Inbox into a database requires classification and conformance to 
 - Do not autonomously delete canonical user knowledge. Report consequences and orphan conditions without treating them as permission to remove anything.
 - Require every transition that creates or changes canonical representation to end in a state valid under the System Specification and applicable `Database.md`; do not guess through material ambiguity merely to produce a valid-looking state.
 - Distinguish structural orphans from broken ordinary links and intentional Ghost Shards. Never guess a replacement parent merely to make validation pass.
-- Attachments remain database-owned resources. Archiving or deleting a referencing note does not automatically move or delete its attachments; attachment orphans are diagnostic conditions for user review.
+- Attachments remain database-owned resources with collection-local physical homes and database-wide reference scope. Archiving or deleting a referencing note does not automatically move or delete its attachments; attachment orphans are diagnostic conditions for user review.
 - Promote Ghost Shards only when the knowledge independently earns materialization and the user chooses to create the note, normally through the CLI. Promotion of one Ghost Shard never authorizes neighboring or implied notes.
 - Keep destructive, ambiguous, privacy-sensitive, breaking, or otherwise consequential lifecycle transitions under meaningful user control, and treat local read/operation authorization as separate from permission to expose knowledge externally.
 

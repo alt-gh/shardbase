@@ -171,7 +171,9 @@ shardbase/
 
 ## Database Anatomy
 
-Each live database is a direct child of `app/Db/` and is self-contained.
+Each live database is a direct child of `app/Db/` and is self-contained. Within ShardBase, database ownership means canonical semantic responsibility for knowledge within the scope documented by that database's `Database.md`; the user still owns all live database data. Physical placement follows ownership rather than defining it.
+
+Cross-database semantic relationships are allowed without transferring canonical ownership. Structural lineage remains database-local: `core` and `parent_note` do not cross database boundaries. A database remains responsible only for its own semantic schema and must stay understandable when external relationship targets or cross-database projections are unavailable.
 
 ### `Database.md`
 
@@ -191,7 +193,7 @@ Data collections organize database-owned files; they do not define Pool membersh
 
 ### `Data/[Data Collection]/Attachments/`
 
-Contains local non-structural files owned by the database and associated with that collection. Cross-database attachment references should be avoided so a database remains portable. A missing or deliberately offloaded attachment reference should be surfaced rather than silently removed; the exact offloading and restoration mechanism remains a lifecycle design question.
+Contains local non-structural files owned by the database and physically associated with that collection. Attachment ownership is database-level rather than collection-level: any canonical note in the same database may reference an attachment regardless of which declared collection contains either note or attachment. The collection provides one physical home, not an access boundary, so an attachment should not be duplicated merely because another collection needs to reference it. Cross-database attachment references should be avoided so a database remains portable. A missing or deliberately offloaded attachment reference should be surfaced rather than silently removed; the exact offloading and restoration mechanism remains a lifecycle design question.
 
 ### `Templates/`
 
@@ -199,7 +201,7 @@ Optional database-owned note templates may live with the database so they remain
 
 ### `Views/`
 
-Contains database-local views and queries. Dataview is a primary and canonical ShardBase interface in Obsidian. Views consume metadata; they do not define structural truth.
+Contains database-local views and queries. Dataview is a primary and canonical ShardBase interface in Obsidian. Views consume metadata; they do not define structural truth. Database-local Views are local-first but may query other authorized databases when a cross-database projection genuinely serves the owning database's use case. General instance-wide discovery or aggregation belongs more naturally in Registry infrastructure, and no cross-database View may redefine another database's ownership, schema, lineage, or canonical meaning.
 
 ## Canonical Database Experience
 
@@ -299,7 +301,7 @@ Backward compatibility means preserving the documented meaning of older supporte
 
 ## Project Status
 
-ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Goals and Non-Goals, Design Principles, Foundation Success Criteria, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Milestone 1 — Define the Product is complete. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
+ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Goals and Non-Goals, Design Principles, Foundation Success Criteria, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, Canonical Database Experience, Knowledge Lifecycle, Database Ownership Model, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Milestone 1 — Define the Product is complete. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
 
 The foundation standardizes durable and observable contracts before locking in replaceable implementation details. Its accepted success standard is that product direction is explicit, architecture is coherent and deterministic where appropriate, safety and user control are built into normal operation, the system remains understandable without hidden dependencies, and initial tooling can implement the documented contracts without inventing foundational meaning. Stability does not mean freezing ShardBase; implementation may still discover details, but it should no longer have to invent architecture.
 
