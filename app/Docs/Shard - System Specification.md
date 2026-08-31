@@ -1021,9 +1021,11 @@ After database ownership is established:
 
 If an apparently ideal parent does not exist, ShardBase should use the smallest valid existing lineage where possible or propose additional structure for deliberate user action. It must not silently materialize an extra parent merely to support the requested note.
 
+Lifecycle classification resolves the architectural facts required for the intended canonical representation: database ownership, declared data collection, Pool, root Core, immediate parent, structural role when a separate file is justified, and applicable database-semantic requirements. Classification may conclude that the information should remain ordinary Markdown content or a heading rather than become a separate structural note. Classification establishes the intended representation; it does not itself require materialization.
+
 ### 18.3 Materialization and Growth
 
-A separate canonical file is justified only when independent materialization provides meaningful value through growth, querying, navigation, reuse, reference, lifecycle management, structural organization, or another concrete benefit. Ordinary Markdown remains preferred when a separate file adds no meaningful value.
+A separate canonical file is justified only when independent materialization provides meaningful value through growth, querying, navigation, reuse, reference, lifecycle management, structural organization, or another concrete benefit. Ordinary Markdown remains preferred when a separate file adds no meaningful value. Materializing one requested note does not authorize creation of additional structural notes merely because surrounding hierarchy, headings, templates, skeleton sections, links, or related concepts suggest them; those additional materializations require separate deliberate user action.
 
 Conceptual hierarchy does not require matching file hierarchy. For example, knowledge conceptually described as `Call of Duty Black Ops 6 > Multiplayer > Weapons > AK-47` does not require separate notes for `Multiplayer`, `Weapons`, or `AK-47` unless one or more independently earns materialization. Length may be evidence that a section has become difficult to navigate or maintain, but length alone is never sufficient justification.
 
@@ -1068,6 +1070,14 @@ An attachment orphan is an attachment that no canonical note currently reference
 ShardBase is not an intermediary, synchronization layer, or automatic connection between the user's local knowledge and external AI services or other external systems. If the user wants another service to receive ShardBase information, the user must deliberately provide, move, export, upload, or otherwise authorize that information through a separate workflow. ShardBase does not automatically broker the exchange.
 
 Local access to user-owned knowledge and permission to transmit that knowledge remain separate authorization boundaries.
+
+### 18.9 Lifecycle Transitions and Safety
+
+The lifecycle is a state-and-decision model rather than a mandatory linear sequence. Knowledge may enter through Inbox capture, direct canonical creation, or incorporation into existing canonical notes. Review may result in incorporation, unresolved retention, Ghost Shard representation, canonical materialization, or user discard. Classification precedes materialization when ownership, placement, lineage, structural role, or semantic requirements remain unresolved. Materialized knowledge may grow without structural change, be deliberately refactored, be archived and restored, or ultimately be deleted through deliberate user action under the applicable deletion boundary. Ghost Shards may remain unresolved indefinitely and become canonical only when they pass the ordinary materialization test and the user chooses to create them.
+
+Every lifecycle transition that creates or changes canonical representation must leave the resulting state valid under this specification and the applicable `Database.md`. Lifecycle operations must preserve user-authored knowledge outside their authorized scope, prefer the smallest valid and safely reversible transformation, validate deterministic structural and semantic requirements before completion, and never silently change canonical meaning, ownership, structural identity, lineage, privacy, or external-exposure boundaries. Material ambiguity must be surfaced rather than guessed through merely to produce a valid-looking state.
+
+Structural orphans must remain distinct from broken ordinary links and intentional Ghost Shards, and orphan detection is diagnostic rather than permission for cleanup. Attachments remain database-owned resources whose existence does not silently follow the lifecycle of any one referencing note. Destructive, ambiguous, privacy-sensitive, breaking, and otherwise consequential transitions remain under meaningful user control, while deterministic low-risk mechanics may be automated when the documented contracts define the correct result.
 
 ## 19. Architectural Continuity
 

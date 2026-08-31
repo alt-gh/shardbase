@@ -2144,17 +2144,68 @@ how_to_resolve_ambiguous_fields:
 ### Commit 8 — Knowledge Lifecycle Model
 
 commit_08_subject: docs: define knowledge lifecycle model
-commit_08_status: planned
-lifecycle_stage_capture: 
-lifecycle_stage_review: 
-lifecycle_stage_classification: 
-lifecycle_stage_materialization: 
-lifecycle_stage_growth: 
-lifecycle_stage_refactor: 
-lifecycle_stage_archive: 
-lifecycle_stage_delete: 
-lifecycle_transition_rules: 
-lifecycle_safety_rules: 
+commit_08_status: complete
+lifecycle_stage_capture:
+  - Capture is the creation or receipt of knowledge before its final canonical representation is necessarily known.
+  - Ordinary ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Inbox/` as private, pre-structural capture when they have not been created through a ShardBase-aware canonical path.
+  - Knowledge whose canonical ownership and representation are already resolved may bypass Inbox and be created directly through the canonical creation path, normally the CLI once available.
+  - Capture is therefore an available entry stage rather than a mandatory first stage for every piece of knowledge.
+lifecycle_stage_review:
+  - Review determines the appropriate disposition of captured or newly considered knowledge rather than assuming that review must create a new file.
+  - Review may incorporate information into an existing canonical note, classify and materialize a new canonical note, leave the item unresolved, retain only a Ghost Shard, or result in the user discarding the capture.
+  - Successful review means the knowledge received an appropriate disposition; materialization is not required.
+  - Review should inspect relevant existing canonical knowledge before assuming that a new structural note is necessary.
+lifecycle_stage_classification:
+  - Classification resolves the architectural interpretation required for the intended outcome: database ownership, declared data collection, Pool, root Core, immediate parent, structural role when a separate note is justified, and applicable database-semantic requirements.
+  - Classification may conclude that the information should remain ordinary Markdown content or a heading rather than become a separate Core, Shard, or Pebble.
+  - Classification establishes what the knowledge is and where it belongs before physical materialization is chosen; it does not itself require a new file.
+lifecycle_stage_materialization:
+  - Materialization is the deliberate creation of a separate canonical structural file after the knowledge satisfies the applicable universal and database-local contracts and earns independent representation.
+  - Independent materialization is justified by concrete value such as growth, querying, navigation, reuse, reference, lifecycle management, structural organization, or another demonstrated need.
+  - Conceptual hierarchy, headings, note length, Ghost Shard existence, age, or reference count are never sufficient by themselves to require materialization.
+  - Materializing one requested note does not authorize creation of additional structural notes merely because surrounding hierarchy, headings, templates, skeleton sections, links, or related concepts suggest them; additional materializations require separate deliberate user action.
+lifecycle_stage_growth:
+  - Knowledge should normally grow freely inside its current valid representation before additional structure is introduced.
+  - Prose, lists, headings, semantic metadata, links, and attachments may grow without changing the note's structural role.
+  - When embedded knowledge later earns independent growth, querying, navigation, reuse, reference, lifecycle management, or another concrete benefit, it may be deliberately materialized as a canonical note.
+  - If a Pebble develops a legitimate need to own structural children, it must first be deliberately reclassified as a Shard.
+  - The governing principle is: content grows freely; structure grows when it earns a purpose.
+lifecycle_stage_refactor:
+  - Refactoring is a preservation-oriented transition from one coherent representation to another.
+  - A refactor should define the intended resulting knowledge model first, make the smallest change that solves the actual structural problem, preserve unrelated user-authored knowledge, update affected authoritative metadata and dependent representations, and validate the resulting state.
+  - Refactoring may materialize embedded content, consolidate a structural note back into ordinary Markdown, reclassify a note, change parentage or Pool membership, rename canonical knowledge, relocate knowledge when ownership genuinely changes, or reorganize a larger lineage.
+  - Valid structure should not be refactored merely because another compliant representation is preferred.
+lifecycle_stage_archive:
+  - Archival retains canonical knowledge while marking it as no longer active; it is distinct from deletion.
+  - Structural notes normally remain in their canonical data collection with `status: archived` rather than being moved to an archive directory, so lineage, references, ownership, and portability remain stable.
+  - Archived knowledge remains readable, searchable, queryable, and referenceable; views may hide it without redefining its existence or meaning.
+  - Archiving a Core or Shard normally applies to its structural descendants. Descendants that should remain active must first be deliberately reparented or otherwise restructured into a valid active lineage.
+  - Database-level archival uses `database_status: archived` without requiring every contained note to duplicate that state.
+  - Restoration returns the applicable lifecycle status to `active` when the existing structure remains valid; otherwise restoration should be reviewed against the current contracts.
+lifecycle_stage_delete:
+  - During Foundation, deletion is a deliberate user-controlled action through Obsidian, another Markdown editor, or the filesystem rather than an autonomous ShardBase lifecycle operation.
+  - Shard and tooling may report deletion consequences such as structural orphans, broken references, or attachment orphans, but detection never grants permission to delete related notes, references, attachments, or other user-owned content.
+  - Archived, obsolete, inactive, superseded, unused, orphaned, duplicate-looking, invalid, or unreferenced knowledge must never be inferred to be deletable.
+  - When the intended outcome is to retain knowledge without treating it as active, archival should normally be preferred.
+  - Future CLI deletion behavior, Trash semantics, recovery, and permanent-erasure workflows remain deferred beyond the Foundation contract.
+lifecycle_transition_rules:
+  - The lifecycle is a state-and-decision model rather than a mandatory linear pipeline.
+  - Knowledge may enter through Inbox capture, direct canonical creation, or incorporation into existing canonical notes; no single stage is mandatory when another valid entry path already resolves the required architecture.
+  - Review may lead to incorporation, unresolved retention, Ghost Shard representation, canonical materialization, or user discard.
+  - Classification precedes canonical materialization when ownership, placement, lineage, structural role, or semantic requirements remain unresolved.
+  - Materialized knowledge may grow without structural change, may later be refactored, may be archived and restored, and may ultimately be deleted only through deliberate user action under the current Foundation boundary.
+  - Ghost Shards may remain unresolved indefinitely and become canonical only when they pass the ordinary materialization test and the user chooses to create them.
+  - Every transition that creates or changes canonical representation must leave the resulting state valid under the current System Specification and destination `Database.md`.
+lifecycle_safety_rules:
+  - Preserve user-authored knowledge and keep unrelated content outside the authorized scope of lifecycle changes.
+  - Prefer the smallest valid, inspectable, and safely reversible transition that achieves the intended outcome.
+  - Validate deterministic structural and database-semantic requirements before treating a canonical transition as complete.
+  - Never silently change canonical meaning, database ownership, structural identity, lineage, privacy or external-exposure boundaries, or other consequential interpretation during a lifecycle transition.
+  - Never guess through material ambiguity merely to produce a valid-looking canonical state; surface unresolved ownership, identity, lineage, privacy, or integrity questions when they cannot be safely determined.
+  - Distinguish structural orphans from broken ordinary links and intentional Ghost Shards; orphan detection is diagnostic and never permission for automatic cleanup.
+  - Attachments remain database-owned resources whose existence does not silently follow the lifecycle of any one referencing note; archival or deletion of a note must not automatically move or delete its attachments.
+  - Destructive, ambiguous, privacy-sensitive, breaking, or otherwise consequential transitions remain under meaningful user control, while deterministic low-risk mechanics may be automated where the contracts define the correct result.
+  - Local authorization to read or operate on knowledge is separate from authorization to publish, synchronize, upload, transmit, or otherwise expose that knowledge externally.
 
 ### Commit 9 — Database Ownership Model
 

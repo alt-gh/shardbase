@@ -228,17 +228,20 @@ Promotion from Inbox into a database requires classification and conformance to 
 
 ## Knowledge Lifecycle
 
+- Treat lifecycle as a state-and-decision model rather than a mandatory linear pipeline. Knowledge may enter through Inbox capture, direct canonical creation, or incorporation into existing canonical notes.
 - Treat Inbox as unresolved pre-structural capture, not as a mandatory staging step for already-resolved canonical creation.
 - Review may incorporate information into an existing note, promote it into a new structural note, leave it unresolved, retain only a Ghost Shard, or result in the user discarding it. Do not equate successful review with file creation.
-- Determine database ownership from `Database.md` scope; then determine Pool, Core, and immediate parent from the documented contracts and existing valid lineage. Physical placement and semantic relationships do not independently create structural ownership.
-- Materialize a separate canonical file only when independent growth, querying, navigation, reuse, reference, lifecycle management, or another concrete benefit justifies it. Conceptual hierarchy and note length alone are insufficient.
+- When canonical representation is unresolved, classify database ownership, declared data collection, Pool, Core, immediate parent, structural role where a separate note is justified, and applicable database-semantic requirements. Classification may conclude that ordinary Markdown is the correct representation. Physical placement and semantic relationships do not independently create structural ownership.
+- Materialize a separate canonical file only when independent growth, querying, navigation, reuse, reference, lifecycle management, structural organization, or another concrete benefit justifies it. Conceptual hierarchy, headings, and note length alone are insufficient. Materializing one requested note never authorizes additional implied notes.
 - Allow content to grow inside ordinary Markdown. If a Pebble needs structural children, reclassify it as a Shard before establishing children.
 - Treat refactoring as preservation-oriented. Define the intended resulting structure first, preserve unrelated user-authored knowledge, update affected authoritative metadata and dependent representations, and validate the result.
 - Archive by retaining canonical knowledge and using lifecycle status rather than moving it to an archive folder. Archiving a structural parent normally applies to its subtree unless surviving descendants are first deliberately restructured.
 - Do not autonomously delete canonical user knowledge. Report consequences and orphan conditions without treating them as permission to remove anything.
+- Require every transition that creates or changes canonical representation to end in a state valid under the System Specification and applicable `Database.md`; do not guess through material ambiguity merely to produce a valid-looking state.
 - Distinguish structural orphans from broken ordinary links and intentional Ghost Shards. Never guess a replacement parent merely to make validation pass.
 - Attachments remain database-owned resources. Archiving or deleting a referencing note does not automatically move or delete its attachments; attachment orphans are diagnostic conditions for user review.
 - Promote Ghost Shards only when the knowledge independently earns materialization and the user chooses to create the note, normally through the CLI. Promotion of one Ghost Shard never authorizes neighboring or implied notes.
+- Keep destructive, ambiguous, privacy-sensitive, breaking, or otherwise consequential lifecycle transitions under meaningful user control, and treat local read/operation authorization as separate from permission to expose knowledge externally.
 
 ## Git Commit Messages
 
