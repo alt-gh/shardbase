@@ -39,8 +39,9 @@ knowledge_lifecycle_status: accepted
 foundation_boundaries_status: accepted
 breaking_change_definition_status: accepted
 foundation_exit_criteria_status: accepted
-data_collection_model: accepted — each database declares one or more database-specific data collections beneath `Data/`; canonical notes live at collection roots and each collection reserves its own non-structural `Attachments/` subdirectory.
-database_ownership_model_status: accepted — each database is the canonical semantic owner of knowledge within its documented scope; cross-database semantic relationships are allowed without transferring ownership or structural lineage, attachments have collection-local physical homes with database-wide reference scope, and portable databases must retain coherent owned meaning when moved independently.
+data_collection_model: accepted — each database declares one or more database-specific data collections beneath `Data/`; Core lineages remain flat at collection roots by default and may be deliberately bundled into one optional direct-child Core workspace when filesystem locality earns its complexity; workspace folders never represent structural ancestry.
+core_workspace_model: accepted — a Core may have at most one physical workspace named for its canonical filename stem; the Core and its materialized structural descendants remain direct Markdown children of that workspace, nested Shard/Pebble ancestry folders are invalid, and YAML remains authoritative for lineage.
+database_ownership_model_status: accepted — each database is the canonical semantic owner of knowledge within its documented scope; cross-database semantic relationships are allowed without transferring ownership or structural lineage, attachments have permitted collection-root or Core-workspace physical homes with database-wide reference scope, and portable databases must retain coherent owned meaning when moved independently.
 development_usage_status:
   - ShardBase currently has one active development user operating a live ShardBase instance while the Foundation architecture is being developed.
   - Existing live knowledge must be treated as real user data rather than disposable test state when architectural changes are evaluated or implemented.
@@ -607,7 +608,7 @@ ai_readability_means:
 
 portability_means:
   - Portability means the user's durable ShardBase knowledge can be copied, moved, backed up, versioned, opened, and processed in another compatible environment without losing the essential content or documented structural meaning that makes it understandable.
-  - A database should remain a coherent, self-contained ownership boundary whose declared data collections, manifest, views, collection-local attachments, database-owned templates, schema, and conventions can travel together without depending on undocumented state elsewhere.
+  - A database should remain a coherent, self-contained ownership boundary whose declared data collections, manifest, views, collection-root and Core-workspace attachments, database-owned templates, schema, and conventions can travel together without depending on undocumented state elsewhere.
   - Core portability should come from ordinary files and documented contracts rather than requiring a proprietary export process before the user can access or move their knowledge.
   - Moving away from Obsidian, Dataview, Shard, a particular AI provider, or another optional tool may reduce enhanced functionality, but it should not make the underlying knowledge unintelligible or structurally meaningless.
   - ShardBase should favor relative, local, documented relationships and explicit ownership boundaries where practical so knowledge is not unnecessarily coupled to one machine, installation, filesystem location, or service.
@@ -622,7 +623,7 @@ portability_means:
 locality_means:
   - Locality means the durable knowledge and structural information required for a ShardBase instance to remain understandable and valid should exist within user-controlled files and documented boundaries rather than depending on remote services or inaccessible external state.
   - Core ShardBase operation should be possible without transmitting user-owned knowledge outside the user's local environment.
-  - A database should keep the declared data collections, manifest, views, collection-local attachments, database-owned templates, schema documentation, and local conventions it owns within its documented database boundary wherever practical.
+  - A database should keep the declared data collections, manifest, views, collection-root and Core-workspace attachments, database-owned templates, schema documentation, and local conventions it owns within its documented database boundary wherever practical.
   - ShardBase should minimize dependencies on hidden machine-local state outside the knowledge base when that state is required to understand the knowledge or its architecture.
   - External services may enhance synchronization, backup, AI assistance, publishing, sharing, or other capabilities, but those services should remain optional layers rather than prerequisites for the durability or structural meaning of the knowledge.
   - Locality does not mean every execution artifact belongs inside the ShardBase vault. Generated runtimes, installed dependencies, caches, temporary files, indexes, and other recreatable machine-specific artifacts should generally remain outside the durable knowledge surface when practical.
@@ -813,7 +814,7 @@ what_should_remain_editable_without_shardbase_tooling:
 
 what_should_remain_portable_without_shardbase_tooling:
   - Canonical Markdown and YAML knowledge should be copyable and movable without requiring a ShardBase export process merely to recover or relocate it.
-  - A database should remain portable as a coherent ownership boundary containing its declared data collections, manifest, views, collection-local attachments, database-owned templates, semantic schema, and documented conventions.
+  - A database should remain portable as a coherent ownership boundary containing its declared data collections, manifest, views, collection-root and Core-workspace attachments, database-owned templates, semantic schema, and documented conventions.
   - Moving canonical files should preserve essential content and documented architectural meaning even when some enhanced functionality is unavailable in the destination environment.
   - Portability must not depend on Shard, an AI provider, generated indexes, caches, embeddings, hidden application databases, or machine-specific runtime state.
   - Relative and database-local references should be preferred where practical so knowledge is not unnecessarily tied to one computer or absolute filesystem location.
@@ -906,7 +907,7 @@ what_belongs_in_database_md:
   - The complete documented semantic schema needed to interpret its knowledge, including semantic metadata fields, bounded allowed values where relevant, meanings, and important relationships between them.
   - The complete documented set of domain-specific semantic note kinds or categories that can affect classification or note design.
   - Domain-specific naming, content, relationship, lifecycle, and organizational conventions.
-  - Database-local views, collection-local attachment guidance, portable database-owned templates, resources, scripts, or workflows whose existence is relevant to operating the database.
+  - Database-local views, collection-root and Core-workspace attachment guidance, portable database-owned templates, resources, scripts, or workflows whose existence is relevant to operating the database.
   - Explicit local extensions to ShardBase behavior that the universal specification permits.
   - Important local decisions that an agent, human, or tool must know before safely creating, interpreting, querying, or modifying the database.
   - `Database.md` should document the database's contract rather than duplicate the complete System Specification.
@@ -1047,7 +1048,11 @@ shardbase/
 │   │       ├── Agents/
 │   │       ├── Data/
 │   │       │   └── [Data Collection]/
-│   │       │       └── Attachments/
+│   │       │       ├── Attachments/
+│   │       │       └── [Core Workspace]/
+│   │       │           ├── Core Name.md
+│   │       │           ├── Core Name - Shard.md
+│   │       │           └── Attachments/
 │   │       ├── Templates/
 │   │       ├── Views/
 │   │       └── Database.md
@@ -1092,7 +1097,7 @@ what_belongs_in_app_blueprints:
 
 what_belongs_in_app_db:
   - `app/Db/` contains live databases owned by the current user and is one of ShardBase's primary private-data boundaries.
-  - Each live database contains its canonical domain knowledge, `Database.md`, one or more declared data collections beneath `Data/`, collection-local `Attachments/`, Views, optional portable database-owned templates, an optional root-level `Agents/` directory, and other database-owned resources permitted by the architecture.
+  - Each live database contains its canonical domain knowledge, `Database.md`, one or more declared data collections beneath `Data/`, optional Core workspaces, permitted collection-root and Core-workspace `Attachments/` homes, Views, optional portable database-owned templates, an optional root-level `Agents/` directory, and other database-owned resources permitted by the architecture.
   - `Agents/` is the canonical optional location for specialist Agent resources owned by the database. Database-owned Agents travel with their database so a moved or deliberately shared database can retain domain-aware Agent definitions, Prompts, instructions, or related knowledge without making those files a hidden source of architectural authority or an executable AI integration.
   - Live database contents are local and private by default. They must not become part of the distributable framework repository, framework releases, public repositories, or external transmissions merely because they exist inside the ShardBase project tree.
   - Versioning, synchronization, backup, movement, or sharing of a live database must result from a deliberate user choice.
@@ -1181,8 +1186,11 @@ what_should_a_new_database_look_like:
   - A newly created live database should begin as the smallest complete and valid database rather than being populated with speculative structure.
   - It must be a direct child of `app/Db/` and contain `Database.md`, `Views/`, and at least one declared data collection beneath `Data/`.
   - A database may declare one or more data collections. The primary collection is commonly the singular form of the database subject, while additional collections may represent other domain-owned groupings such as `Series`. Data collection names are database-specific and are not universal ShardBase structural concepts.
-  - Canonical Markdown notes live directly inside their declared data collection. Each collection reserves `Attachments/` as its local non-structural resource directory, for example `Data/Game/Attachments/` and `Data/Series/Attachments/`.
-  - Structural discovery must inspect declared collection roots rather than recursively treating every descendant of `Data/` as a Core, Shard, or Pebble candidate. `Attachments/` must always be excluded from structural discovery even if it contains a Markdown file.
+  - Canonical Markdown notes use flat placement by default at their declared data-collection root. When a Core lineage earns stronger filesystem locality, it may be deliberately bundled into one optional direct-child Core workspace named for the Core's canonical filename stem.
+  - A Core workspace contains the Core and its materialized structural descendants as direct Markdown children. Structural ancestry must never be mirrored through nested directories such as `Core/Shard/Pebble`; YAML remains authoritative for lineage, and folder placement is organizational only.
+  - A Core may have at most one workspace, and a lineage must not be split between the collection root and its workspace. Workspace placement does not create a new filename namespace or resolve collisions.
+  - Each collection reserves a root `Attachments/` resource directory, and a Core workspace may reserve its own `Attachments/` directory. Structural discovery inspects declared collection roots and direct-child Core workspaces only and must exclude every permitted `Attachments/` directory even if it contains Markdown.
+  - The lifecycle preference is **start flat; bundle when the lineage earns a workspace**. Bundling and unbundling are deliberate preservation-oriented refactors rather than changes to structural lineage.
   - Data collections organize database-owned files; they do not define Pool membership, Core lineage, structural type, or parentage.
   - `Database.md` should contain a valid manifest and sufficiently complete local contract before domain knowledge is created.
   - A new database may contain no structural notes. It should not require placeholder Cores, Shards, Pebbles, Pool notes, example notes, or artificial hierarchy merely to demonstrate the architecture.
@@ -1329,7 +1337,7 @@ what_should_a_good_database_feel_like_to_query:
   - Domain-specific questions should be supported by the semantic schema documented in `Database.md`.
   - Query authors should be able to understand field meanings and expected values without reverse-engineering existing notes.
   - Equivalent knowledge should use equivalent metadata representations so queries do not require large collections of special cases.
-  - Declared data collections should make canonical note locations deterministically discoverable while resource subdirectories such as `Attachments/` remain explicitly excluded from structural discovery.
+  - Declared data collections should make canonical note locations deterministically discoverable at their roots and optional direct-child Core workspaces while every permitted `Attachments/` resource directory remains explicitly excluded from structural discovery.
   - Queries should operate on canonical source data rather than establish meaning themselves.
   - The database should not add metadata for every imaginable future query; recurring retrieval, filtering, validation, automation, or interpretation should justify fields.
   - A database should support both precise filtering and broader discovery without requiring exact filenames.
@@ -1346,7 +1354,7 @@ what_should_a_good_database_feel_like_to_edit_manually:
   - The user should not need to maintain redundant authoritative copies of the same fact across several places.
   - Ordinary body editing should rarely require thinking about structural architecture unless the change actually affects structural identity, lineage, ownership, or another architectural property.
   - Skeleton headings, empty planned sections, ordinary lists, and prose organization should remain safe to create without triggering structural materialization.
-  - Users should be able to add attachments through normal supported editor workflows and have them reside in the appropriate collection-local `Attachments/` boundary.
+  - Users should be able to add attachments through normal supported editor workflows and have them reside in the appropriate permitted collection-root or Core-workspace `Attachments/` boundary without changing database-level ownership.
   - When a manual edit creates an architectural inconsistency, validation should explain the problem rather than making the source impossible to edit manually.
   - Direct editability does not mean every manual change is automatically structurally valid.
   - Filenames and data collections should provide useful context without requiring users to reconstruct complete lineage from paths.
@@ -1363,7 +1371,7 @@ what_should_a_good_database_feel_like_to_operate_with_shard:
   - Canonical CLI creation should be schema-aware and type-safe in behavior: it should use applicable templates and documented structural and semantic contracts, validate proposed state before writing, and refuse to create canonical notes that violate required fields, value shapes, bounded values, lineage, naming, placement, or other applicable constraints. Templates provide starting document shape; schemas and contracts define validity.
   - ShardBase recommends two primary creation paths: use the CLI for notes intended to become canonical under `app/Db/`, and use Inbox for ad-hoc notes created through a Markdown editor or filesystem. Intentional manual canonical creation remains available to knowledgeable users but is outside the recommended path.
   - Database-owned templates should travel with the database and remain subordinate to `Database.md` and the System Specification. They may assist manual creation but do not replace the recommended CLI/Inbox split, and template or skeleton headings do not authorize creation of additional structural notes.
-  - Shard should understand the difference between data collections and structural lineage and must recognize every collection-local `Attachments/` directory as non-structural.
+  - Shard should understand the difference between data collections, Core workspaces, and structural lineage and must recognize every permitted collection-root or Core-workspace `Attachments/` directory as non-structural.
   - Shard should preserve existing valid database conventions rather than repeatedly redesigning the database.
   - Routine deterministic reasoning should not create unnecessary approval friction, but additional structural-note materialization beyond the user's intended note must be suggested rather than silently performed.
   - Significant assumptions, ambiguous ownership, destructive actions, schema changes, privacy boundaries, and consequential restructuring should remain visible to the user.
@@ -1477,7 +1485,7 @@ how_can_information_grow_over_time:
 
 how_can_structure_be_refactored_safely:
   - Structural refactoring is legitimate when existing knowledge has outgrown its current representation, contains invalid structure, or can be made meaningfully easier to use through a deliberate reorganization.
-  - Refactoring may include promoting a heading or section into a structural note, consolidating a structural note back into ordinary Markdown, reclassifying a Shard or Pebble, changing immediate parentage, changing a lineage's Pool, renaming a canonical note, moving canonical knowledge between declared data collections or databases when ownership genuinely changes, or reorganizing a larger lineage.
+  - Refactoring may include promoting a heading or section into a structural note, consolidating a structural note back into ordinary Markdown, reclassifying a Shard or Pebble, changing immediate parentage, changing a lineage's Pool, renaming a canonical note, bundling a flat Core lineage into its optional workspace, unbundling a workspace back to flat placement, moving canonical knowledge between declared data collections or databases when ownership genuinely changes, or reorganizing a larger lineage.
   - A structural refactor should begin from the intended resulting knowledge model rather than from mechanical file operations. Ownership, lineage, and representation after the operation should be understood before files are moved or rewritten.
   - Refactoring must preserve user-authored knowledge unless rewriting that content is separately authorized.
   - Lineage changes must update affected authoritative metadata and secondary representations that depend on it, including bounded filenames and relevant links.
@@ -1519,12 +1527,13 @@ how_are_orphans_handled:
   - Orphan detection is diagnostic; orphan cleanup is a user decision.
 
 how_are_attachments_handled_across_the_lifecycle:
-  - Attachments are database-owned, non-structural resources stored beneath the appropriate declared data collection's `Attachments/` directory.
+  - Attachments are database-owned, non-structural resources stored in one permitted physical home: the declared collection's root `Attachments/` directory or an optional Core workspace's `Attachments/` directory.
   - Attachments are not Cores, Shards, Pebbles, Pools, or structural-note candidates and never receive structural YAML.
   - Inbox remains text-oriented and does not own attachments. An attachment enters its database when canonical knowledge that needs it is created or promoted.
   - Attachments may be referenced by multiple canonical notes within the same database, including across declared data collections. Cross-database attachment references should be avoided so each database remains portable and self-contained.
   - Adding or removing a note reference does not change attachment ownership.
   - Renaming or refactoring a structural note should preserve attachment references where affected tooling can do so safely.
+  - Bundling or unbundling a Core lineage should preserve attachment references and may relocate an attachment only through a deliberate preservation-oriented refactor; physical movement never changes database-level ownership.
   - Archiving a note does not archive, move, or delete attachments merely because that note references them.
   - Deleting a note must not automatically delete its attachments. If an attachment becomes unreferenced, it becomes an attachment orphan and remains untouched until the user deliberately handles it.
   - If an attachment file is missing while canonical knowledge still references it, ShardBase preserves the reference and reports the attachment as unavailable rather than silently removing the reference.
@@ -1661,6 +1670,13 @@ what_changes_require_a_manifest_version_change:
   - An additive manifest change that older and newer tooling can interpret unambiguously may or may not require an increment according to the future compatibility and versioning policy; Foundation does not yet lock that finer-grained rule.
   - Database-local semantic schema changes do not increment the universal `manifest_version` merely because they are documented in `Database.md`.
   - `manifest_version` identifies the database-manifest schema and must not be used as a generic ShardBase or System Specification version.
+
+current_core_workspace_change_classification:
+  - Allowing optional Core workspaces is an approved normative universal architectural extension with observable tooling impact, so it requires a System Specification version boundary under the future versioning policy.
+  - Existing flat canonical databases remain valid and correctly interpreted unchanged; no database migration is required merely to adopt the newer contract.
+  - Existing discovery or validation tooling that assumes canonical notes can occur only at collection roots must be updated before it is compliant with the extended contract.
+  - `manifest_version` remains `1` because the manifest fields, meanings, shapes, and `data_collections` contract are unchanged; Core workspaces are placement within a declared collection, not new manifest-declared collections.
+  - Bundling an individual flat lineage into a Core workspace is an optional preservation-oriented refactor, not a required migration.
 
 what_changes_require_database_migration:
   - A database migration is required when an approved change means an existing database cannot remain correctly conformant, correctly interpreted, or safely operated in its present durable representation.
@@ -2105,7 +2121,8 @@ term_blueprint: framework-owned reusable database bootstrap; materialized live s
 term_registry: framework-owned database discovery and navigation projection, never authority over `Database.md`
 term_inbox: private-by-default user-owned pre-structural capture outside a database, awaiting review and disposition
 term_view: database-local non-authoritative query, presentation, or navigation resource over canonical content
-term_attachment: non-structural resource owned by one database with one collection-local physical home; canonical notes may reference it across collections within that database, and note references do not control ownership
+term_attachment: non-structural resource owned by one database with one permitted physical home in either a collection-root or Core-workspace `Attachments/` directory; canonical notes may reference it across collections and workspaces within that database, and note references do not control ownership
+term_core_workspace: optional direct-child directory of a declared data collection that physically bundles exactly one Core lineage; it is named for the Core, contains canonical structural notes as direct children, and never represents structural ancestry
 additional_terms_needed: data collection, canonical note, structural orphan, and attachment orphan; tool-specific terms remain deferred until implementation requires them
 
 ### Commit 7 — Structural vs Semantic Concepts
@@ -2218,7 +2235,7 @@ database_owns:
   - Within ShardBase, database ownership means canonical semantic responsibility for knowledge within the scope documented by the database's `Database.md`; it does not replace the user's ownership of all live database data.
   - A database owns the canonical domain knowledge within its documented scope and the canonical notes stored in its declared data collections.
   - A database owns its local semantic contract, including its scope, data-collection meanings, Pool vocabulary, Core strategy, semantic schema, domain relationships, conventions, and lifecycle concepts.
-  - A database owns its database-local resources, including `Database.md`, Views, collection-local attachment storage, optional Templates, optional Agents, and other explicitly database-local resources permitted by the architecture.
+  - A database owns its database-local resources, including `Database.md`, Views, permitted collection-root and Core-workspace attachment storage, optional Templates, optional Agents, and other explicitly database-local resources permitted by the architecture.
   - Database ownership is authoritative responsibility for representation and interpretation, not exclusive conceptual relevance; another database may legitimately reference the same real-world subject without becoming its canonical owner.
   - Physical placement follows canonical ownership and provides filesystem context; placement alone does not establish semantic ownership.
 database_does_not_own:
@@ -2236,13 +2253,14 @@ cross_database_relationship_policy:
   - Do not duplicate target knowledge merely to avoid a cross-database semantic relationship.
   - If reliable interpretation of a cross-database relationship requires semantics beyond an ordinary link, the database using that relationship should document the relationship meaning in its own semantic schema or conventions without redefining the target database's schema.
 cross_database_attachment_policy:
-  - Attachments are owned at the database level while retaining one collection-local physical home under `Data/<collection>/Attachments/`.
-  - Collection placement is a storage and organizational context, not an attachment ownership or access boundary; any canonical note in the same database may reference the attachment regardless of which declared data collection contains the note.
-  - Do not duplicate or copy an attachment into another collection merely because a note in that collection needs to reference it.
+  - Attachments are owned at the database level while retaining one permitted physical home in either `Data/<collection>/Attachments/` or an optional Core workspace's `Attachments/` directory.
+  - Collection and Core-workspace placement are storage and organizational context, not attachment ownership or access boundaries; any canonical note in the same database may reference the attachment regardless of which declared data collection or workspace contains either endpoint.
+  - Do not duplicate or copy an attachment into another collection or Core workspace merely because another note needs to reference it.
   - Cross-database attachment references should be avoided so each database remains portable and does not depend directly on another database's non-structural resources.
   - ShardBase must not automatically copy or move an attachment across database boundaries to satisfy a reference.
-  - Moving an attachment between collection-local `Attachments/` directories within the same database is a deliberate refactor when its appropriate physical home changes; affected references should be preserved where tooling can do so safely.
-  - For a newly introduced attachment, prefer the `Attachments/` directory associated with the collection whose canonical knowledge most naturally contextualizes the resource. If the resource is genuinely shared across collections and no collection is clearly primary, choose one reasonable canonical home rather than duplicating it.
+  - Moving an attachment between permitted collection-root and Core-workspace `Attachments/` directories within the same database is a deliberate refactor when its appropriate physical home changes; affected references should be preserved where tooling can do so safely.
+  - For a newly introduced attachment, prefer a Core workspace's `Attachments/` when the resource is primarily contextualized by that lineage; otherwise use the collection-root `Attachments/`, especially for flat lineages or resources shared across multiple Cores. If no permitted home is clearly primary, choose one reasonable home rather than duplicating the resource.
+  - Bundling or unbundling a Core lineage must preserve attachment references and must not silently change attachment ownership.
   - A recurring need for database-global attachment placement is evidence to reconsider the storage model in a later architectural decision; it does not justify adding a new attachment location during Foundation.
 cross_database_view_policy:
   - Database-local Views are local-first but not necessarily local-only; a database-owned View may read other authorized databases when its purpose genuinely requires a cross-database projection.
@@ -2268,7 +2286,7 @@ ownership_ambiguity_resolution:
   - Changing established canonical ownership later is a deliberate preservation-oriented ownership refactor, not an incidental file move.
 database_portability_expectation:
   - A database should remain a coherent, understandable, usable ownership unit when deliberately moved by itself.
-  - Its portable boundary includes `Database.md`, all declared data collections and canonical notes, collection-local attachments, Views, optional Templates, optional Agents, and other resources required by its documented local contract.
+  - Its portable boundary includes `Database.md`, all declared data collections and canonical notes, collection-root and Core-workspace attachments, Views, optional Templates, optional Agents, and other resources required by its documented local contract.
   - A person or compatible tool that already understands universal ShardBase rules should be able to read the database's `Database.md` and correctly interpret the database's owned domain without reconstructing undocumented context from the original vault.
   - Cross-database semantic relationships may become unresolved when the target database does not travel with it, but that must not destroy, silently change, or make ambiguous the canonical meaning of the remaining owned knowledge.
   - External Views, Registry state, AI memory, caches, generated indexes, or another database's undocumented schema must not be prerequisites for correct interpretation of the database.
@@ -2456,7 +2474,7 @@ milestone_5_goal: Turn the foundation specification into the smallest useful set
 
 commit_21_subject: blueprint: add minimal database blueprint
 commit_21_status: complete
-blueprint_minimum_contents: app/Blueprints/Example Database with Database.md, one declared collection, collection-local Attachments/, Views/, and sanitized structural notes
+blueprint_minimum_contents: app/Blueprints/Example Database with Database.md, one declared collection with root Attachments/, Views/, sanitized flat structural notes, and optional Core-workspace examples only when needed to prove the placement contract
 blueprint_manifest_defaults: manifest_version 1, stable database_id, database_name, one non-empty data_collections list, and draft database_status
 blueprint_placeholder_policy: blueprint content is sanitized and reusable; no private live data is copied
 blueprint_views_policy: Views/ is present but may remain empty
@@ -2483,7 +2501,7 @@ validate_database_location: direct child of app/Db
 validate_database_md_exists: required
 validate_manifest_fields: all five required fields
 validate_manifest_values: manifest_version 1 and active/draft/archived database_status
-validate_data_collections: non-empty unique declared directories, each with Attachments/
+validate_data_collections: non-empty unique declared directories, each with root Attachments/; direct-child Core workspaces are optional and are not additional data collections
 validate_required_body_sections: Purpose, Scope, Includes, Excludes, Architecture, Schema, Conventions, Resources
 validation_output_format: human-readable path, stable issue code, and message
 validation_failure_behavior: print all discovered issues and return non-zero
@@ -2525,7 +2543,7 @@ validate_max_three_filename_components: enforced
 validate_no_full_ancestry_accumulation: enforced
 validate_filename_collision: report colliding expected filenames with stable issue code
 validate_primary_heading: level-one heading followed by a blank line
-validate_file_location: direct collection roots only
+validate_file_location: canonical notes may live at declared collection roots or directly inside one valid Core workspace for their lineage; nested structural directories are invalid, a lineage may not be split across flat and workspace placement, and workspace paths never resolve filename collisions
 validate_filename_metadata_consistency: enforced
 
 ### Commit 27 — Markdown Structure Checks
@@ -2573,7 +2591,7 @@ example_database_scope: intentionally non-private example content only
 example_database_complexity: one Core, one Shard, and one Pebble
 example_database_lineages: Example -> Weapons -> Blade
 example_database_views: empty Views/ boundary
-example_database_attachments: collection-local Attachments/ boundary
+example_database_attachments: root collection Attachments/ plus one optional Core-workspace Attachments/ example proving database-level ownership and database-wide reference scope
 example_database_reason_for_inclusion: provide a committed, inspectable proof fixture without user data
 
 ### Commit 30 — End-to-End Shard Workflow

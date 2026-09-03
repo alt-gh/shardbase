@@ -148,8 +148,11 @@ shardbase/
 │   │       │   ├── [Primary Data Collection]/
 │   │       │   │   ├── Core.md
 │   │       │   │   ├── Core - Shard.md
-│   │       │   │   ├── Core - Shard - Pebble.md
-│   │       │   │   └── Attachments/
+│   │       │   │   ├── Attachments/
+│   │       │   │   └── [Core Workspace]/
+│   │       │   │       ├── Core Name.md
+│   │       │   │       ├── Core Name - Shard.md
+│   │       │   │       └── Attachments/
 │   │       │   └── [Additional Data Collection]/
 │   │       │       └── Attachments/
 │   │       ├── Templates/
@@ -187,13 +190,15 @@ Optional database-owned specialist Agent resources live here so they remain port
 
 Contains canonical database notes for one database-defined data grouping. A database has one or more declared data collections; the primary collection is commonly the singular form of the database subject, while additional collections may represent other domain-owned kinds such as a series or collection concept.
 
-Canonical Markdown notes live directly inside their declared data collection. `Attachments/` is a reserved non-structural resource subdirectory and must be excluded from structural-note discovery even if it contains a Markdown file. Tools should scan the declared collection roots rather than recursively treating every descendant beneath `Data/` as a Core, Shard, or Pebble candidate.
+Canonical Markdown notes may live directly at their declared data-collection root or, when a Core lineage earns stronger filesystem locality, inside one optional **Core workspace** that is a direct child of that collection. A Core workspace is named for its Core, contains that Core and its materialized structural descendants as direct Markdown children, and must not mirror Shard or Pebble ancestry through further structural directories. YAML remains authoritative for lineage; the workspace is physical organization only. A lineage starts flat by default and may be deliberately bundled into a workspace when the organizational value justifies the extra directory.
 
-Data collections organize database-owned files; they do not define Pool membership, Core lineage, or structural parentage. Pools remain **logical metadata values**, not required filesystem folders.
+Tooling should discover canonical-note candidates at declared collection roots and one level inside valid Core workspaces, while excluding every permitted `Attachments/` directory. A Core workspace does not relax the bounded filename or collision rules, and folder placement must never be used as a substitute for filename disambiguation or structural metadata.
 
-### `Data/[Data Collection]/Attachments/`
+Data collections organize database-owned files; they do not define Pool membership, Core lineage, or structural parentage. Core workspaces likewise do not define lineage. Pools remain **logical metadata values**, not required filesystem folders.
 
-Contains local non-structural files owned by the database and physically associated with that collection. Attachment ownership is database-level rather than collection-level: any canonical note in the same database may reference an attachment regardless of which declared collection contains either note or attachment. The collection provides one physical home, not an access boundary, so an attachment should not be duplicated merely because another collection needs to reference it. Cross-database attachment references should be avoided so a database remains portable. A missing or deliberately offloaded attachment reference should be surfaced rather than silently removed; the exact offloading and restoration mechanism remains a lifecycle design question.
+### `Data/[Data Collection]/Attachments/` and Core-workspace `Attachments/`
+
+Contains local non-structural files owned by the database. Every declared collection retains a root `Attachments/` home, and a Core workspace may also contain its own `Attachments/` directory for resources naturally contextualized by that lineage. Attachment ownership remains database-level regardless of physical home: any canonical note in the same database may reference an attachment regardless of collection or Core workspace. Physical placement is organizational context, not an ownership or access boundary, so attachments should not be duplicated merely to satisfy another note or workspace. Cross-database attachment references should be avoided so a database remains portable. A missing or deliberately offloaded attachment reference should be surfaced rather than silently removed; the exact offloading and restoration mechanism remains a lifecycle design question.
 
 ### `Templates/`
 

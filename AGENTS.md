@@ -113,7 +113,11 @@ A live database is a direct child of `app/Db/` and contains one or more declared
 ├── Agents/
 ├── Data/
 │   ├── [Primary Data Collection]/
-│   │   └── Attachments/
+│   │   ├── Attachments/
+│   │   └── [Core Workspace]/
+│   │       ├── Core Name.md
+│   │       ├── Core Name - Shard.md
+│   │       └── Attachments/
 │   └── [Additional Data Collection]/
 │       └── Attachments/
 ├── Templates/
@@ -121,7 +125,7 @@ A live database is a direct child of `app/Db/` and contains one or more declared
 └── Database.md
 ```
 
-Additional data collections, `Agents/`, and `Templates/` are optional; a minimal database needs only one declared data collection. Data collection names and meanings are database-specific and are declared in `Database.md`. Canonical database notes live directly in a declared collection root. `Attachments/` is a reserved non-structural resource directory and must be excluded from structural-note discovery, including when it happens to contain Markdown files. Do not recursively treat every descendant of `Data/` as a Core, Shard, or Pebble candidate.
+Additional data collections, `Agents/`, and `Templates/` are optional; a minimal database needs only one declared data collection. Data collection names and meanings are database-specific and are declared in `Database.md`. Canonical database notes may live directly at a declared collection root or inside one optional Core workspace that is a direct child of that collection. A Core workspace is named for its Core, contains only that Core lineage's canonical structural notes as direct Markdown children plus permitted non-structural resources such as `Attachments/`, and must not reproduce Shard/Pebble ancestry through nested structural directories. A lineage starts flat and should be bundled only when the workspace earns concrete organizational value. YAML remains authoritative for lineage, and a lineage must not use folder nesting as structural ancestry. Structural-note discovery therefore inspects collection roots and direct-child Core workspaces only, excluding every permitted `Attachments/` directory.
 
 `Agents/` contains optional database-owned specialist Agent resources such as Agent definitions, Prompts, instructions, or context. Treat these as user-owned database resources, not structural notes or architectural authority. Their presence does not authorize AI execution or transmission; ShardBase does not connect them to an AI service.
 
@@ -135,9 +139,9 @@ Data collections organize database-owned files; they do not define Pool membersh
 - Do not duplicate another database's canonical knowledge merely to avoid a cross-database relationship when one canonical source of truth is intended.
 - Each database defines only its own semantic schema. Do not redefine, extend, constrain, or override another database's fields, note kinds, or local semantic meanings. Reuse across databases is evidence, not automatic grounds for universalization.
 - Database-local Views are local-first but may query other authorized databases when their documented purpose requires it. Keep cross-database Views non-authoritative; general instance-wide discovery or aggregation should normally use Registry infrastructure.
-- Treat attachments as database-owned resources with one collection-local physical home. Any canonical note in the same database may reference an attachment across collection boundaries. Do not duplicate an attachment merely to satisfy another collection, avoid cross-database attachment references, and do not automatically copy or move attachments across database boundaries.
+- Treat attachments as database-owned resources with one permitted physical home: either a declared collection's root `Attachments/` directory or a Core workspace's `Attachments/` directory. Any canonical note in the same database may reference an attachment across collection and workspace boundaries. Physical placement does not change ownership or access scope. Do not duplicate an attachment merely to satisfy another collection or workspace, avoid cross-database attachment references, and do not automatically copy or move attachments across database boundaries.
 - When ownership remains materially ambiguous after applying the documented scopes, do not guess or create duplicate authoritative copies. Keep the information unresolved or pre-structural where practical and surface the ambiguity; recurring ambiguity should be resolved by clarifying the affected database contracts.
-- Preserve database portability. A moved database should retain coherent owned meaning from its `Database.md`, declared data collections, canonical notes, collection-local attachments, Views, optional Templates, optional Agents, and required local resources even if external links, cross-database Views, Registry state, or other databases are unavailable.
+- Preserve database portability. A moved database should retain coherent owned meaning from its `Database.md`, declared data collections, canonical notes, permitted collection-root and Core-workspace attachments, Views, optional Templates, optional Agents, and required local resources even if external links, cross-database Views, Registry state, or other databases are unavailable.
 
 Database-owned templates must remain within the database boundary so they travel with the database. Reusable template and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the documented database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, prefer the applicable database-owned specialist Agent to develop or assist with the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid note bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Template headings or skeleton sections never imply separate structural-note materialization.
 
@@ -145,6 +149,7 @@ Database-owned templates must remain within the database boundary so they travel
 
 - Preserve **Pool → Core → Shard → Pebble** semantics.
 - YAML metadata is authoritative for structural lineage.
+- A Core lineage may remain flat at its declared collection root or be bundled into one direct-child Core workspace when filesystem locality earns its complexity. Canonical structural notes inside a workspace remain direct children of that workspace; never mirror Core → Shard → Pebble ancestry through nested folders. Folder placement is organizational only and must not resolve lineage or filename collisions.
 - Treat `type`, `pool`, `core`, `parent_note`, and `status` as reserved universal structural fields. Their field names and universal meanings must not be repurposed for database-domain semantics.
 - `type` is reserved for `core`, `shard`, and `pebble`.
 - `pool` is a logical metadata value and does not require a Pool folder or Pool note. A Core and its structural descendants use the same canonical Pool value. A database may define its permitted Pool vocabulary but must not redefine what `pool` means structurally.
@@ -218,7 +223,7 @@ Never silently change existing canonical meaning, invalidate previously valid st
 
 Blueprints are framework-owned bootstrap material. They may be used to create a new database. Their note-level bootstrap content should emphasize deterministic YAML metadata, placement, and structural scaffolding rather than substantive domain-specific body prose.
 
-After creation, the live database owns its `Database.md`, declared Data collections, collection-local Attachments, Views, database-owned templates, and other local resources. Later blueprint changes are not automatically authoritative for that database.
+After creation, the live database owns its `Database.md`, declared Data collections, optional Core workspaces, permitted attachment homes, Views, database-owned templates, and other local resources. Later blueprint changes are not automatically authoritative for that database.
 
 Any upgrade from a newer blueprint must be an explicit migration.
 
@@ -251,7 +256,7 @@ Promotion from Inbox into a database requires classification and conformance to 
 - Do not autonomously delete canonical user knowledge. Report consequences and orphan conditions without treating them as permission to remove anything.
 - Require every transition that creates or changes canonical representation to end in a state valid under the System Specification and applicable `Database.md`; do not guess through material ambiguity merely to produce a valid-looking state.
 - Distinguish structural orphans from broken ordinary links and intentional Ghost Shards. Never guess a replacement parent merely to make validation pass.
-- Attachments remain database-owned resources with collection-local physical homes and database-wide reference scope. Archiving or deleting a referencing note does not automatically move or delete its attachments; attachment orphans are diagnostic conditions for user review.
+- Attachments remain database-owned resources with permitted collection-root or Core-workspace physical homes and database-wide reference scope. Archiving or deleting a referencing note does not automatically move or delete its attachments; attachment orphans are diagnostic conditions for user review.
 - Promote Ghost Shards only when the knowledge independently earns materialization and the user chooses to create the note, normally through the CLI. Promotion of one Ghost Shard never authorizes neighboring or implied notes.
 - Keep destructive, ambiguous, privacy-sensitive, breaking, or otherwise consequential lifecycle transitions under meaningful user control, and treat local read/operation authorization as separate from permission to expose knowledge externally.
 
