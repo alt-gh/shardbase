@@ -145,8 +145,8 @@ def database_notes(root: Path, collections: list[str]) -> list[Note]:
 def validate_database(root: Path) -> list[Issue]:
     issues: list[Issue] = []
     root = root.resolve()
-    if root.parent.name != "Db":
-        issues.append(Issue(root, "database-location", "database must be a direct child of app/Db"))
+    if root.parent.name != "Databases" or root.parent.parent.name != "Knowledge":
+        issues.append(Issue(root, "database-location", "database must be a direct child of app/Knowledge/Databases"))
     manifest_path = root / "Database.md"
     if not manifest_path.is_file():
         return issues + [Issue(manifest_path, "manifest-missing", "Database.md is required")]
@@ -258,7 +258,7 @@ def validate_database(root: Path) -> list[Issue]:
 
 
 def discover_databases(app_root: Path) -> list[Path]:
-    db_root = app_root / "Db"
+    db_root = app_root / "Knowledge" / "Databases"
     if not db_root.is_dir():
         return []
     return sorted(path for path in db_root.iterdir() if path.is_dir() and (path / "Database.md").is_file())
@@ -266,12 +266,12 @@ def discover_databases(app_root: Path) -> list[Path]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path", nargs="?", type=Path, help="database root; defaults to all databases under app/Db")
+    parser.add_argument("path", nargs="?", type=Path, help="database root; defaults to all databases under app/Knowledge/Databases")
     args = parser.parse_args(argv)
     workspace = Path(__file__).resolve().parents[2]
     roots = [args.path] if args.path else discover_databases(workspace / "app")
     if not roots:
-        print("No databases found under app/Db.")
+        print("No databases found under app/Knowledge/Databases.")
         return 0
     all_issues: list[Issue] = []
     for root in roots:

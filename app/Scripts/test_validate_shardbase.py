@@ -1,7 +1,12 @@
 import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
 from validate_shardbase import validate_database
 
@@ -12,7 +17,7 @@ VALID_DATABASE = Path(__file__).parent / "fixtures" / "valid-database"
 class ValidatorTests(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.database = Path(self.temp_dir.name) / "app" / "Db" / "Example Database"
+        self.database = Path(self.temp_dir.name) / "app" / "Knowledge" / "Databases" / "Example Database"
         self.database.parent.mkdir(parents=True)
         shutil.copytree(VALID_DATABASE, self.database)
 
