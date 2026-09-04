@@ -288,6 +288,8 @@ ShardBase is local-first. User-owned knowledge and local state remain on the use
 
 The framework repository is intended to be safe to publish. Git policy follows ownership and intended distribution rather than filesystem path alone: committed framework surfaces are potentially public, while user-owned live state is private and untracked by default. Putting private data beneath a normally committed directory does not make it framework data, and generated output inherits the sensitivity of the information it contains.
 
+Copies of the repository are independent local instances. ShardBase does not assume shared state, shared migrations, or ongoing synchronization between copied repositories. Each developer is responsible for managing compatibility and migration work within their own local copy and for deciding how to preserve or migrate their own live data when contracts change.
+
 By default:
 
 - live database contents under `app/Knowledge/Databases/` are ignored;

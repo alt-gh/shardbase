@@ -218,7 +218,7 @@ A normative universal architectural change requires a System Specification versi
 
 Require a database migration when existing durable state cannot remain correctly conformant, correctly interpreted, or safely operated unchanged. Do not force migration merely to normalize old state when it can still be interpreted safely. When an older supported version cannot be interpreted safely under the current contract, surface the mismatch and require the appropriate migration path before rewriting canonical state. Unsupported older state must fail visibly rather than be guessed through.
 
-Never silently change existing canonical meaning, invalidate previously valid state, perform a migration or required schema transformation, change structural identity or lineage semantics, alter privacy or external-exposure boundaries, apply blueprint changes to live databases, or cross an unsupported version boundary. During Foundation development, changes affecting the live development instance require an explicit preservation-oriented transition path even though generalized installed-user migration infrastructure is not yet required.
+Never silently change existing canonical meaning, invalidate previously valid state, perform a migration or required schema transformation, change structural identity or lineage semantics, alter privacy or external-exposure boundaries, apply blueprint changes to live databases, or cross an unsupported version boundary. During Foundation development, changes affecting a live database in a developer-managed local copy require an explicit preservation-oriented transition path even though generalized installed-user migration infrastructure is not yet required.
 
 ## Blueprint Rule
 

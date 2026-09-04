@@ -24,7 +24,7 @@ foundation_success_criteria_status: accepted
 differentiation_status: accepted
 audience_status: accepted
 structural_model: Pool → Core → Shard → Pebble
-supporting_filename_strategy: Bounded Core context — `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants, capped at three structural context components; collisions are reported and resolved through meaningful disambiguation rather than additional ancestry.
+supporting_filename_strategy: Deterministic portable filename components plus bounded Core context — canonical structural names are normalized only as required for cross-filesystem safety before composing `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants; supporting filenames remain capped at three structural context components, and collisions (including normalization collisions) are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
 agent_architecture_status: accepted conceptual ownership, authority, customization, and cooperation boundaries; database-local `Agents/` is canonical and optional; placement follows database ownership rather than total authorized read scope; internal Agent package anatomy remains minimal and need-driven; framework-agent and user-local-agent filesystem locations remain intentionally deferred until concrete requirements justify them
 architectural_source_of_truth: app/Docs/Shard - System Specification.md
@@ -44,10 +44,10 @@ data_collection_model: accepted — each database declares one or more database-
 core_workspace_model: accepted — a Core may have at most one physical workspace named for its canonical filename stem; the Core and its materialized structural descendants remain direct Markdown children of that workspace, nested Shard/Pebble ancestry folders are invalid, and YAML remains authoritative for lineage.
 database_ownership_model_status: accepted — each database is the canonical semantic owner of knowledge within its documented scope; cross-database semantic relationships are allowed without transferring ownership or structural lineage, attachments have permitted collection-root or Core-workspace physical homes with database-wide reference scope, and portable databases must retain coherent owned meaning when moved independently.
 development_usage_status:
-  - ShardBase currently has one active development user operating a live ShardBase instance while the Foundation architecture is being developed.
-  - Existing live knowledge must be treated as real user data rather than disposable test state when architectural changes are evaluated or implemented.
-  - Foundation compatibility work does not yet require generalized legacy-user migration infrastructure for an installed user base, but changes that affect the live development instance should have an explicit, preservation-oriented transition path.
-  - Experience operating and migrating the live development instance may inform later general migration and compatibility contracts, but characteristics of that one environment must not become universal rules without independent architectural justification and, where relevant, platform verification.
+  - ShardBase development may occur in one or more independent local copies while the Foundation architecture is being developed.
+  - Existing live knowledge in a local copy must be treated as real user data rather than disposable test state when architectural changes are evaluated or implemented.
+  - Foundation compatibility work does not yet require generalized legacy-user migration infrastructure for an installed user base, but changes that affect a developer-managed local copy should have an explicit, preservation-oriented transition path.
+  - Experience operating and migrating a local copy may inform later general migration and compatibility contracts, but characteristics of any one local environment must not become universal rules without independent architectural justification and, where relevant, platform verification.
 foundation_workbook_status: working
 foundation_roadmap_status: approved
 foundation_completion_status: incomplete
@@ -1577,7 +1577,7 @@ what_is_in_scope_for_foundation:
   - Allow an early minimal CLI vertical slice once the contracts it operates on are sufficiently settled. The CLI should prove and exercise those contracts through real use rather than expand Foundation into full product development.
   - Require canonical CLI creation to be type-safe in behavior: applicable templates may provide starting shape, while structural and database semantic contracts determine validity; proposed canonical state should be validated before a write. The exact schema-validation technology is not a Foundation requirement.
   - Treat any unresolved question that could materially change canonical meaning, ownership, privacy, authority, integrity, compatibility, safety, or deterministic interpretation as Foundation work unless it is deliberately classified as safe to defer. The exact universal `visibility` model is an approved safe deferral: Foundation retains its existing local-first, privacy, authorization, and external-exposure boundaries without inventing a universal `visibility` field merely for completeness.
-  - Treat the current live development instance as real user data. Foundation does not need generalized legacy-user migration infrastructure for an installed user base, but changes that affect the live instance require an explicit preservation-oriented transition path.
+  - Treat the current local development copy as real user data. Foundation does not need generalized legacy-user migration infrastructure for an installed user base, but changes that affect a local copy require an explicit preservation-oriented transition path.
 
 what_is_out_of_scope_for_foundation:
   - Building the complete end-user ShardBase product is outside Foundation. Foundation should implement only enough functionality to prove and begin using the architecture safely.
@@ -1596,7 +1596,7 @@ what_must_exist_before_implementation_expands:
   - The smallest canonical implementation artifacts should demonstrate the architecture: representative blueprint material, Registry discovery behavior, deterministic validators, valid and invalid fixtures, at least one canonical example database, and an end-to-end workflow.
   - Any implementation that creates canonical data should validate the applicable structural and semantic contracts before writing invalid state. A minimal CLI may begin before every Foundation topic is complete when the contracts it depends on are already settled.
   - Unresolved architectural questions must either be settled or explicitly classified as safe deferrals with a reason. Implementation must not silently select an answer merely because code needs one.
-  - Changes affecting the live development instance need a preservation-oriented transition path so Foundation implementation experience is gathered against real user data rather than disposable test state.
+  - Changes affecting a local development copy need a preservation-oriented transition path so Foundation implementation experience is gathered against real user data rather than disposable test state.
   - The Foundation Definition of Done should be explicitly reviewed before implementation expands into a broader product surface.
 
 what_can_safely_wait_until_later:
@@ -1655,7 +1655,7 @@ what_counts_as_a_migration:
   - Migration is an operation rather than a category of specification change. Not every architectural or schema change requires migration.
   - A migration should have a defined source condition, target condition, preservation expectations, scope, validation criteria, and known compatibility implications.
   - Migration must preserve unrelated user-authored knowledge and must never use silent rewriting as a substitute for explicit architectural governance.
-  - During current development, changes that affect the live development instance should have an explicit preservation-oriented transition even though Foundation does not yet require generalized installed-user migration infrastructure.
+  - During current development, changes that affect a local development copy should have an explicit preservation-oriented transition even though Foundation does not yet require generalized installed-user migration infrastructure.
 
 what_counts_as_a_breaking_change:
   - A breaking change is an approved change to an observable ShardBase contract that causes previously compliant canonical knowledge, databases, tooling assumptions, or documented workflows to become invalid, be interpreted differently, lose supported meaning, or require modification in order to remain compliant.
@@ -1759,7 +1759,7 @@ when_has_the_foundation_been_proven:
   - A canonical example database should exercise the architecture, and an end-to-end workflow should demonstrate knowledge entering the system, being classified, materialized or incorporated appropriately, validated, queried or navigated, grown, and archived.
   - Documentation should be teachable without requiring source-code archaeology or undocumented prior knowledge.
   - Deterministic validation should accept representative known-valid fixtures and reject representative known-invalid fixtures within its documented scope.
-  - Real use of the live development instance and canonical examples must not reveal an unresolved Foundation-level architectural contradiction that would force initial implementation to guess about canonical meaning, ownership, lineage, safety, privacy, or other foundational contracts.
+  - Real use of a local development copy and canonical examples must not reveal an unresolved Foundation-level architectural contradiction that would force initial implementation to guess about canonical meaning, ownership, lineage, safety, privacy, or other foundational contracts.
 
 what_questions_must_have_explicit_answers_before_foundation_complete:
   - Any unresolved question must have an explicit answer before Foundation completion when its answer could materially change canonical meaning, structural identity, database ownership, lineage, structural or semantic authority, privacy or locality boundaries, meaningful user control, preservation expectations, compatibility, migration requirements, deterministic validation, or the contracts required by the initial canonical implementation.
@@ -2106,7 +2106,7 @@ foundation_failure_conditions:
   - It fails if the architecture turns optional tooling into a prerequisite for reading, editing, recovering, or correctly interpreting canonical knowledge.
   - It fails if ShardBase begins becoming an AI runtime or integration layer, synchronization or backup system, publishing service, general-purpose search/indexing engine, traditional database engine, cloud-first collaborative platform, or universal ontology contrary to the accepted non-goals.
   - It fails if universal structure grows primarily from speculative future needs or one database's requirements rather than demonstrated cross-database necessity.
-  - It fails if real use of the live development instance or later canonical examples exposes an unresolved architectural contradiction that would require foundational reinterpretation.
+  - It fails if real use of a local development copy or later canonical examples exposes an unresolved architectural contradiction that would require foundational reinterpretation.
   - Passing documentation, examples, or automated tests independently is not sufficient if the resulting system still violates the accepted product principles.
   - Most fundamentally, the Foundation has failed its purpose if ShardBase can become more capable only by making the user's knowledge less theirs.
 
@@ -2602,6 +2602,78 @@ fixture_expected_result_format: unittest assertions over stable issue codes
 milestone_6_status: approved
 milestone_6_goal: Demonstrate that the foundation is coherent, teachable, testable, and stable enough to build future implementation work against.
 
+### Approved Foundation Development Decision — Games and Movies Starter Databases
+
+foundation_starter_database_decision_status: approved
+foundation_starter_databases:
+  - Games
+  - Movies
+foundation_starter_database_order:
+  - Games is designed, materialized, and exercised first.
+  - Movies is designed independently only after Games has produced enough real-use evidence to review the first starter package.
+foundation_starter_database_purpose:
+  - Provide realistic Foundation-stage proving grounds and useful framework-supplied starter database packages without turning domain modeling into a new Foundation completion requirement.
+  - Let developers exercise ShardBase using real user-owned knowledge while the remaining Foundation contracts are being proven.
+foundation_starter_database_authority:
+  - Each starter database is governed by the System Specification and its own `Database.md`; starter-database choices remain database-local unless an independent framework-level requirement justifies universalization.
+foundation_starter_database_package_boundary:
+  - Framework-supplied starter packages are bootstrap material under `app/Blueprints/`.
+  - After materialization, each live copy under `app/Knowledge/Databases/` is user-owned state.
+  - Later package or blueprint changes never silently synchronize into a live database and require an explicit migration when an existing live database must change.
+foundation_starter_database_content_policy:
+  - Starter packages should emphasize the database contract, deterministic bootstrap structure, and only genuinely useful starter resources rather than substantive example knowledge.
+  - Developers populate materialized live copies with their own real knowledge; private live knowledge is never copied into committed examples, documentation, fixtures, or framework surfaces.
+foundation_starter_database_schema_policy:
+  - Begin with the minimum domain schema that supports useful creation, querying, navigation, validation, and real use.
+  - Do not attempt to model an exhaustive games, movies, media, industry, franchise, or entity ontology during Foundation.
+foundation_games_role:
+  - Games is the first starter database and the primary real-use proving ground for the planned end-to-end Shard workflow.
+  - Games should expose whether a problem belongs in the Games contract or reveals a genuine Foundation-level architectural issue.
+foundation_movies_role:
+  - Movies follows Games as an independently designed second-domain generalization test rather than as a renamed copy of the Games schema.
+foundation_starter_database_review_gate:
+  - Review and deliberately accept the initial `Games/Database.md` contract before building the reusable Games starter package.
+foundation_games_database_contract_status: approved
+foundation_games_starter_package_status: complete
+foundation_games_starter_package_shape:
+  - `app/Blueprints/Games/Database.md`
+  - `app/Blueprints/Games/Data/Game/Attachments/`
+  - `app/Blueprints/Games/Views/`
+foundation_games_starter_package_notes:
+  - The approved database contract is finalized with `database_status: active` for materialization.
+  - No sample canonical game notes, Templates, Agents, Games-specific scripts, additional collections, or starter Views are included because the accepted contract does not yet require them.
+  - Empty `Views/` and `Attachments/` directories are package structure, not semantic content.
+foundation_local_database_materialization_policy:
+  - A local database may be created from a blueprint in any copied repository instance, but the repository itself does not represent a shared or connected live database.
+  - Once materialized, the resulting local database is user-owned state in that copied instance and any later change must follow the applicable explicit schema or migration process.
+  - Developers may work in separate local copies and are responsible for their own migration and compatibility decisions in those local environments.
+foundation_definition_of_done_effect:
+  - Games and Movies support Foundation proof but do not create new mandatory Foundation exit criteria beyond the already-approved roadmap.
+
+### Approved Foundation Development Decision — Portable Canonical Filenames
+
+foundation_portable_filename_decision_status: approved
+foundation_portable_filename_discovery:
+  - The first real Games Core, `Call of Duty: Black Ops 6`, exposed that the prior Core-filename rule did not define a portable deterministic representation for canonical names containing filesystem-forbidden characters such as `:`.
+foundation_portable_filename_scope:
+  - The issue is universal rather than Games-specific because any database may own canonical names containing characters that are unsafe across supported filesystems.
+foundation_portable_filename_rule:
+  - Each canonical structural name derives a portable filename component before Core, supporting-note, or Core-workspace filenames are composed.
+  - ASCII control characters and `< > : " / \ | ? *` are replaced with spaces; whitespace is collapsed and trimmed; trailing periods are removed; Windows reserved device stems are escaped with a leading underscore; other Unicode, case, allowed punctuation, and words are preserved.
+  - Empty, `.` or `..` results block materialization and require meaningful disambiguation rather than an opaque invented placeholder.
+  - Portable-normalization collisions use the existing collision rule and must never silently overwrite or merge knowledge.
+foundation_portable_filename_display_rule:
+  - Filename normalization changes only filesystem representation. The level-one heading preserves the canonical human-facing title, and YAML remains authoritative for structural lineage.
+foundation_portable_filename_change_classification:
+  - This is a normative universal naming change and requires a System Specification version boundary once the planned Specification Versioning Policy defines the recording scheme.
+  - It is breaking only for existing canonical state whose filenames cannot remain compliant unchanged and therefore need an explicit preservation-oriented rename with dependent references updated.
+  - Existing filenames already equal to their portable derived form remain valid unchanged.
+  - `manifest_version` remains `1` because the database-manifest contract is unchanged.
+foundation_portable_filename_local_transition:
+  - Example local databases may begin with no canonical notes when the rule is approved, so no user-authored rename or link migration is required in that local copy.
+  - A copied repository instance may update its local contract independently without implying the framework repository or another copy has shared live state.
+  - Canonical note materialization under the new rule remains subject to the local database's own ownership and migration decisions.
+
 ### Commit 29 — Canonical Example Database
 
 commit_29_subject: example: add canonical shardbase database
@@ -2618,19 +2690,23 @@ example_database_reason_for_inclusion: provide a committed, inspectable proof fi
 ### Commit 30 — End-to-End Shard Workflow
 
 commit_30_subject: docs: document end-to-end shard workflow
-commit_30_status: planned
-workflow_capture: 
-workflow_review: 
-workflow_database_selection: 
-workflow_pool_selection: 
-workflow_core_selection: 
-workflow_parent_selection: 
-workflow_classification: 
-workflow_materialization: 
-workflow_validation: 
+commit_30_status: in_progress
+workflow_capture: A first real-use request selected `Call of Duty: Black Ops 6` for a local Games database copy used as a proving example.
+workflow_review: Direct canonical creation was appropriate; the title was resolved enough to enter a local Games database without Inbox staging.
+workflow_database_selection: Games, based on the accepted Games ownership scope.
+workflow_pool_selection: `Games`, the only currently permitted Games Pool.
+workflow_core_selection: `Call of Duty: Black Ops 6` is an independently meaningful game title and therefore a Game Core.
+workflow_parent_selection: none; a Core has no structural parent.
+workflow_classification: `type: core` in the `Game` collection, with domain relationships kept semantic rather than structural.
+workflow_materialization: Materialized in a local database copy under the applicable `Data/Game/` boundary; the portable filename derives from the canonical title `Call of Duty: Black Ops 6`.
+workflow_validation: Passed current structural, Games-contract, placement, metadata, and new portable-filename checks for the first Game Core.
 workflow_query_and_navigation: 
 workflow_growth: 
 workflow_archive: 
+workflow_primary_development_database: Games
+workflow_evidence_policy:
+  - Real user-owned Games knowledge may inform the workflow proof in a developer-managed local copy.
+  - Any committed walkthrough, example, fixture, or documentation derived from that use must be intentionally sanitized and must not copy private local database content.
 
 ### Commit 31 — Foundation Architecture Overview
 

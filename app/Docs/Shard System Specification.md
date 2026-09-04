@@ -317,7 +317,7 @@ Contains live user-owned canonical databases.
 
 For the Foundation version, each database root is a **direct child** of `app/Knowledge/Databases/`. Nested database roots and category directories are not part of the v1 Foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
 
-The current `app/Knowledge/Databases/` boundary supersedes the immediately previous `app/Databases/` canonical boundary. Moving database roots from `app/Databases/<Database Name>/` to `app/Knowledge/Databases/<Database Name>/` changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses the previous path. The same approved transition also moves the Inbox from `app/Inbox/` to `app/Knowledge/Inbox/`, establishing `app/Knowledge/` as the shared user-owned knowledge boundary. An affected live development instance requires an explicit preservation-oriented transition that moves each database root intact, moves Inbox contents intact, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the previous paths, and validates the resulting database roots before the transition is considered complete. The transition does not change database identity, structural lineage, canonical note meaning, Inbox semantics, or the database-manifest schema, so `manifest_version` remains `1`. The change requires a System Specification version boundary under the versioning policy once specification-version numbering is defined.
+The current `app/Knowledge/Databases/` boundary supersedes the immediately previous `app/Databases/` canonical boundary. Moving database roots from `app/Databases/<Database Name>/` to `app/Knowledge/Databases/<Database Name>/` changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses the previous path. The same approved transition also moves the Inbox from `app/Inbox/` to `app/Knowledge/Inbox/`, establishing `app/Knowledge/` as the user-owned knowledge boundary for a given local instance. An affected local database copy requires an explicit preservation-oriented transition that moves each database root intact, moves Inbox contents intact, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the previous paths, and validates the resulting database roots before the transition is considered complete. The transition does not change database identity, structural lineage, canonical note meaning, Inbox semantics, or the database-manifest schema, so `manifest_version` remains `1`. The change requires a System Specification version boundary under the versioning policy once specification-version numbering is defined.
 
 The earlier `app/Db/` → `app/Databases/` relocation remains part of ShardBase's architectural history; it is not the current canonical path and does not alter the requirements of this newer transition.
 
@@ -861,13 +861,33 @@ release_date: 2020-09-17
 
 ## 9. Lineage and Naming
 
-### 9.1 Core Filenames
+### 9.1 Portable Filename Components and Core Filenames
 
-A Core uses its canonical entity name:
+Canonical structural names are human-facing names and may contain characters that are not safe in filenames across ShardBase's supported portable file-based model. ShardBase therefore derives a **portable filename component** from each canonical structural name before constructing a canonical filename. This transformation changes only the filesystem representation; it does not change the canonical display name, semantic identity, structural lineage, or database ownership of the knowledge.
+
+Derive a portable filename component deterministically as follows:
+
+1. Start with the canonical structural name exactly as established for the entity or local node.
+2. Replace every ASCII control character from `U+0000` through `U+001F` and every character in the portable forbidden set `< > : " / \ | ? *` with one ASCII space.
+3. Collapse consecutive whitespace to one ASCII space and trim leading and trailing whitespace.
+4. Remove trailing periods, then trim trailing whitespace again.
+5. If the result is empty, `.` or `..`, materialization must stop and the name must be meaningfully disambiguated; tooling must not invent an opaque placeholder solely to force a filename.
+6. If the resulting component case-insensitively equals a Windows reserved device stem — `CON`, `PRN`, `AUX`, `NUL`, `COM1` through `COM9`, or `LPT1` through `LPT9` — prefix one underscore (`_`).
+7. Do not otherwise transliterate Unicode, change case, remove allowed punctuation, abbreviate, or rewrite words merely to make a filename look simpler.
+
+A Core filename is the portable filename component derived from its canonical entity name plus the Markdown extension:
 
 ```text
-Core Name.md
+Portable Core Name.md
 ```
+
+For example, the canonical title `Call of Duty: Black Ops 6` derives the filename:
+
+```text
+Call of Duty Black Ops 6.md
+```
+
+Portable normalization is applied independently to every structural name component used in supporting filenames and Core-workspace names. If two different canonical names normalize to the same expected filename, the existing filename-collision rule applies; normalization must not silently merge or overwrite knowledge.
 
 ### 9.2 Supporting Filenames
 
@@ -919,7 +939,7 @@ If filename and valid structural metadata disagree, the metadata determines the 
 
 ### 9.4 Primary Heading
 
-The note body should begin with an `#` heading matching the canonical filename stem unless the database contract explicitly documents another display-title convention.
+The note body should begin with an `#` heading that preserves the canonical human-facing note title unless the database contract explicitly documents another display-title convention. When portable filename normalization changes the filesystem stem, the heading preserves the canonical display form rather than copying the normalized filename. This heading is a display representation and does not replace YAML as the authority for structural lineage.
 
 ## 10. Markdown Structure
 
@@ -1199,11 +1219,13 @@ The System Specification must change version whenever its normative universal ar
 
 `manifest_version` is narrower. It changes only when the database-manifest contract changes in a way that compatible readers, validators, creators, or migrations need to distinguish. A System Specification version change does not automatically require a manifest-version change, and database-local semantic-schema changes do not use `manifest_version` as their version identifier.
 
+The portable-filename rule introduced in Section 9 is a normative universal naming change and therefore requires a System Specification version boundary once the Specification Versioning Policy defines how that version is recorded. It is breaking for any previously compliant canonical file whose current filename cannot remain valid under the portable derivation unchanged, because such state requires a preservation-oriented rename and dependent-reference update. Existing canonical files whose filenames already equal their newly derived portable filenames remain valid unchanged. `manifest_version` remains `1` because the database-manifest contract is unaffected.
+
 ### 19.3 Database Migration and Backward Compatibility
 
 A database migration is required when an approved change means an existing database cannot remain correctly conformant, correctly interpreted, or safely operated in its present durable representation. This includes required transformations to metadata, structural meaning or allowed values, canonical filenames or placement, lineage or ownership representation, manifest state, database-local semantic state, or database layout. A migration is not required merely because documentation becomes clearer, an optional capability is introduced, implementation internals change, a new view or validator becomes available, or existing state already satisfies the newer contract unchanged. When old state can be interpreted safely as-is, ShardBase should not force migration merely to normalize it to the newest representation.
 
-A migration should define its source condition, target condition, authorized scope, preservation expectations, validation criteria, and known compatibility implications. It must preserve unrelated user-authored knowledge. During Foundation development, generalized legacy-user migration infrastructure is not required, but any architectural change affecting the live development instance requires an explicit preservation-oriented transition path.
+A migration should define its source condition, target condition, authorized scope, preservation expectations, validation criteria, and known compatibility implications. It must preserve unrelated user-authored knowledge. During Foundation development, generalized legacy-user migration infrastructure is not required, but any architectural change affecting a live database in a developer-managed local copy requires an explicit preservation-oriented transition path.
 
 Backward compatibility means a newer ShardBase contract or compliant implementation can safely recognize and preserve the intended meaning of older supported ShardBase state without silently reinterpreting it. Older state that remains valid should continue working without unnecessary migration. If a newer implementation supports an older schema or specification version directly, it must interpret that state according to the documented meaning of that version rather than pretending the state was authored under current rules. When safe direct compatibility is impossible, the mismatch must be detected explicitly and an appropriate migration path must precede rewriting canonical state. Unsupported older state must fail visibly rather than be guessed through or partially normalized.
 
@@ -1284,13 +1306,16 @@ When auditing structural content, validate the following.
 
 ### 21.3 Naming
 
-- Core filenames use the canonical Core name.
-- Direct Core children use `Core - Current Node.md` naming.
-- Deeper descendants use `Core - Immediate Parent - Current Node.md` naming.
+- Each canonical structural name component derives its filesystem representation through the deterministic portable filename transformation in Section 9.1.
+- Portable filenames contain no ASCII control characters or characters in the forbidden set `< > : " / \ | ? *`, do not end in spaces or periods, and do not use an unescaped Windows reserved device stem.
+- Core filenames use the portable filename component derived from the canonical Core name.
+- Direct Core children use `Core - Current Node.md` naming after portable normalization of each component.
+- Deeper descendants use `Core - Immediate Parent - Current Node.md` naming after portable normalization of each component.
 - The immediate-parent component uses the parent's current-node name rather than its full filename stem.
 - Supporting filenames contain no more than three structural context components and do not accumulate additional ancestry.
-- Filename collisions are reported and are not resolved by appending more ancestor components.
+- Filename collisions, including collisions introduced by portable normalization, are reported and are not resolved by appending more ancestor components.
 - Filename context and metadata describe the same intended structure.
+- The level-one heading preserves the canonical human-facing title when portable filename normalization changes the filesystem stem.
 
 ### 21.4 Integrity
 
