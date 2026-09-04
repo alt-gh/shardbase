@@ -94,7 +94,7 @@ The product-level test remains: **ShardBase succeeds when the user's knowledge b
 Git policy follows ownership and intended distribution rather than filesystem path alone. Treat committed framework surfaces as potentially public and user-owned live state as local and private by default. A private file does not become framework material merely because it is placed beneath a normally committed directory, and generated output inherits the sensitivity of the information it contains.
 
 - `app/Blueprints/` — framework-owned reusable database bootstrap material. Optional or default database packages may eventually include an initial specialist Agent; after materialization, the live database and its Agent are user-owned.
-- `app/Db/` — live user-owned databases and a primary private-data boundary. Ignore live contents by default. Do not include them in framework commits, releases, public repositories, or external transmissions without deliberate user authorization. An optional root-level `Agents/` directory is the canonical location for database-owned specialist Agent resources and travels with its database.
+- `app/Databases/` — live user-owned databases and a primary private-data boundary. Ignore live contents by default. Do not include them in framework commits, releases, public repositories, or external transmissions without deliberate user authorization. An optional root-level `Agents/` directory is the canonical location for database-owned specialist Agent resources and travels with its database.
 - `app/Docs/` — committed framework documentation and architectural specifications. Do not copy private live-database knowledge, Inbox content, secrets, private Agent state, or other user-owned information into committed documentation.
 - `app/Inbox/` — local user-owned unverified, pre-structural capture. Ignore contents by default and do not treat the Inbox as architectural documentation or a database.
 - `app/Registry/` — committed global database discovery and navigation infrastructure. Prefer runtime discovery; keep user-specific generated inventories, caches, or other Registry-derived state local by default.
@@ -106,7 +106,7 @@ A user may intentionally version, synchronize, move, or share their own database
 
 ## Database Root Contract
 
-A live database is a direct child of `app/Db/` and contains one or more declared data collections:
+A live database is a direct child of `app/Databases/` and contains one or more declared data collections:
 
 ```text
 [Database Name]/
@@ -143,7 +143,7 @@ Data collections organize database-owned files; they do not define Pool membersh
 - When ownership remains materially ambiguous after applying the documented scopes, do not guess or create duplicate authoritative copies. Keep the information unresolved or pre-structural where practical and surface the ambiguity; recurring ambiguity should be resolved by clarifying the affected database contracts.
 - Preserve database portability. A moved database should retain coherent owned meaning from its `Database.md`, declared data collections, canonical notes, permitted collection-root and Core-workspace attachments, Views, optional Templates, optional Agents, and required local resources even if external links, cross-database Views, Registry state, or other databases are unavailable.
 
-Database-owned templates must remain within the database boundary so they travel with the database. Reusable template and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the documented database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, prefer the applicable database-owned specialist Agent to develop or assist with the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid note bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Template headings or skeleton sections never imply separate structural-note materialization.
+Database-owned templates must remain within the database boundary so they travel with the database. Reusable template and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the documented database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, prefer the applicable database-owned specialist Agent to develop or assist with the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid note bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Databases/` notes and Inbox for ad-hoc editor-created notes. Template headings or skeleton sections never imply separate structural-note materialization.
 
 ## Core Structural Rules
 
@@ -239,7 +239,7 @@ Inbox items:
 - should not own local attachments;
 - must not be committed by default.
 
-The canonical day-to-day interaction model remains direct reading and editing of Markdown in the user's chosen compatible editor. ShardBase recommends two primary paths for new notes: use the CLI for notes intended to become canonical under `app/Db/`, and use `app/Inbox/` for ad-hoc notes created through a Markdown editor or filesystem. Knowledgeable users may still create canonical files manually when they intentionally satisfy the documented contract, but that is outside the recommended creation path. Database-owned templates remain useful resources but do not replace the recommended CLI/Inbox split.
+The canonical day-to-day interaction model remains direct reading and editing of Markdown in the user's chosen compatible editor. ShardBase recommends two primary paths for new notes: use the CLI for notes intended to become canonical under `app/Databases/`, and use `app/Inbox/` for ad-hoc notes created through a Markdown editor or filesystem. Knowledgeable users may still create canonical files manually when they intentionally satisfy the documented contract, but that is outside the recommended creation path. Database-owned templates remain useful resources but do not replace the recommended CLI/Inbox split.
 
 Promotion from Inbox into a database requires classification and conformance to the destination `Database.md`, and review may instead incorporate the information into an existing canonical note or leave it unresolved. ShardBase must not broker local knowledge to external AI services. Users may deliberately provide authorized files, Agent resources, Prompts, exports, or context to external AI systems through separate workflows of their choice.
 

@@ -125,7 +125,7 @@ Structural YAML is authoritative for lineage. Filenames provide human-readable r
 
 Shard translates ordinary user intent into safe, minimal operations over the documented ShardBase architecture. It is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, retrieving and reasoning over authorized knowledge, and helping the framework evolve safely without requiring users to memorize the complete architecture. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
 
-ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. Database-owned specialist Agent resources have an approved optional home at `app/Db/[Database Name]/Agents/` so they remain portable with their database. Framework-level and user-local Agent filesystem locations are intentionally deferred until concrete requirements justify standardizing them. Agent files are user-owned knowledge resources rather than an embedded AI runtime: ShardBase manages AI-related knowledge but does not integrate with AI systems.
+ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. Database-owned specialist Agent resources have an approved optional home at `app/Databases/[Database Name]/Agents/` so they remain portable with their database. Framework-level and user-local Agent filesystem locations are intentionally deferred until concrete requirements justify standardizing them. Agent files are user-owned knowledge resources rather than an embedded AI runtime: ShardBase manages AI-related knowledge but does not integrate with AI systems.
 
 When operating on a database, Shard follows this authority order:
 
@@ -141,7 +141,7 @@ shardbase/
 ├── .obsidian/
 ├── app/
 │   ├── Blueprints/
-│   ├── Db/
+│   ├── Databases/
 │   │   └── [Database Name]/
 │   │       ├── Agents/
 │   │       ├── Data/
@@ -174,7 +174,7 @@ shardbase/
 
 ## Database Anatomy
 
-Each live database is a direct child of `app/Db/` and is self-contained. Within ShardBase, database ownership means canonical semantic responsibility for knowledge within the scope documented by that database's `Database.md`; the user still owns all live database data. Physical placement follows ownership rather than defining it.
+Each live database is a direct child of `app/Databases/` and is self-contained. Within ShardBase, database ownership means canonical semantic responsibility for knowledge within the scope documented by that database's `Database.md`; the user still owns all live database data. Physical placement follows ownership rather than defining it.
 
 Cross-database semantic relationships are allowed without transferring canonical ownership. Structural lineage remains database-local: `core` and `parent_note` do not cross database boundaries. A database remains responsible only for its own semantic schema and must stay understandable when external relationship targets or cross-database projections are unavailable.
 
@@ -202,7 +202,7 @@ Contains local non-structural files owned by the database. Every declared collec
 
 ### `Templates/`
 
-Optional database-owned note templates may live with the database so they remain portable with its schema and conventions. Templates and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, the database-owned specialist Agent is the appropriate domain-aware assistant for developing the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Db/` notes and Inbox for ad-hoc editor-created notes. Headings or skeleton sections inside a template do not by themselves justify creating additional structural notes.
+Optional database-owned note templates may live with the database so they remain portable with its schema and conventions. Templates and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, the database-owned specialist Agent is the appropriate domain-aware assistant for developing the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Databases/` notes and Inbox for ad-hoc editor-created notes. Headings or skeleton sections inside a template do not by themselves justify creating additional structural notes.
 
 ### `Views/`
 
@@ -210,7 +210,7 @@ Contains database-local views and queries. Dataview is a primary and canonical S
 
 ## Canonical Database Experience
 
-ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. The intended normal workflow recommends two primary entry paths for new notes: canonical notes intended for `app/Db/` should normally be created through the ShardBase CLI, while ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Inbox/` for review. A minimal CLI should be introduced at the earliest architecturally responsible opportunity once its underlying contracts are stable enough to implement safely. Canonical CLI creation should be schema-aware and type-safe in behavior: applicable templates may provide starting shape, while structural and database semantic contracts determine validity and are checked before a write. The exact runtime and validation technology remain implementation-defined. Until the CLI exists, and for knowledgeable users who deliberately choose otherwise, canonical files may still be created manually subject to the documented contract.
+ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. The intended normal workflow recommends two primary entry paths for new notes: canonical notes intended for `app/Databases/` should normally be created through the ShardBase CLI, while ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Inbox/` for review. A minimal CLI should be introduced at the earliest architecturally responsible opportunity once its underlying contracts are stable enough to implement safely. Canonical CLI creation should be schema-aware and type-safe in behavior: applicable templates may provide starting shape, while structural and database semantic contracts determine validity and are checked before a write. The exact runtime and validation technology remain implementation-defined. Until the CLI exists, and for knowledgeable users who deliberately choose otherwise, canonical files may still be created manually subject to the documented contract.
 
 ShardBase manages AI-related knowledge; it does not integrate with AI systems. Framework scripts and the CLI do not call model-provider APIs, authenticate with providers, invoke or orchestrate external agents, or automatically broker local knowledge to services such as ChatGPT or Gemini. ShardBase may structure, validate, package, convert, or export local user-owned Agent, Prompt, instruction, context, or related files. Users who want an external AI system to receive those files or other ShardBase information perform that transfer through a separate deliberate workflow using the external system of their choice.
 
@@ -270,7 +270,7 @@ Refactoring is preservation-oriented and should move knowledge from one coherent
 ## Framework Boundaries
 
 - `app/Blueprints/` contains framework-owned reusable database bootstrap material. ShardBase may eventually ship optional or default database packages here, including an initial specialist Agent when agent packaging is finalized.
-- `app/Db/` contains live user-owned databases and is a primary private-data boundary. Database-owned specialist Agents should travel with their databases once their canonical layout is finalized.
+- `app/Databases/` contains live user-owned databases and is a primary private-data boundary. Database-owned specialist Agents should travel with their databases once their canonical layout is finalized.
 - `app/Docs/` contains committed framework documentation and architectural specifications and must not embed private user data.
 - `app/Inbox/` contains local user-owned unverified, pre-structural capture.
 - `app/Registry/` contains committed discovery and navigation infrastructure; user-specific Registry output remains local by default.
@@ -286,7 +286,7 @@ The framework repository is intended to be safe to publish. Git policy follows o
 
 By default:
 
-- live database contents under `app/Db/` are ignored;
+- live database contents under `app/Databases/` are ignored;
 - Inbox contents under `app/Inbox/` are ignored;
 - user-owned Agents, customizations, private local configuration, sensitive Registry-derived state, credentials, and other user-local state are ignored;
 - generated runtimes, virtual environments, installed dependencies such as `node_modules`, Python bytecode such as `__pycache__`, caches, indexes, embeddings, temporary files, and build artifacts must remain outside the ShardBase vault and are not durable repository content;

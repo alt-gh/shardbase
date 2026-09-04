@@ -263,7 +263,7 @@ shardbase/
 ├── .obsidian/
 ├── app/
 │   ├── Blueprints/
-│   ├── Db/
+│   ├── Databases/
 │   │   └── [Database Name]/
 │   │       ├── Agents/
 │   │       ├── Data/
@@ -295,11 +295,13 @@ Blueprint material must represent reusable starting state rather than a copy of 
 
 Blueprint format is intentionally implementation-defined until automation requires a stricter contract.
 
-### 4.2 `app/Db/`
+### 4.2 `app/Databases/`
 
 Contains live user-owned databases and is a primary private-data boundary.
 
-For the foundation version, each database root is a **direct child** of `app/Db/`. Nested database roots and category directories are not part of the v1 foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
+For the foundation version, each database root is a **direct child** of `app/Databases/`. Nested database roots and category directories are not part of the v1 foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
+
+`app/Databases/` supersedes the former `app/Db/` database-root boundary. This rename changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses `app/Db/`. An affected live development instance requires an explicit preservation-oriented transition that moves each database root intact from `app/Db/<Database Name>/` to `app/Databases/<Database Name>/`, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the old path, and validates the resulting database roots before the transition is considered complete. The rename does not change database identity, structural lineage, canonical note meaning, or the database-manifest schema, so `manifest_version` remains `1`. The change requires a System Specification version boundary under the versioning policy once specification-version numbering is defined.
 
 Live database contents are local and private by default. They must not enter the distributable framework repository, framework releases, public repositories, or external transmissions merely because they exist inside the ShardBase project tree. Versioning, synchronization, backup, movement, or sharing of a live database must result from a deliberate user choice. A user may intentionally version a database, including in a private Git repository, without changing the framework-wide default.
 
@@ -518,7 +520,7 @@ Links or descriptions for relevant Views, attachment-placement guidance across c
 
 ShardBase's primary day-to-day interaction surface is the user's chosen compatible Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly; routine prose, heading, list, link, embed, and metadata editing must not require a CLI or AI agent.
 
-Creation and editing are distinct concerns. ShardBase recommends two primary paths for new notes. A note intended to become canonical knowledge under `app/Db/` should normally be created through the ShardBase CLI so placement, metadata, naming, lineage, and validation can be applied consistently. An ordinary note created ad hoc through the user's Markdown editor or directly through the filesystem should normally enter `app/Inbox/` as pre-structural capture.
+Creation and editing are distinct concerns. ShardBase recommends two primary paths for new notes. A note intended to become canonical knowledge under `app/Databases/` should normally be created through the ShardBase CLI so placement, metadata, naming, lineage, and validation can be applied consistently. An ordinary note created ad hoc through the user's Markdown editor or directly through the filesystem should normally enter `app/Inbox/` as pre-structural capture.
 
 The CLI is the intended framework-owned canonical creation surface and should be introduced at the earliest architecturally responsible opportunity once the contracts it operates on are sufficiently settled. Its first implementation should remain narrow and deterministic rather than attempting to become the complete product. Canonical CLI creation must validate applicable structural and database-semantic constraints before writing and must refuse to create canonical state that violates required metadata, value shapes, bounded values, lineage, naming, flat-or-workspace placement, or other documented constraints. When a lineage already has a Core workspace, creation should place new structural descendants in that workspace; otherwise the lineage remains flat unless a deliberate bundling refactor creates the workspace. Database-owned templates may provide starting document shape or defaults, but templates do not define validity; the applicable contracts and schema do. The exact runtime, schema-validation technology, and mature CLI UX remain implementation-defined until implementation requires them. Knowledgeable users retain the ability to create canonical files manually, but editor-created canonical files are outside the recommended two-path workflow and remain subject to the same structural and validation requirements. Promotion from Inbox into a database requires classification and conformance to the destination database contract.
 
@@ -566,7 +568,7 @@ An unresolved wikilink for a plausible future structural note that does not yet 
 
 ### Database
 
-A self-contained, user-owned knowledge boundary that is a direct child of `app/Db/`, governed by its root `Database.md`, and contains one or more declared data collections.
+A self-contained, user-owned knowledge boundary that is a direct child of `app/Databases/`, governed by its root `Database.md`, and contains one or more declared data collections.
 
 ### Database Ownership
 
@@ -1019,7 +1021,7 @@ app/Registry/Registry.md
 
 Its purpose is discovery and navigation.
 
-For the foundation repository, database roots are direct children of `app/Db/`, and each valid database root contains `Database.md`.
+For the foundation repository, database roots are direct children of `app/Databases/`, and each valid database root contains `Database.md`.
 
 The registry may discover manifests through their location and required manifest metadata. Committed Registry infrastructure should discover local state without embedding the user's database inventory in distributable source. Generated Registry state that contains user-specific database information is local by default.
 
@@ -1057,7 +1059,7 @@ ShardBase treats lifecycle as a progression of increasingly deliberate represent
 
 ShardBase recommends two primary entry paths for new notes:
 
-1. canonical notes intended for `app/Db/` should normally be created through the CLI;
+1. canonical notes intended for `app/Databases/` should normally be created through the CLI;
 2. ad-hoc notes created through the user's Markdown editor or filesystem should normally enter `app/Inbox/`.
 
 Users retain direct control of their files and may intentionally create canonical notes manually, but manual canonical creation is outside the recommended path and remains subject to the complete documented contract. New information may also be incorporated into an existing canonical note without creating a new file.
@@ -1235,7 +1237,7 @@ When auditing structural content, validate the following.
 
 ### 21.1 Database Contract
 
-- The database is a direct child of `app/Db/`.
+- The database is a direct child of `app/Databases/`.
 - `Database.md` exists at the database root.
 - Required manifest fields exist and use valid values.
 - `data_collections` is a non-empty list of unique declared collection names.
@@ -1311,7 +1313,7 @@ When auditing structural content, validate the following.
 - Inbox files are treated as pre-structural.
 - Inbox files are not required to satisfy database schemas.
 - Inbox contents are ignored by Git.
-- Ordinary ad-hoc editor or filesystem capture defaults to Inbox; canonical `app/Db/` note creation should normally use the CLI.
+- Ordinary ad-hoc editor or filesystem capture defaults to Inbox; canonical `app/Databases/` note creation should normally use the CLI.
 - Promotion or incorporation applies proper classification and destination-database rules, and review does not require every Inbox item to become a new file.
 
 ## 22. Shard Response Contract
