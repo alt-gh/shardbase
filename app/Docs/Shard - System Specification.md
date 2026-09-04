@@ -265,23 +265,24 @@ shardbase/
 ├── .obsidian/
 ├── app/
 │   ├── Blueprints/
-│   ├── Databases/
-│   │   └── [Database Name]/
-│   │       ├── Agents/
-│   │       ├── Data/
-│   │       │   ├── [Primary Data Collection]/
-│   │       │   │   ├── Attachments/
-│   │       │   │   └── [Core Workspace]/
-│   │       │   │       ├── Core Name.md
-│   │       │   │       ├── Core Name - Shard.md
-│   │       │   │       └── Attachments/
-│   │       │   └── [Additional Data Collection]/
-│   │       │       └── Attachments/
-│   │       ├── Templates/
-│   │       ├── Views/
-│   │       └── Database.md
 │   ├── Docs/
-│   ├── Inbox/
+│   ├── Knowledge/
+│   │   ├── Inbox/
+│   │   └── Databases/
+│   │       └── [Database Name]/
+│   │           ├── Agents/
+│   │           ├── Data/
+│   │           │   ├── [Primary Data Collection]/
+│   │           │   │   ├── Attachments/
+│   │           │   │   └── [Core Workspace]/
+│   │           │   │       ├── Core Name.md
+│   │           │   │       ├── Core Name - Shard.md
+│   │           │   │       └── Attachments/
+│   │           │   └── [Additional Data Collection]/
+│   │           │       └── Attachments/
+│   │           ├── Templates/
+│   │           ├── Views/
+│   │           └── Database.md
 │   ├── Registry/
 │   └── Scripts/
 ├── .gitignore
@@ -297,17 +298,38 @@ Blueprint material must represent reusable starting state rather than a copy of 
 
 Blueprint format is intentionally implementation-defined until automation requires a stricter contract.
 
-### 4.2 `app/Databases/`
+### 4.2 `app/Knowledge/`
 
-Contains live user-owned databases and is a primary private-data boundary.
+`app/Knowledge/` is the canonical local boundary for user-owned ShardBase knowledge. It groups unresolved pre-structural capture and resolved canonical databases without collapsing the distinction between them.
 
-For the foundation version, each database root is a **direct child** of `app/Databases/`. Nested database roots and category directories are not part of the v1 foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
+The boundary has exactly two canonical direct children in the Foundation architecture:
 
-`app/Databases/` supersedes the former `app/Db/` database-root boundary. This rename changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses `app/Db/`. An affected live development instance requires an explicit preservation-oriented transition that moves each database root intact from `app/Db/<Database Name>/` to `app/Databases/<Database Name>/`, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the old path, and validates the resulting database roots before the transition is considered complete. The rename does not change database identity, structural lineage, canonical note meaning, or the database-manifest schema, so `manifest_version` remains `1`. The change requires a System Specification version boundary under the versioning policy once specification-version numbering is defined.
+- `Inbox/` for user-owned knowledge whose canonical database ownership or representation is unresolved; and
+- `Databases/` for live canonical databases whose database ownership has been resolved.
+
+This organization makes the lifecycle distinction explicit while preserving the invariant that every direct child of `app/Knowledge/Databases/` is a database. `app/Knowledge/` must not become a catch-all for unrelated local state, framework documentation, caches, generated runtimes, exports, or other resources merely because they are user-related. Database-owned resources such as `Agents/`, `Templates/`, Views, attachments, and canonical notes belong inside their owning database and therefore travel naturally within the Knowledge boundary.
+
+`app/Knowledge/` and its user-owned contents are local and private by default. Deliberate versioning, synchronization, backup, movement, sharing, publishing, or external transmission remains a user choice governed by the applicable repository and authorization policy.
+
+#### 4.2.1 `app/Knowledge/Databases/`
+
+Contains live user-owned canonical databases.
+
+For the Foundation version, each database root is a **direct child** of `app/Knowledge/Databases/`. Nested database roots and category directories are not part of the v1 Foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
+
+The current `app/Knowledge/Databases/` boundary supersedes the immediately previous `app/Databases/` canonical boundary. Moving database roots from `app/Databases/<Database Name>/` to `app/Knowledge/Databases/<Database Name>/` changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses the previous path. The same approved transition also moves the Inbox from `app/Inbox/` to `app/Knowledge/Inbox/`, establishing `app/Knowledge/` as the shared user-owned knowledge boundary. An affected live development instance requires an explicit preservation-oriented transition that moves each database root intact, moves Inbox contents intact, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the previous paths, and validates the resulting database roots before the transition is considered complete. The transition does not change database identity, structural lineage, canonical note meaning, Inbox semantics, or the database-manifest schema, so `manifest_version` remains `1`. The change requires a System Specification version boundary under the versioning policy once specification-version numbering is defined.
+
+The earlier `app/Db/` → `app/Databases/` relocation remains part of ShardBase's architectural history; it is not the current canonical path and does not alter the requirements of this newer transition.
 
 Live database contents are local and private by default. They must not enter the distributable framework repository, framework releases, public repositories, or external transmissions merely because they exist inside the ShardBase project tree. Versioning, synchronization, backup, movement, or sharing of a live database must result from a deliberate user choice. A user may intentionally version a database, including in a private Git repository, without changing the framework-wide default.
 
 Database-owned specialist Agent resources live in the optional root-level `Agents/` directory and remain portable with their database. Placement follows ownership: an Agent primarily owned by one database remains in that database's `Agents/` directory even when its documented scope permits reading other authorized databases. Cross-database access does not transfer Agent ownership, redefine another database's schema, or change the Agent's canonical home. Database-owned templates likewise remain inside the database boundary so creation guidance can travel with the schema and conventions it implements. Agent or template content may travel with a deliberately moved or shared database, but architectural and semantic authority must remain in this specification and the database's documented contract rather than only in an Agent or template definition. Database-local Agent files are knowledge resources; their presence does not make ShardBase an AI runtime or integration layer.
+
+#### 4.2.2 `app/Knowledge/Inbox/`
+
+Contains local, user-owned, unverified, pre-structural capture awaiting review and classification. Inbox contents are private and ignored by the framework repository by default.
+
+The Inbox remains outside every database even though it now shares the broader `app/Knowledge/` boundary with canonical databases. Its location does not assign database ownership, structural lineage, database-specific schema, or canonical status. The Inbox is not a database and is not a documentation directory.
 
 ### 4.3 `app/Docs/`
 
@@ -317,29 +339,23 @@ Because `app/Docs/` is committed and distributable by default, its contents must
 
 Filesystem location does not itself create architectural authority; documents must retain their documented role and authority.
 
-### 4.4 `app/Inbox/`
-
-Contains local, user-owned, unverified, pre-structural capture awaiting review and classification. Inbox contents are private and ignored by the framework repository by default.
-
-The Inbox is not a database and is not a documentation directory.
-
-### 4.5 `app/Registry/`
+### 4.4 `app/Registry/`
 
 Contains framework-owned global discovery and navigation infrastructure for databases in the current ShardBase instance. Generic Registry queries, views, templates, or discovery logic may be committed.
 
 Committed Registry resources must not require actual user database names or private knowledge to be embedded in distributable source. They should discover authorized local databases at runtime where practical. User-specific generated inventories, caches, or other Registry-derived state inherit the sensitivity of the local information they contain and remain local by default. Registry infrastructure may inspect authorized local state without gaining permission to publish or persist that private state into the committed framework surface.
 
-### 4.6 `app/Scripts/`
+### 4.5 `app/Scripts/`
 
 Contains optional framework-owned reusable automation, validation, maintenance, migration, conversion, creation, querying, or future CLI-support code.
 
 Scripts do not become architecturally authoritative merely by implementing behavior. They must implement this specification. Private one-user automation does not become framework-distributed merely because it is physically placed beneath `app/Scripts/`.
 
-Generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, build artifacts, and other recreatable machine-specific state are not durable framework content and should remain outside the ShardBase project or durable vault surface where practical. This reduces filesystem noise and unnecessary synchronization burden, particularly when a user deliberately places ShardBase in a cloud-synchronized location. No package manager or runtime layout is part of the foundation contract until an implementation requires one.
+Generated runtimes, virtual environments, installed dependencies, caches, indexes, embeddings, temporary files, build artifacts, and other recreatable machine-specific state are not durable framework content and should remain outside the ShardBase project or durable vault surface where practical. This reduces filesystem noise and unnecessary synchronization burden, particularly when a user deliberately places ShardBase in a cloud-synchronized location. No package manager or runtime layout is part of the Foundation contract until an implementation requires one.
 
-### 4.7 Repository Ownership, Privacy, and Distribution
+### 4.6 Repository Ownership, Privacy, and Distribution
 
-Git policy follows ownership and intended distribution rather than filesystem path alone. Framework-owned material intended for distribution is committed by default. User-owned live state is local and private by default. Live database state, Inbox contents, user-owned agents and customizations, sensitive generated state, credentials, and machine-specific runtime artifacts must be ignored by the framework repository unless the user deliberately establishes a different repository policy.
+Git policy follows ownership and intended distribution rather than filesystem path alone. Framework-owned material intended for distribution is committed by default. User-owned knowledge beneath `app/Knowledge/` is local and private by default. Live database state, Inbox contents, user-owned agents and customizations, sensitive generated state, credentials, and machine-specific runtime artifacts must be ignored by the framework repository unless the user deliberately establishes a different repository policy.
 
 Commit eligibility is determined by ownership, intended distribution, and the information a file contains. Putting private user data inside a normally committed framework directory does not make it framework data. Likewise, output generated by committed framework tooling does not become publishable merely because the generator is public. Generated and derived artifacts inherit the sensitivity of the information they contain.
 
@@ -522,7 +538,7 @@ Links or descriptions for relevant Views, attachment-placement guidance across c
 
 ShardBase's primary day-to-day interaction surface is the user's chosen compatible Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly; routine prose, heading, list, link, embed, and metadata editing must not require a CLI or AI agent.
 
-Creation and editing are distinct concerns. ShardBase recommends two primary paths for new notes. A note intended to become canonical knowledge under `app/Databases/` should normally be created through the ShardBase CLI so placement, metadata, naming, lineage, and validation can be applied consistently. An ordinary note created ad hoc through the user's Markdown editor or directly through the filesystem should normally enter `app/Inbox/` as pre-structural capture.
+Creation and editing are distinct concerns. ShardBase recommends two primary paths for new notes. A note intended to become canonical knowledge under `app/Knowledge/Databases/` should normally be created through the ShardBase CLI so placement, metadata, naming, lineage, and validation can be applied consistently. An ordinary note created ad hoc through the user's Markdown editor or directly through the filesystem should normally enter `app/Knowledge/Inbox/` as pre-structural capture.
 
 The CLI is the intended framework-owned canonical creation surface and should be introduced at the earliest architecturally responsible opportunity once the contracts it operates on are sufficiently settled. Its first implementation should remain narrow and deterministic rather than attempting to become the complete product. Canonical CLI creation must validate applicable structural and database-semantic constraints before writing and must refuse to create canonical state that violates required metadata, value shapes, bounded values, lineage, naming, flat-or-workspace placement, or other documented constraints. When a lineage already has a Core workspace, creation should place new structural descendants in that workspace; otherwise the lineage remains flat unless a deliberate bundling refactor creates the workspace. Database-owned templates may provide starting document shape or defaults, but templates do not define validity; the applicable contracts and schema do. The exact runtime, schema-validation technology, and mature CLI UX remain implementation-defined until implementation requires them. Knowledgeable users retain the ability to create canonical files manually, but editor-created canonical files are outside the recommended two-path workflow and remain subject to the same structural and validation requirements. Promotion from Inbox into a database requires classification and conformance to the destination database contract.
 
@@ -568,9 +584,13 @@ A terminal structural note in a Core lineage. It has a valid immediate parent bu
 
 An unresolved wikilink for a plausible future structural note that does not yet earn materialization. It has no file or structural YAML and may remain unresolved indefinitely.
 
+### Knowledge Boundary
+
+The canonical local `app/Knowledge/` boundary for user-owned ShardBase knowledge. It contains `Inbox/` for unresolved pre-structural capture and `Databases/` for resolved canonical databases while preserving their distinct semantics.
+
 ### Database
 
-A self-contained, user-owned knowledge boundary that is a direct child of `app/Databases/`, governed by its root `Database.md`, and contains one or more declared data collections.
+A self-contained, user-owned canonical knowledge boundary that is a direct child of `app/Knowledge/Databases/`, governed by its root `Database.md`, and contains one or more declared data collections.
 
 ### Database Ownership
 
@@ -991,7 +1011,7 @@ A missing local attachment reference should be reported as unavailable rather th
 
 ## 15. Inbox
 
-`app/Inbox/` is the local intake boundary for information that has not yet been verified, classified, or assigned to a database. It is also the default destination for ordinary ad-hoc new notes created through a Markdown editor or directly through the filesystem when they have not been created through a ShardBase-aware canonical creation path.
+`app/Knowledge/Inbox/` is the local intake boundary for information that has not yet been verified, classified, or assigned to a database. It is also the default destination for ordinary ad-hoc new notes created through a Markdown editor or directly through the filesystem when they have not been created through a ShardBase-aware canonical creation path.
 
 Inbox items are intentionally pre-structural.
 
@@ -1023,7 +1043,7 @@ app/Registry/Registry.md
 
 Its purpose is discovery and navigation.
 
-For the foundation repository, database roots are direct children of `app/Databases/`, and each valid database root contains `Database.md`.
+For the foundation repository, database roots are direct children of `app/Knowledge/Databases/`, and each valid database root contains `Database.md`.
 
 The registry may discover manifests through their location and required manifest metadata. Committed Registry infrastructure should discover local state without embedding the user's database inventory in distributable source. Generated Registry state that contains user-specific database information is local by default.
 
@@ -1061,8 +1081,8 @@ ShardBase treats lifecycle as a progression of increasingly deliberate represent
 
 ShardBase recommends two primary entry paths for new notes:
 
-1. canonical notes intended for `app/Databases/` should normally be created through the CLI;
-2. ad-hoc notes created through the user's Markdown editor or filesystem should normally enter `app/Inbox/`.
+1. canonical notes intended for `app/Knowledge/Databases/` should normally be created through the CLI;
+2. ad-hoc notes created through the user's Markdown editor or filesystem should normally enter `app/Knowledge/Inbox/`.
 
 Users retain direct control of their files and may intentionally create canonical notes manually, but manual canonical creation is outside the recommended path and remains subject to the complete documented contract. New information may also be incorporated into an existing canonical note without creating a new file.
 
@@ -1239,7 +1259,7 @@ When auditing structural content, validate the following.
 
 ### 21.1 Database Contract
 
-- The database is a direct child of `app/Databases/`.
+- The database is a direct child of `app/Knowledge/Databases/`.
 - `Database.md` exists at the database root.
 - Required manifest fields exist and use valid values.
 - `data_collections` is a non-empty list of unique declared collection names.
@@ -1315,7 +1335,7 @@ When auditing structural content, validate the following.
 - Inbox files are treated as pre-structural.
 - Inbox files are not required to satisfy database schemas.
 - Inbox contents are ignored by Git.
-- Ordinary ad-hoc editor or filesystem capture defaults to Inbox; canonical `app/Databases/` note creation should normally use the CLI.
+- Ordinary ad-hoc editor or filesystem capture defaults to Inbox; canonical `app/Knowledge/Databases/` note creation should normally use the CLI.
 - Promotion or incorporation applies proper classification and destination-database rules, and review does not require every Inbox item to become a new file.
 
 ## 22. Shard Response Contract

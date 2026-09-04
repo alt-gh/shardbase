@@ -3,13 +3,8 @@
 # =============================================================================
 
 # Local databases
-/app/Db/*
-!/app/Db/.gitkeep
-
-# Local inbox / unclassified captures
-/app/Inbox/*
-!/app/Inbox/.gitkeep
-
+/app/Knowledge/*
+!/app/Knowledge/.gitkeep
 
 # =============================================================================
 # Obsidian
