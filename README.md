@@ -219,7 +219,7 @@ ShardBase manages AI-related knowledge; it does not integrate with AI systems. F
 
 ## Structural and Semantic Metadata
 
-Every Core, Shard, and Pebble uses the universal structural fields:
+Every Core, Shard, and Pebble includes five structural fields plus the required common note fields `aliases`, `id`, and `tags`:
 
 ```yaml
 ---
@@ -228,10 +228,15 @@ pool: Pool Name
 core: "[[Canonical Core Note]]"
 parent_note:
 status: active
+aliases:
+id:
+tags:
 ---
 ```
 
-These fields record framework-level role, placement, lineage, and lifecycle state. `type`, `pool`, `core`, `parent_note`, and `status` are reserved structural fields whose universal meanings must not be repurposed for database-domain semantics. For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty. A Core and its structural descendants use the same canonical `pool` value. A database may define its permitted Pool vocabulary, but it does not redefine what `pool` means structurally.
+The five structural fields record framework-level role, placement, lineage, and lifecycle state. `type`, `pool`, `core`, `parent_note`, and `status` are reserved structural fields whose universal meanings must not be repurposed for database-domain semantics. For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty. A Core and its structural descendants use the same canonical `pool` value. A database may define its permitted Pool vocabulary, but it does not redefine what `pool` means structurally.
+
+`aliases`, `id`, and `tags` default to blank YAML values. Populated aliases and tags use lists of non-empty strings (`[]` is also valid); a populated ID uses a string. Existing values are preserved. These common fields do not establish lineage or replace canonical references, and IDs are not automatically generated. The requirement covers canonical notes, not documentation, manifests, Agent resources, Views, attachments, or Inbox captures. See [the required note metadata schema](app/Docs/Shard%20System%20Specification.md#8-required-note-metadata-schema) for the full contract.
 
 Domain-specific meaning belongs in separate database-defined semantic metadata, such as `entity_kind`, `developer`, `author`, `release_date`, `project_phase`, or `relationship_kind`. These are illustrative rather than universal fields; their meanings and constraints belong to the owning database's `Database.md`. Semantic metadata may inform a structural classification decision, but it never substitutes for or overrides structural metadata. In particular, `type` is never repurposed for semantic categories such as person, project, game, book, source, or organization, and structural `status` is not a substitute for a database-specific workflow or domain-state field.
 
@@ -314,7 +319,7 @@ Backward compatibility means preserving the documented meaning of older supporte
 
 ## Project Status
 
-The read-only validator and regression suite are available now. See [validation setup and supported scope](app/Scripts/README.md) for the required external Python environment, commands, and current limitations. It checks manifests, safe discovery, structural lineage, workspace placement, portable filenames under the supported title convention, and Markdown headings. Database-semantic validation and canonical creation remain unfinished.
+The read-only validator and regression suite are available now. See [validation setup and supported scope](app/Scripts/README.md) for the required external Python environment, commands, and current limitations. It checks manifests, required common note fields and their value shapes, safe discovery, structural lineage, workspace placement, portable filenames under the supported title convention, and Markdown headings. Database-semantic validation and canonical creation remain unfinished.
 
 ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Goals and Non-Goals, Design Principles, Foundation Success Criteria, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, the Knowledge Boundary Model, Canonical Database Experience, Knowledge Lifecycle, Database Ownership Model, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Milestone 1 — Define the Product is complete. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
 

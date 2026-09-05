@@ -4,6 +4,9 @@ pool: Examples
 core: "[[Example]]"
 parent_note: "[[Example]]"
 status: active
+aliases:
+id:
+tags:
 entity_kind: topic
 ---
 # Weapons

@@ -67,7 +67,7 @@ Supporting knowledge should remain ordinary Markdown headings or sections inside
 
 ## Schema
 
-The universal structural fields `type`, `pool`, `core`, `parent_note`, and `status` retain their System Specification meanings and are not redefined here.
+The five universal structural fields and the required common note fields `aliases`, `id`, and `tags` retain their System Specification meanings and value shapes. Every Core, Shard, and Pebble includes all eight fields; the three common fields default to blank YAML values. This database does not add an ID convention or required alias/tag vocabulary.
 
 The initial Games semantic schema is deliberately small. Unless stated otherwise, these fields apply to Game Cores only and are optional. Omitted optional fields mean the database does not currently assert that fact.
 
@@ -219,7 +219,7 @@ A reference guide may contain a clearly labeled temporary run checklist with che
 
 ### Templates
 
-No database-owned template is required by the initial contract. If a starter template is added later, it should provide only deterministic structural YAML, applicable semantic fields, and minimal body scaffolding justified by this contract; it must not prescribe substantive game prose or create additional structural notes from headings.
+No database-owned template is required by the initial contract. If a starter template is added later, it should provide only deterministic required note YAML (including blank `aliases`, `id`, and `tags` defaults), applicable semantic fields, and minimal body scaffolding justified by this contract; it must not prescribe substantive game prose or create additional structural notes from headings.
 
 ### Agents
 

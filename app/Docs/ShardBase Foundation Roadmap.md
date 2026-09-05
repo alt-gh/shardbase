@@ -2158,6 +2158,9 @@ reserved_structural_fields:
   - `type`, `pool`, `core`, `parent_note`, and `status` are the reserved universal structural fields.
   - Their field names and universal meanings must not be repurposed for database-domain semantics.
   - Database contracts may define the permitted Pool vocabulary, but they do not redefine what `pool` means structurally.
+required_common_note_fields:
+  - `aliases`, `id`, and `tags` are required on every Core, Shard, and Pebble, with blank YAML defaults, under System Specification Section 8.6.
+  - These reserved common fields are non-structural. Populated aliases and tags are lists of non-empty strings; IDs are strings, with no automatic generation or universal uniqueness requirement. Preserve existing values.
 examples_of_semantic_fields:
   - Illustrative, non-universal examples include `entity_kind`, `developer`, `author`, `publisher`, `release_date`, `series`, `genre`, `project_phase`, `relationship_kind`, and `source_kind`.
   - Their applicability, meanings, value shapes, and allowed values are defined by the owning database rather than by ShardBase universally.
@@ -2535,6 +2538,7 @@ validation_failure_behavior: print all discovered issues and return non-zero
 commit_24_subject: validate: add structural metadata validation
 commit_24_status: complete
 validate_required_structural_fields: type, pool, core, parent_note, and status
+validate_required_common_note_fields: aliases, id, and tags; blank defaults accepted; aliases/tags accept lists of non-empty strings including empty lists; id accepts strings; missing keys and incompatible shapes produce read-only diagnostics
 validate_type: core, shard, or pebble only
 validate_pool: non-empty scalar string; supporting notes must match their root Core's Pool; database-local vocabularies are not automatically interpreted
 validate_core: supporting notes resolve to a Core; Cores self-reference
@@ -2600,6 +2604,7 @@ fixture_bad_heading_structure: covered by test mutation, including fenced-code e
 fixture_workspace_placement: temporary bundled, split, foreign-lineage, misnamed, and nested-directory cases
 fixture_boundary_escape: traversal, absolute paths, and symlink escapes; tests assert outside contents are not read
 fixture_yaml_compatibility: valid flow/block collections, comments, escaped strings, multiline values, aliases/merges, malformed documents, duplicate keys, and unsupported versions
+fixture_common_note_metadata: all three structural types include blank aliases/id/tags; regression coverage checks missing keys, empty/populated values, invalid shapes, unchanged structural resolution, and preservation during validation
 fixture_blueprint_package: file-only copy proves tracked scaffolding preserves the required directory structure
 fixture_fragmentation_case: 
 fixture_attachment_violation: 
@@ -2902,6 +2907,11 @@ decision_needing_research_03:
 ---
 
 ## 12. Review Log
+
+review_required_common_note_metadata:
+  - The approved requirement applies to every Core, Shard, and Pebble. `aliases`, `id`, and `tags` are required common note fields with blank YAML defaults; framework documentation, manifests, Agent resources, Views, attachments, and Inbox captures retain their existing contracts.
+  - System Specification `foundation-2` records this breaking universal schema change and its bounded preservation-oriented transition. `manifest_version` remains `1`. Existing values must be preserved; missing fields may be added under authorization after retaining a recoverable local copy, and incompatible existing values require deliberate resolution.
+  - The README, Agent instructions, Games blueprint guidance, sanitized fixtures, and read-only validator reflect the contract. No live database notes were present in this checkout to migrate. Canonical creation tooling and generalized automated migration remain unfinished.
 
 evaluation_followup_2026_09_05:
   - Approved evaluation follow-up adds root structural-placement diagnostics and enforces the existing manifest heading contract while preserving ordinary root resources and excluded resource subtrees.

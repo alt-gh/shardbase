@@ -1,6 +1,6 @@
 # Shard — System Specification
 
-Specification version: `foundation-1` (2026-09-05). This is the first explicitly recorded Foundation version; its predecessor was unversioned. Section 19.2 records the compatibility boundary.
+Specification version: `foundation-2` (2026-09-05). This version requires common note metadata in addition to the structural fields. Section 19.2 records the compatibility boundaries and preservation-oriented transitions.
 
 ## 1. Purpose and Authority
 
@@ -122,6 +122,8 @@ None of these layers should silently substitute for another.
 
 ShardBase structural metadata is universal metadata that records a structural note's framework-level role, placement, lineage, and lifecycle state so humans and compliant tooling can interpret and validate its ShardBase structure consistently. The reserved universal structural fields are `type`, `pool`, `core`, `parent_note`, and `status`. Their field names and universal meanings must not be repurposed for database-domain semantics. Database contracts may define the permitted Pool vocabulary, but they do not redefine what `pool` means structurally.
 
+The common note fields `aliases`, `id`, and `tags` are also universally required, with blank defaults and shared meanings defined in Section 8.6. They provide non-structural note metadata; universal requiredness does not make them lineage fields.
+
 Database-specific semantic metadata describes what a note represents in its domain, including domain-specific properties, classifications, and relationships needed for reliable interpretation, querying, validation, or automation. Illustrative semantic fields include `entity_kind`, `developer`, `author`, `publisher`, `release_date`, `series`, `genre`, `project_phase`, `relationship_kind`, and `source_kind`. These examples are not universal ShardBase fields; their applicability, meanings, value shapes, and allowed values are defined by the owning database.
 
 A field is structural when its meaning must be shared across every compliant ShardBase database to establish or validate ShardBase architectural role, placement, lineage, or universal lifecycle state. A field is semantic when it describes domain-specific identity, properties, taxonomy, state, or relationships. Semantic metadata may inform a structural classification decision, but it never substitutes for or overrides authoritative structural metadata.
@@ -236,7 +238,7 @@ ShardBase uses three distinct levels of documented database behavior:
 2. **Database contract** — the database root's `Database.md` defines how that database represents and operates on the particular domain of knowledge it owns, including its purpose, scope, declared data collections and their meanings, Pool vocabulary, Core strategy, semantic schema, domain-specific note kinds, relationships, conventions, lifecycle concepts, views, templates and other resources, and permitted local extensions.
 3. **Existing valid convention** — established local patterns may guide continuity when several choices remain valid under both higher authorities, but they are preferences rather than hidden contractual requirements. Existing content may demonstrate a preference; it must not secretly define a required contract.
 
-Local rules may extend or specialize only areas the universal contract intentionally leaves open. They must not redefine reserved structural fields, Pool → Core → Shard → Pebble semantics, structural lineage authority, database ownership boundaries, filename and placement invariants, the terminal nature of Pebbles, structural-versus-semantic separation, hidden-state prohibitions, or universal ownership, privacy, preservation, authorization, and change-safety requirements. A conflicting local rule is invalid rather than an authorized exception.
+Local rules may extend or specialize only areas the universal contract intentionally leaves open. They must not redefine reserved structural or common note fields, Pool → Core → Shard → Pebble semantics, structural lineage authority, database ownership boundaries, filename and placement invariants, the terminal nature of Pebbles, structural-versus-semantic separation, hidden-state prohibitions, or universal ownership, privacy, preservation, authorization, and change-safety requirements. A conflicting local rule is invalid rather than an authorized exception.
 
 Conversely, domain-specific entities, semantic fields, data-collection names and meanings, Pool vocabularies, taxonomies, relationships, local lifecycle concepts, note-body templates, views, workflows, and implementation technologies must not be promoted into universal architecture merely because one or several databases find them useful. Reuse across databases is evidence to evaluate, not automatic grounds for universalization.
 
@@ -738,9 +740,11 @@ The existence of a heading, including a heading in a template or heading-only sk
 
 A semantic relationship such as membership in a category, series, collection, franchise, organization, or project does not automatically create structural lineage. Data-collection membership likewise does not create structural lineage.
 
-## 8. Structural Metadata Schema
+## 8. Required Note Metadata Schema
 
-Every structural note must contain:
+Every Core, Shard, and Pebble must contain all five structural fields and the three common note fields `aliases`, `id`, and `tags`. Required presence does not require a populated value for the common fields; creation defaults each of them to a blank YAML value (null). This requirement applies to canonical structural notes, including blueprint and template material intended to create them. It does not impose note metadata on framework documentation, `Database.md`, Agent resources, Views, attachments, or pre-structural Inbox captures.
+
+Required keys (structural values must satisfy the rules below):
 
 ```yaml
 ---
@@ -749,6 +753,9 @@ pool:
 core:
 parent_note:
 status:
+aliases:
+id:
+tags:
 ---
 ```
 
@@ -804,7 +811,17 @@ Foundation lifecycle values are:
 
 A database may document additional semantic lifecycle fields, but it must not silently reinterpret the structural `status` field.
 
-### 8.6 Core Example
+### 8.6 Common Note Fields: `aliases`, `id`, and `tags`
+
+These are reserved universal common note fields, separate from the five structural fields. Databases must preserve their shared meanings and value shapes; none establishes structural lineage, Pool membership, canonical filenames, or lifecycle state.
+
+- `aliases`: alternative names for the note. The default is blank (YAML null). When populated, use a YAML list of non-empty strings; an empty list (`[]`) is also valid. Aliases do not replace canonical filenames or serve as structural `core` or `parent_note` targets.
+- `id`: a user-controlled identifier slot for the note. The default is blank (YAML null); otherwise it must be a scalar string, including an empty string. Quote numeric-looking identifiers to preserve their string value. Foundation does not generate IDs, require uniqueness or a particular format, or use this field for canonical identity or structural reference resolution. Any database-specific identifier convention must be explicit in `Database.md` and cannot replace the universal lineage contract.
+- `tags`: labels for organizing or querying the note. The default is blank (YAML null). When populated, use a YAML list of non-empty strings; an empty list (`[]`) is also valid. Tag vocabulary and any domain-specific meaning belong in the database contract when required for reliable interpretation. Tags do not substitute for `pool` or lineage.
+
+For list entries, non-empty means the string contains at least one non-whitespace character. Scalar strings, mappings, and non-string list entries are invalid for populated `aliases` and `tags`. Block and flow YAML lists are equally valid. Existing populated values must be preserved during updates; an empty default is not an instruction to clear them.
+
+### 8.7 Core Example
 
 ```yaml
 ---
@@ -813,10 +830,13 @@ pool: Roguelikes
 core: "[[Hades]]"
 parent_note:
 status: active
+aliases:
+id:
+tags:
 ---
 ```
 
-### 8.7 Shard Example
+### 8.8 Shard Example
 
 ```yaml
 ---
@@ -825,10 +845,13 @@ pool: Roguelikes
 core: "[[Hades]]"
 parent_note: "[[Hades]]"
 status: active
+aliases:
+id:
+tags:
 ---
 ```
 
-### 8.8 Pebble Example
+### 8.9 Pebble Example
 
 ```yaml
 ---
@@ -837,12 +860,15 @@ pool: Roguelikes
 core: "[[Hades]]"
 parent_note: "[[Hades - Weapons]]"
 status: active
+aliases:
+id:
+tags:
 ---
 ```
 
-### 8.9 Semantic Extensions
+### 8.10 Semantic Extensions
 
-Database-specific semantic metadata may be added below the universal structural fields when the owning database needs explicit domain properties, classifications, relationships, or other facts for reliable interpretation, querying, validation, or automation.
+Database-specific semantic metadata may be added below the required universal note fields when the owning database needs explicit domain properties, classifications, relationships, or other facts for reliable interpretation, querying, validation, or automation.
 
 Example:
 
@@ -853,6 +879,9 @@ pool: Roguelikes
 core: "[[Hades]]"
 parent_note:
 status: active
+aliases:
+id:
+tags:
 entity_kind: game
 developer: Supergiant Games
 release_date: 2020-09-17
@@ -1232,7 +1261,15 @@ The preservation-oriented transition for an affected local database is:
 3. Rename only the affected files/workspaces and update their dependent references together. Preserve display titles, bodies apart from necessary reference changes, semantic identity, lineage, attachments, and unrelated user-authored content. Do not silently synchronize a live database from a blueprint.
 4. Validate the resulting structure and applicable database semantics, check references and preserved content against the copy, and restore from that copy if the bounded transition cannot be completed safely.
 
-The current validator checks conformance to `foundation-1` in its documented scope; it neither identifies historical specification versions nor performs this migration. Incompatible names produce diagnostics for review. No live-data transformation is implied by updating the framework, and generalized version detection, migration execution, and compatibility matrices remain unfinished.
+`foundation-2` adds required `aliases`, `id`, and `tags` keys with the common note meanings and value shapes in Section 8.6. This is a universal schema change and is breaking for previously compliant notes that omit these keys or use incompatible values. Notes already satisfying the new requirements remain valid without transformation. The manifest contract is unchanged, so `manifest_version` remains `1`; it must not be used to infer which specification version authored a note.
+
+The bounded transition from `foundation-1` is:
+
+1. Review the target database's `Database.md`, canonical notes, and applicable note templates for missing keys and existing uses of `aliases`, `id`, or `tags`. Identify incompatible meanings or shapes for deliberate resolution; do not reinterpret, coerce, or clear existing values automatically.
+2. Before an authorized live-database update, retain a recoverable local copy and record the affected files. Add only missing keys with blank YAML values to canonical notes and applicable templates. Preserve existing values, other metadata, bodies, filenames, lineage, links, and attachments. Do not synchronize unrelated blueprint changes into the live database.
+3. Validate the resulting required keys and value shapes along with the existing structural and database contracts. Compare against the copy to verify preservation; restore the affected files if the bounded transition cannot be completed safely. An unresolved incompatible existing value remains a visible migration issue.
+
+The current validator checks conformance to `foundation-2` in its documented scope; it neither identifies historical specification versions nor performs either transition. Missing common fields and incompatible values produce diagnostics for review. No live-data transformation is implied by updating the framework, and generalized version detection, migration execution, and compatibility matrices remain unfinished.
 
 ### 19.3 Database Migration and Backward Compatibility
 
@@ -1307,7 +1344,9 @@ When auditing structural content, validate the following.
 
 ### 21.2 Metadata
 
-- Required structural fields exist.
+- All five required structural fields and `aliases`, `id`, and `tags` exist.
+- Common note fields satisfy Section 8.6; empty defaults are valid and existing populated values are preserved.
+- Common note fields do not redefine structural identity or participate in lineage resolution.
 - `type` is `core`, `shard`, or `pebble`.
 - `pool` is a scalar canonical Pool value.
 - Shards and Pebbles use the same canonical Pool value as their root Core.

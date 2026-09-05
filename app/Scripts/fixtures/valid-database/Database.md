@@ -28,7 +28,7 @@ The example uses one Core, one Shard, and one Pebble.
 
 ## Schema
 
-The `entity_kind` field is database-local semantic metadata.
+The required structural and common note fields follow the System Specification. `aliases`, `id`, and `tags` default to blank YAML values. The `entity_kind` field is database-local semantic metadata.
 
 ## Conventions
 

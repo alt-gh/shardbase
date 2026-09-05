@@ -50,7 +50,7 @@ class ValidatorTests(unittest.TestCase):
 
     def create_note(self, filename, title, kind="core", core=None, parent=None, directory=None):
         path = (directory or self.collection) / filename
-        metadata = dict(type=kind, pool="Examples", core=f"[[{core or path.stem}]]", parent_note=f"[[{parent}]]" if parent else None, status="active")
+        metadata = dict(type=kind, pool="Examples", core=f"[[{core or path.stem}]]", parent_note=f"[[{parent}]]" if parent else None, status="active", aliases=None, id=None, tags=None)
         path.write_text("---\n" + yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False) + f"---\n# {title}\n\nExample content.\n", encoding="utf-8")
         return path
 
@@ -63,6 +63,56 @@ class ValidatorTests(unittest.TestCase):
 
     def test_valid_database_passes(self):
         self.assertEqual(validate_database(self.database), [])
+
+    def test_common_fields_required_on_every_structural_type_without_rewriting(self):
+        for path in sorted(self.collection.glob("*.md")):
+            original = path.read_text(encoding="utf-8")
+            for field in ("aliases", "id", "tags"):
+                with self.subTest(note=path.name, field=field):
+                    path.write_text(original.replace(f"{field}:\n", ""), encoding="utf-8")
+                    before = path.read_bytes()
+                    issues = validate_database(self.database)
+                    self.assertTrue(any(issue.path == path and issue.code == "note-field" and f"'{field}'" in issue.message for issue in issues))
+                    self.assertEqual(path.read_bytes(), before)
+            path.write_text(original, encoding="utf-8")
+
+    def test_common_field_valid_shapes(self):
+        path = self.collection / "Example.md"
+        for field, values in (
+            ("aliases", (None, [], ["Another name", "Exemple"])),
+            ("tags", (None, [], ["games", "games/reference"])),
+            ("id", (None, "", "note-001", "001")),
+        ):
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    self.set_field(path, field, value)
+                    self.assertEqual(validate_database(self.database), [])
+
+    def test_common_field_invalid_shapes(self):
+        path = self.collection / "Example.md"
+        original = path.read_text(encoding="utf-8")
+        for field, values in (
+            ("aliases", ("", "Name", True, 1, {}, [None], [1], [False], [""], [" "], [["Name"]], [{}])),
+            ("tags", ("", "games", True, 1, {}, [None], [1], [False], [""], [" "], [["games"]], [{}])),
+            ("id", (True, 1, 1.5, [], ["note-001"], {}, {"value": "note-001"})),
+        ):
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    path.write_text(original, encoding="utf-8")
+                    self.set_field(path, field, value)
+                    self.assertIn(f"note-{field}", self.codes())
+
+    def test_common_fields_do_not_change_structural_resolution(self):
+        core = self.collection / "Example.md"
+        self.set_field(core, "aliases", ["Alternate"])
+        self.set_field(core, "id", "note-001")
+        self.set_field(core, "tags", ["Another Pool"])
+        self.assertEqual(validate_database(self.database), [])
+        shard = self.collection / "Example - Weapons.md"
+        for target in ("Alternate", "note-001"):
+            with self.subTest(target=target):
+                self.set_field(shard, "parent_note", f"[[{target}]]")
+                self.assertIn("parent-reference", self.codes())
 
     def test_root_structural_notes_are_reported_without_resolving_them(self):
         path = self.create_note("Misplaced.md", "Misplaced", directory=self.database)

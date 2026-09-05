@@ -22,6 +22,7 @@ except ModuleNotFoundError:
 
 MANIFEST_FIELDS = ("manifest_version", "database_id", "database_name", "data_collections", "database_status")
 STRUCTURAL_FIELDS = ("type", "pool", "core", "parent_note", "status")
+COMMON_NOTE_FIELDS = ("aliases", "id", "tags")
 VALID_TYPES = {"core", "shard", "pebble"}
 VALID_STATUSES = {"active", "draft", "archived"}
 REQUIRED_BODY_SECTIONS = ("Purpose", "Scope", "Includes", "Excludes", "Architecture", "Schema", "Conventions", "Resources")
@@ -381,6 +382,18 @@ def validate_database(root: Path) -> list[Issue]:
         for field in STRUCTURAL_FIELDS:
             if field not in metadata:
                 issues.append(Issue(note.path, "structural-field", f"missing required field '{field}'"))
+        for field in COMMON_NOTE_FIELDS:
+            if field not in metadata:
+                issues.append(Issue(note.path, "note-field", f"missing required field '{field}' (foundation-2); review the Section 19.2 transition"))
+                continue
+            value = metadata[field]
+            if field == "id":
+                if value is not None and not isinstance(value, str):
+                    issues.append(Issue(note.path, "note-id", "id must be empty or a scalar string"))
+            elif value is not None and not (
+                isinstance(value, list) and all(nonempty_string(item) for item in value)
+            ):
+                issues.append(Issue(note.path, f"note-{field}", f"{field} must be empty (null) or a list of non-empty strings"))
         if not scalar_choice(note_type, VALID_TYPES):
             issues.append(Issue(note.path, "structural-type", "type must be core, shard, or pebble"))
         if not nonempty_string(metadata.get("pool")):
