@@ -20,6 +20,8 @@ To inspect one database, append its root path to the validator command. The path
 
 Dependency installation downloads software; validation itself performs no network operations. Validation never writes, renames, repairs, or migrates canonical files. `-B` keeps Python bytecode out of the project, and dependency installation disables persistent pip caching and compilation.
 
+The repository runtime policy requires these artifacts to remain physically outside the project and vault; `.gitignore` only prevents tracking. Apply bytecode suppression to every Python entry point, including test discovery, custom import commands, and IDE runners: use `-B` or set `PYTHONDONTWRITEBYTECODE=1` in that runner's environment before starting Python. Keep virtual environments, dependencies, caches, and build output outside the vault as well. These settings prevent new bytecode files but do not remove an existing `__pycache__/` directory; inspect and remove stale generated files separately, preserving source files and user-owned knowledge.
+
 ## Implemented Checks
 
 - Discover every direct database directory, including incomplete roots missing `Database.md`; report discovery failures rather than treating them as an empty instance.

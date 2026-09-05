@@ -139,6 +139,18 @@ The Games database currently defines no additional semantic note-kind field. Str
 
 A new semantic note-kind system should be added only if real use shows that deterministic creation, interpretation, querying, or validation needs a bounded domain classification that cannot be represented adequately without it.
 
+### Supported Document Purposes
+
+The initial documentation workflows support three purposes. These are body-level purposes, not additional values of `type`, a required semantic discriminator, or a requirement to create three files for every game.
+
+| Purpose | Representation |
+|---|---|
+| Game reference | A Game Core containing broad reference knowledge and applicable Game Core metadata. |
+| Focused reference or guide | Ordinary content until independent materialization earns a Shard or terminal Pebble under the System Specification. Modes, systems, maps, quests, and procedural routes are possible subjects, not automatic structural levels. |
+| Completionist checklist | A personal completion record, normally a direct-child Shard named with the local node name `Completionist Checklist` when requested as an independent record. A smaller record may remain a section in an existing note. |
+
+Reference content explains the game; a completionist checklist records the user's progress. A guide's temporary execution checkboxes do not assert durable personal completion. Document purpose and checkbox meaning must be explicit in the containing note or section; tools must not classify them from filenames, indentation, or checkbox syntax alone.
+
 ## Conventions
 
 - A Game Core level-one heading uses the game's canonical human-facing title. Its filename uses the deterministic portable filename stem derived from that title by the System Specification; do not duplicate the title into semantic YAML merely for convenience.
@@ -150,6 +162,50 @@ A new semantic note-kind system should be added only if real use shows that dete
 - Missing optional semantic metadata is valid. Do not manufacture values solely to make notes look complete.
 - Supporting structural notes inherit the root Game Core's `pool: Games` and remain within the same database and Game lineage.
 - The initial database should preserve flat placement unless a specific Game lineage earns a Core workspace through concrete organizational value.
+
+### Document Scaffolding
+
+New documentation defaults to a compact, game-specific heading skeleton with a brief scope statement and valid structural metadata when canonical. Deliberately unfinished headings are permitted; use precise `TODO-DOC` markers to identify missing information, with one marker covering a group when its scope is clear. Headings do not require separate notes. Granular reference content and objective catalogs may be supplied by the user or developed when requested. A scaffold is not evidence of documentation or gameplay completeness, and this authoring default does not require removing existing content or restructuring valid notes.
+
+### Completion Records
+
+The following is the Games completion-record convention for newly authored checklists that explicitly adopt it in their scope or conventions section. It is optional for a valid Games database. Existing records retain their documented meanings; applying this convention to an existing record requires a deliberate, preservation-oriented transition. It does not introduce YAML fields or change structural `status` or semantic `play_state`.
+
+#### Scope and Completeness
+
+- A completion-bearing objective is a finite gameplay accomplishment included in the record's stated personal completion scope. State relevant game edition, platform differences, expansions, content snapshot, and exclusions where they affect that scope.
+- Equivalent shared objectives have one authoritative progress record. Distinct modes, difficulties, characters, or other independent completion axes remain separate when the game and the user's scope distinguish them.
+- Research establishes possible objectives, never personal completion. Research-only entries start unchecked with an empty timestamp.
+- Containers group objectives without checkboxes or timestamps. Indentation is grouping, not structural lineage or proof of completion.
+- `> **TODO-DOC:** [Specific gap or unresolved scope decision].` marks incomplete documentation, not a gameplay objective. A gap within tracked scope prevents a claim of authoritative completeness for that scope.
+- Documented-scope completion means all currently documented in-scope objectives are checked. Authoritative 100% completion additionally requires a verified objective set for the stated scope and no unresolved documentation gaps within it. Removing markers alone does not establish completeness. Do not infer 100% from an empty or unverified objective set.
+- New post-launch, seasonal, or expansion objectives enter personal scope only through a deliberate scope update. Research does not silently redefine an existing completion record.
+
+#### Completion State and Timestamps
+
+Use ordinary Markdown task items for completion-bearing objectives:
+
+```markdown
+- [ ] Objective `[Timestamp: ]`
+- [x] Objective `[Timestamp: 2026-01-02T15:04:05+00:00]`
+- [x] Objective `[Timestamp: Unknown]`
+```
+
+`Timestamp` means when the objective was completed, not when the note was created, researched, imported, or edited. A known timestamp uses `YYYY-MM-DDTHH:MM:SS±HH:MM` with an explicit UTC offset. `Unknown` preserves confirmed completion whose original time is unavailable; it does not mean incomplete. Never fabricate missing date, time, or timezone precision. Preserve any supplied partial time information in ordinary prose alongside `Unknown` until the full completion time is established.
+
+A checked objective with an empty timestamp or an unchecked objective with a non-empty timestamp is an integrity warning. Preserve both values and report the inconsistency; do not silently repair it. Changes to existing progress and timestamps require the user's authorized update or reconciliation.
+
+#### Dependencies and Summaries
+
+A completion dependency applies only when explicitly documented for that game and record. State the affected objectives, direction of implication, conditions, and timestamp behavior, including unknown or missing timestamps. A terminal milestone does not imply independent progression axes. A task item that merely aggregates other objectives is a rollup and is excluded from objective totals, even if nested among them.
+
+Optional completion summaries are explicitly labeled rollups over a stated scope, never additional gameplay objectives. A rollup can be complete only when every objective in that scope is complete and that scope's documentation is complete. Prefer derived summaries without stored checkboxes; if stored summary checkboxes are used, update them only during authorized reconciliation. Their timestamp records the completion that made the scope complete; use `Unknown` when that event's time cannot be established, and preserve/report inconsistent existing timestamps. Do not use the reconciliation time or guess a triggering event from an incomplete history.
+
+Game-specific completion criteria and dependencies are explicit record content governed by these conventions, not new database-wide rules. If a recurring interpretation or automated behavior needs a shared field or note-kind contract, extend this `Database.md` deliberately before relying on it.
+
+#### Execution Aids and Other Personal Records
+
+A reference guide may contain a clearly labeled temporary run checklist with checkboxes and no completion timestamps. These boxes track actions during a run and never enter completionist totals or automatically update personal history. Personal bests, loadouts, recommendations, and annotations remain distinct from completion-bearing objectives unless the record explicitly defines a finite objective around them; do not infer completion from them.
 
 ## Resources
 
@@ -167,7 +223,9 @@ No database-owned template is required by the initial contract. If a starter tem
 
 ### Agents
 
-No database-owned specialist Agent resource is required by the initial contract. If one is added later, it remains an optional user-owned database resource after materialization and cannot override the System Specification or this `Database.md`.
+The Games blueprint ships [Vera](Agents/Vera.md), an optional specialist Agent resource for Game Core references, focused references and guides, and completionist checklists. Vera operationalizes this contract; it does not define additional schema or architectural authority. A valid Games database does not require Vera or any AI assistance.
+
+The shipped definition is framework-owned bootstrap material. When materialized into a new database's `Agents/` directory, that copy becomes user-owned and portable with the database. Later blueprint edits do not update the live copy or its contract; adopting them requires an explicit preservation-oriented migration. ShardBase stores the resource but does not execute Vera, connect to an AI provider, or transmit database content. Any external use is a separate workflow deliberately controlled by the user.
 
 ### Scripts
 
