@@ -33,4 +33,6 @@ Follow [validator setup and scope](../Scripts/README.md) to install its pinned d
 
 Detected issues use stable issue codes and cause a non-zero exit status. An empty `app/Knowledge/Databases/` is valid during bootstrap and reports that no databases were found. Passing means the implemented structural checks passed, not that every database-semantic requirement was validated. The Registry query filters direct version-1 manifest locations for navigation; it does not certify manifest or database validity.
 
+The validator targets System Specification `foundation-1`, including normalized wikilink-safe filenames, manifest heading structure, and review of misplaced root structural declarations. Registry `manifest_version = 1` filtering identifies the manifest schema only; it does not establish specification-version compatibility.
+
 Python bytecode, virtual environments, package installations, Node dependencies, test caches, and other generated runtime state must remain outside the vault. The `-B` flag prevents the validator command from creating `__pycache__/` files.

@@ -1,5 +1,7 @@
 # Shard — System Specification
 
+Specification version: `foundation-1` (2026-09-05). This is the first explicitly recorded Foundation version; its predecessor was unversioned. Section 19.2 records the compatibility boundary.
+
 ## 1. Purpose and Authority
 
 This document defines the universal architectural contract for ShardBase and the operating contract for **Shard**, its canonical primary AI database agent.
@@ -317,7 +319,7 @@ Contains live user-owned canonical databases.
 
 For the Foundation version, each database root is a **direct child** of `app/Knowledge/Databases/`. Nested database roots and category directories are not part of the v1 Foundation contract. Within a database, `Data/` contains one or more declared database-specific data collections. These collection directories organize database-owned files but do not define structural lineage.
 
-The current `app/Knowledge/Databases/` boundary supersedes the immediately previous `app/Databases/` canonical boundary. Moving database roots from `app/Databases/<Database Name>/` to `app/Knowledge/Databases/<Database Name>/` changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses the previous path. The same approved transition also moves the Inbox from `app/Inbox/` to `app/Knowledge/Inbox/`, establishing `app/Knowledge/` as the user-owned knowledge boundary for a given local instance. An affected local database copy requires an explicit preservation-oriented transition that moves each database root intact, moves Inbox contents intact, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the previous paths, and validates the resulting database roots before the transition is considered complete. The transition does not change database identity, structural lineage, canonical note meaning, Inbox semantics, or the database-manifest schema, so `manifest_version` remains `1`. The change requires a System Specification version boundary under the versioning policy once specification-version numbering is defined.
+The current `app/Knowledge/Databases/` boundary supersedes the immediately previous `app/Databases/` canonical boundary. Moving database roots from `app/Databases/<Database Name>/` to `app/Knowledge/Databases/<Database Name>/` changes required canonical placement and is therefore a breaking universal architectural change for existing state that still uses the previous path. The same approved transition also moves the Inbox from `app/Inbox/` to `app/Knowledge/Inbox/`, establishing `app/Knowledge/` as the user-owned knowledge boundary for a given local instance. An affected local database copy requires an explicit preservation-oriented transition that moves each database root intact, moves Inbox contents intact, updates framework discovery, validation, ignore, view, script, and documentation assumptions that encode the previous paths, and validates the resulting database roots before the transition is considered complete. The transition does not change database identity, structural lineage, canonical note meaning, Inbox semantics, or the database-manifest schema, so `manifest_version` remains `1`. This previously approved boundary is included in the first recorded specification version, `foundation-1`; its historical placement transition remains separately required for affected older state.
 
 The earlier `app/Db/` → `app/Databases/` relocation remains part of ShardBase's architectural history; it is not the current canonical path and does not alter the requirements of this newer transition.
 
@@ -868,9 +870,9 @@ Canonical structural names are human-facing names and may contain characters tha
 Derive a portable filename component deterministically as follows:
 
 1. Start with the canonical structural name exactly as established for the entity or local node.
-2. Replace every ASCII control character from `U+0000` through `U+001F` and every character in the portable forbidden set `< > : " / \ | ? *` with one ASCII space.
+2. Replace every ASCII control character from `U+0000` through `U+001F` and every character in the portable forbidden set `< > : " / \ | ? * # [ ]` with one ASCII space. The wikilink delimiters `#`, `[` and `]` are excluded so a derived filename can be addressed unambiguously by structural wikilinks.
 3. Collapse consecutive whitespace to one ASCII space and trim leading and trailing whitespace.
-4. Remove trailing periods, then trim trailing whitespace again.
+4. Remove the entire trailing sequence of ASCII spaces and periods, including alternating spaces and periods, so the result ends in neither. For example, `Game. .` becomes `Game`.
 5. If the result is empty, `.` or `..`, materialization must stop and the name must be meaningfully disambiguated; tooling must not invent an opaque placeholder solely to force a filename.
 6. If the resulting component case-insensitively equals a Windows reserved device stem — `CON`, `PRN`, `AUX`, `NUL`, `COM1` through `COM9`, or `LPT1` through `LPT9` — prefix one underscore (`_`).
 7. Do not otherwise transliterate Unicode, change case, remove allowed punctuation, abbreviate, or rewrite words merely to make a filename look simpler.
@@ -888,6 +890,8 @@ Call of Duty Black Ops 6.md
 ```
 
 Portable normalization is applied independently to every structural name component used in supporting filenames and Core-workspace names. If two different canonical names normalize to the same expected filename, the existing filename-collision rule applies; normalization must not silently merge or overwrite knowledge.
+
+Structural wikilinks target the derived filename stem or an unambiguous supported path to it, not the unnormalized display title. For example, `Game #1` uses `Game 1.md` and `core: "[[Game 1]]"`, while its opening heading remains `# Game #1`. A heading fragment or display alias may follow the filename target without changing the selected note; `[[Game 1#Overview|Game #1]]` still selects `Game 1.md`. The same normalization applies to bracketed names, such as `Game [Remastered]` becoming `Game Remastered.md`.
 
 ### 9.2 Supporting Filenames
 
@@ -1215,11 +1219,20 @@ Schema change therefore describes what changed, breaking change describes its co
 
 ### 19.2 Version Boundaries
 
-The System Specification must change version whenever its normative universal architectural contract changes, including architectural extensions, universal schema changes, added or removed universal invariants, materially changed authoritative meanings, breaking universal changes, or changed universal compatibility, interoperability, ownership, privacy, or safety obligations. Purely editorial corrections, non-normative examples, formatting changes, and true architectural clarifications do not require a new specification version. The exact specification-version numbering scheme remains intentionally deferred to the dedicated Specification Versioning Policy.
+The System Specification must change version whenever its normative universal architectural contract changes, including architectural extensions, universal schema changes, added or removed universal invariants, materially changed authoritative meanings, breaking universal changes, or changed universal compatibility, interoperability, ownership, privacy, or safety obligations. Purely editorial corrections, non-normative examples, formatting changes, and true architectural clarifications do not require a new specification version. During Foundation, record the version at the top of this document as `foundation-N`, incrementing the positive integer for each normative universal contract update. This minimal recording rule does not define a release-version scheme or a supported historical-version matrix.
 
 `manifest_version` is narrower. It changes only when the database-manifest contract changes in a way that compatible readers, validators, creators, or migrations need to distinguish. A System Specification version change does not automatically require a manifest-version change, and database-local semantic-schema changes do not use `manifest_version` as their version identifier.
 
-The portable-filename rule introduced in Section 9 is a normative universal naming change and therefore requires a System Specification version boundary once the Specification Versioning Policy defines how that version is recorded. It is breaking for any previously compliant canonical file whose current filename cannot remain valid under the portable derivation unchanged, because such state requires a preservation-oriented rename and dependent-reference update. Existing canonical files whose filenames already equal their newly derived portable filenames remain valid unchanged. `manifest_version` remains `1` because the database-manifest contract is unaffected.
+`foundation-1` records the boundary from the unversioned Foundation contract, including the portable-filename contract and its approved corrections: normalize wikilink delimiters and remove the entire trailing sequence of spaces and periods. These are normative naming-constraint changes, breaking for state whose filename derivation changes. They are not merely editorial clarifications. Existing files whose names already equal the current derivation remain valid unchanged. `manifest_version` remains `1`; manifest heading checks enforce the already-required body structure and introduce no new manifest fields or schema shapes.
+
+The preservation-oriented transition for an affected local database is:
+
+1. Review its `Database.md`, canonical names, existing filenames, workspace names, and dependent references against the old and current derivations. Do not infer its authored specification version from `manifest_version: 1`.
+2. Preserve a recoverable local copy before an explicitly authorized migration. Identify every affected note, workspace, structural reference, ordinary link, and path-based resource reference. Resolve derived-name collisions through deliberate meaningful disambiguation before any rename.
+3. Rename only the affected files/workspaces and update their dependent references together. Preserve display titles, bodies apart from necessary reference changes, semantic identity, lineage, attachments, and unrelated user-authored content. Do not silently synchronize a live database from a blueprint.
+4. Validate the resulting structure and applicable database semantics, check references and preserved content against the copy, and restore from that copy if the bounded transition cannot be completed safely.
+
+The current validator checks conformance to `foundation-1` in its documented scope; it neither identifies historical specification versions nor performs this migration. Incompatible names produce diagnostics for review. No live-data transformation is implied by updating the framework, and generalized version detection, migration execution, and compatibility matrices remain unfinished.
 
 ### 19.3 Database Migration and Backward Compatibility
 
@@ -1307,7 +1320,7 @@ When auditing structural content, validate the following.
 ### 21.3 Naming
 
 - Each canonical structural name component derives its filesystem representation through the deterministic portable filename transformation in Section 9.1.
-- Portable filenames contain no ASCII control characters or characters in the forbidden set `< > : " / \ | ? *`, do not end in spaces or periods, and do not use an unescaped Windows reserved device stem.
+- Portable filenames contain no ASCII control characters or characters in the forbidden set `< > : " / \ | ? * # [ ]`, do not end in spaces or periods, and do not use an unescaped Windows reserved device stem.
 - Core filenames use the portable filename component derived from the canonical Core name.
 - Direct Core children use `Core - Current Node.md` naming after portable normalization of each component.
 - Deeper descendants use `Core - Immediate Parent - Current Node.md` naming after portable normalization of each component.

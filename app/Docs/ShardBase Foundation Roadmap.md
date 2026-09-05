@@ -2436,11 +2436,11 @@ change_approval_model:
 
 commit_17_subject: docs: define specification versioning policy
 commit_17_status: planned
-system_spec_version_scheme: 
+system_spec_version_scheme: minimal Foundation recording established in System Specification Section 19.2; foundation-N increments for normative universal changes, beginning with foundation-1; release versioning and historical compatibility remain unfinished
 manifest_version_scheme: 
 semantic_schema_versioning_expectation: 
 when_to_increment_versions: 
-how_versions_are_recorded: 
+how_versions_are_recorded: current specification version at the top of the System Specification; compatibility boundary and preservation-oriented transition in Section 19.2
 how_old_versions_are_supported: 
 versioning_non_goals: 
 
@@ -2523,7 +2523,7 @@ validate_database_md_exists: required
 validate_manifest_fields: all five required fields
 validate_manifest_values: manifest_version 1 and active/draft/archived database_status
 validate_data_collections: non-empty unique declared directories, each with root Attachments/; direct-child Core workspaces are optional and are not additional data collections
-validate_required_body_sections: Purpose, Scope, Includes, Excludes, Architecture, Schema, Conventions, Resources
+validate_required_body_sections: opening H1; H2 Purpose, Scope, Architecture, Schema, Conventions, Resources; H3 Includes and Excludes beneath Scope; heading depth and spacing checked
 validate_required_directories: declared collections, root Attachments/, and Views/; empty Views/ is valid
 validate_yaml: pinned safe YAML parser; duplicate keys, malformed frontmatter, invalid shapes, and unsupported manifest versions produce diagnostics
 validate_path_boundary: reject collection paths and resolved escapes before reading contents; database-root symlinks require ownership review
@@ -2572,6 +2572,7 @@ validate_file_location: canonical notes may live at declared collection roots or
 validate_filename_metadata_consistency: enforced
 validate_naming_scope: default H1-as-canonical-entity/local-node convention; alternate database display-title conventions require a database-aware adapter; see app/Scripts/README.md
 validate_resource_scope: Attachments/ excluded; other nested workspace directories receive resource-contract review diagnostics without recursive structural discovery
+validate_root_placement: direct root Markdown declaring type, core, or parent_note receives note-location and is excluded from structural resolution; ordinary root resources remain non-structural
 
 ### Commit 27 — Markdown Structure Checks
 
@@ -2669,13 +2670,13 @@ foundation_portable_filename_scope:
   - The issue is universal rather than Games-specific because any database may own canonical names containing characters that are unsafe across supported filesystems.
 foundation_portable_filename_rule:
   - Each canonical structural name derives a portable filename component before Core, supporting-note, or Core-workspace filenames are composed.
-  - ASCII control characters and `< > : " / \ | ? *` are replaced with spaces; whitespace is collapsed and trimmed; trailing periods are removed; Windows reserved device stems are escaped with a leading underscore; other Unicode, case, allowed punctuation, and words are preserved.
+  - ASCII control characters and `< > : " / \ | ? * # [ ]` are replaced with spaces; whitespace is collapsed and trimmed; the entire trailing sequence of spaces and periods is removed; Windows reserved device stems are escaped with a leading underscore; other Unicode, case, allowed punctuation, and words are preserved.
   - Empty, `.` or `..` results block materialization and require meaningful disambiguation rather than an opaque invented placeholder.
   - Portable-normalization collisions use the existing collision rule and must never silently overwrite or merge knowledge.
 foundation_portable_filename_display_rule:
   - Filename normalization changes only filesystem representation. The level-one heading preserves the canonical human-facing title, and YAML remains authoritative for structural lineage.
 foundation_portable_filename_change_classification:
-  - This is a normative universal naming change and requires a System Specification version boundary once the planned Specification Versioning Policy defines the recording scheme.
+  - This is a normative universal naming change. System Specification foundation-1 now records the boundary from the unversioned predecessor, including the approved wikilink-delimiter and trailing-space/period corrections.
   - It is breaking only for existing canonical state whose filenames cannot remain compliant unchanged and therefore need an explicit preservation-oriented rename with dependent references updated.
   - Existing filenames already equal to their portable derived form remain valid unchanged.
   - `manifest_version` remains `1` because the database-manifest contract is unchanged.
@@ -2901,6 +2902,12 @@ decision_needing_research_03:
 ---
 
 ## 12. Review Log
+
+evaluation_followup_2026_09_05:
+  - Approved evaluation follow-up adds root structural-placement diagnostics and enforces the existing manifest heading contract while preserving ordinary root resources and excluded resource subtrees.
+  - The naming contract now normalizes wikilink delimiters and removes alternating trailing spaces and periods. Regression cases cover complete normalized lineages/workspaces, aliases/fragments, collisions, unusable names, malformed manifest hierarchy, and root read boundaries.
+  - System Specification foundation-1 records this normative naming boundary and a bounded preservation-oriented transition; manifest_version remains 1. Historical-version inference, automated migration, semantic validation, and end-to-end canonical creation proof remain unfinished.
+  - The evaluated local instance contained no live databases. This follow-up changes framework files and tests only; no live knowledge is created, moved, renamed, or synchronized.
 
 implementation_review_2026_09_05:
   - User-approved repository evaluation fixes replace the ad-hoc YAML parser, enforce collection/read boundaries, discover incomplete databases and workspace notes, validate lineage/Pool/archive consistency, derive portable names, and preserve Games blueprint scaffolding in Git.

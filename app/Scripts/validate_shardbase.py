@@ -25,7 +25,7 @@ STRUCTURAL_FIELDS = ("type", "pool", "core", "parent_note", "status")
 VALID_TYPES = {"core", "shard", "pebble"}
 VALID_STATUSES = {"active", "draft", "archived"}
 REQUIRED_BODY_SECTIONS = ("Purpose", "Scope", "Includes", "Excludes", "Architecture", "Schema", "Conventions", "Resources")
-FORBIDDEN = re.compile(r'[\x00-\x1f<>:"/\\|?*]')
+FORBIDDEN = re.compile(r'[\x00-\x1f<>:"/\\|?*#\[\]]')
 DEVICE_STEMS = {"CON", "PRN", "AUX", "NUL"} | {f"{prefix}{i}" for prefix in ("COM", "LPT") for i in range(1, 10)}
 
 
@@ -116,13 +116,15 @@ def children(path: Path, issues: list[Issue]) -> list[Path]:
         return []
 
 
-def load_note(path: Path, root: Path, issues: list[Issue], kind: str = "structural") -> Note | None:
+def load_note(path: Path, root: Path, issues: list[Issue], kind: str = "structural", require_frontmatter: bool = True) -> Note | None:
     if not within_boundary(path, root, issues):
         return None
     try:
         text = path.read_text(encoding="utf-8-sig")
     except (OSError, UnicodeError):
         issues.append(Issue(path, "read-error", "file could not be read as UTF-8"))
+        return None
+    if not require_frontmatter and (not text.splitlines() or text.splitlines()[0] != "---"):
         return None
     try:
         metadata, body = parse_frontmatter(text)
@@ -173,7 +175,7 @@ def primary_title(note: Note) -> str | None:
 
 
 def portable_component(name: str) -> str | None:
-    component = " ".join(FORBIDDEN.sub(" ", name).split()).rstrip(".").rstrip()
+    component = " ".join(FORBIDDEN.sub(" ", name).split()).rstrip(" .")
     if component in {"", ".", ".."}:
         return None
     return "_" + component if component.upper() in DEVICE_STEMS else component
@@ -277,10 +279,30 @@ def validate_database(root: Path) -> list[Issue]:
         issues.append(Issue(manifest_path, "manifest-type", "Database.md is not a structural note and must not declare type"))
     if not scalar_choice(metadata.get("database_status"), VALID_STATUSES):
         issues.append(Issue(manifest_path, "manifest-status", "database_status must be active, draft, or archived"))
-    sections = {title for _, _, title in headings(manifest.body)}
+    check_markdown(manifest, issues)
+    sections = set()
+    scope = False
+    for _, level, title in headings(manifest.body):
+        if level <= 2:
+            scope = level == 2 and title == "Scope"
+        if level == 2 and title not in {"Includes", "Excludes"}:
+            sections.add(title)
+        elif level == 3 and scope and title in {"Includes", "Excludes"}:
+            sections.add(title)
     for section in REQUIRED_BODY_SECTIONS:
         if section not in sections:
-            issues.append(Issue(manifest_path, "manifest-section", f"missing required body section '{section}'"))
+            issues.append(Issue(manifest_path, "manifest-section", f"missing required body section '{section}' at its required level and scope"))
+
+    # Inspect root files only for misplaced structural declarations; ordinary
+    # resources are not canonical candidates or participants in link resolution.
+    for path in children(root, issues):
+        if path == manifest_path or path.suffix != ".md":
+            continue
+        if not within_boundary(path, root, issues) or path.is_dir():
+            continue
+        note = load_note(path, root, issues, "root", require_frontmatter=False)
+        if note and any(field in note.metadata for field in ("type", "core", "parent_note")):
+            issues.append(Issue(path, "note-location", "structural declarations at the database root must be reviewed for placement inside a declared collection"))
 
     collections = metadata.get("data_collections")
     if not isinstance(collections, list) or not collections or any(not nonempty_string(item) for item in collections):

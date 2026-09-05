@@ -64,6 +64,40 @@ class ValidatorTests(unittest.TestCase):
     def test_valid_database_passes(self):
         self.assertEqual(validate_database(self.database), [])
 
+    def test_root_structural_notes_are_reported_without_resolving_them(self):
+        path = self.create_note("Misplaced.md", "Misplaced", directory=self.database)
+        self.set_field(self.collection / "Example - Weapons.md", "parent_note", "[[Misplaced]]")
+        issues = validate_database(self.database)
+        self.assertTrue(any(issue.path == path and issue.code == "note-location" for issue in issues))
+        self.assertIn("parent-reference", {issue.code for issue in issues})
+
+    def test_root_resources_are_not_structural_notes(self):
+        (self.database / "README.md").write_text("Resource documentation without frontmatter.\n")
+        (self.database / "Resource.md").write_text("---\ndescription: Local resource\n---\nResource content.\n")
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_root_malformed_and_unreadable_files_are_reported(self):
+        (self.database / "Broken.md").write_text("---\ntype: [core\n---\n")
+        (self.database / "Unreadable.md").write_bytes(b"\xff")
+        self.assertTrue({"root-frontmatter", "read-error"} <= self.codes())
+
+    def test_manifest_heading_contract(self):
+        manifest = self.database / "Database.md"
+        original = manifest.read_text()
+        for old, new, code in (
+            ("# Example Database", "Example Database", "heading"),
+            ("### Includes", "###### Includes", "manifest-section"),
+            ("### Excludes", "## Excludes", "manifest-section"),
+            ("### Includes", "## Other\n\n### Includes", "manifest-section"),
+            ("## Schema", "### Schema", "manifest-section"),
+            ("## Purpose\n\n", "## Purpose\n", "heading-blank-line"),
+        ):
+            with self.subTest(new=new):
+                manifest.write_text(original.replace(old, new))
+                self.assertIn(code, self.codes())
+        manifest.write_text(original + "\n```markdown\n###### Example only\n```\n")
+        self.assertEqual(validate_database(self.database), [])
+
     def test_missing_manifest_field_is_reported(self):
         manifest = self.database / "Database.md"
         manifest.write_text(manifest.read_text().replace("database_status: active\n", ""), encoding="utf-8")
@@ -179,7 +213,7 @@ class ValidatorTests(unittest.TestCase):
             self.assertTrue(path.resolve().is_relative_to(self.database))
             return original_read(path, *args, **kwargs)
 
-        for location in ("Database.md", "Data", "Data/Game", "Data/Game/Example.md", "Data/Game/Attachments", "Data/Game/EscapedWorkspace"):
+        for location in ("Database.md", "Escaped.md", "Data", "Data/Game", "Data/Game/Example.md", "Data/Game/Attachments", "Data/Game/EscapedWorkspace"):
             with self.subTest(location=location):
                 path = self.database / location
                 backup = path.with_name(path.name + ".backup")
@@ -306,6 +340,30 @@ class ValidatorTests(unittest.TestCase):
         self.set_field(self.collection / "Example - Weapons - Blade.md", "type", "shard")
         self.create_note("Example - Blade - Aspect.md", "Aspect", "pebble", "Example", "Example - Weapons - Blade")
         self.assertEqual(validate_database(self.database), [])
+
+    def test_wikilink_delimiters_normalize_in_every_name_component(self):
+        self.create_note("Game 1.md", "Game #1")
+        self.create_note("Game 1 - Weapons primary.md", "Weapons [primary]", "shard", "Game 1", "Game 1")
+        self.create_note("Game 1 - Weapons primary - Blade 2.md", "Blade #2", "pebble", "Game 1", "Game 1 - Weapons primary")
+        workspace = self.collection / "Game 1"
+        workspace.mkdir()
+        for path in self.collection.glob("Game 1*.md"):
+            path.rename(workspace / path.name)
+        self.set_field(workspace / "Game 1 - Weapons primary.md", "parent_note", "[[Game 1#Overview|Game #1]]")
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_wikilink_normalization_collisions_and_legacy_names(self):
+        self.create_note("Game #1.md", "Game #1")
+        self.create_note("Game 1.md", "Game 1")
+        self.assertTrue({"filename", "filename-portable", "filename-collision"} <= self.codes())
+
+    def test_alternating_trailing_spaces_and_periods(self):
+        self.create_note("Game.md", "Game. .")
+        self.create_note("Game - Topic.md", "Topic. . .", "shard", "Game", "Game")
+        self.create_note("_CON.md", "CON. .")
+        self.assertEqual(validate_database(self.database), [])
+        self.create_note("Unusable.md", ". . .")
+        self.assertIn("filename-name", self.codes())
 
     def test_delimiter_inside_canonical_name_is_not_extra_ancestry(self):
         core = "Alpha - Beta"
