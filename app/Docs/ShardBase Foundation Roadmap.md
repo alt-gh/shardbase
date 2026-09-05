@@ -2,7 +2,7 @@
 
 document_purpose: Working template for defining, reviewing, and completing the ShardBase foundation stage.
 document_role: Planning and brainstorming document; not an architectural authority.
-recommended_repository_path: app/Docs/ShardBase - Foundation Roadmap Workbook.md
+recommended_repository_path: app/Docs/ShardBase Foundation Roadmap.md
 current_stage: foundation
 roadmap_status: approved for exploration and execution
 working_method: Fill in each value after the colon. Use additional indented lines or bullets when a value needs more detail.
@@ -27,7 +27,7 @@ structural_model: Pool → Core → Shard → Pebble
 supporting_filename_strategy: Deterministic portable filename components plus bounded Core context — canonical structural names are normalized only as required for cross-filesystem safety before composing `Core - Current Node.md` for direct Core children and `Core - Immediate Parent - Current Node.md` for deeper descendants; supporting filenames remain capped at three structural context components, and collisions (including normalization collisions) are reported and resolved through meaningful disambiguation rather than additional ancestry.
 primary_agent: Shard
 agent_architecture_status: accepted conceptual ownership, authority, customization, and cooperation boundaries; database-local `Agents/` is canonical and optional; placement follows database ownership rather than total authorized read scope; internal Agent package anatomy remains minimal and need-driven; framework-agent and user-local-agent filesystem locations remain intentionally deferred until concrete requirements justify them
-architectural_source_of_truth: app/Docs/Shard - System Specification.md
+architectural_source_of_truth: app/Docs/Shard System Specification.md
 database_local_authority: Each database's root-level Database.md
 repository_default: Framework-distributed material is committed by default; user-owned live state is local and private by default, with live databases, Inbox contents, user-owned agents and customizations, and sensitive derived state excluded unless the user deliberately chooses otherwise.
 knowledge_boundary_model: accepted — `app/Knowledge/` is the canonical local boundary for user-owned ShardBase knowledge; `Knowledge/Inbox/` holds unresolved pre-structural capture and `Knowledge/Databases/` holds resolved canonical databases, preserving the invariant that every direct child of `Knowledge/Databases/` is a database.
@@ -2495,8 +2495,8 @@ milestone_5_goal: Turn the foundation specification into the smallest useful set
 
 commit_21_subject: blueprint: add minimal database blueprint
 commit_21_status: complete
-blueprint_minimum_contents: app/Blueprints/Example Database with Database.md, one declared collection with root Attachments/, Views/, sanitized flat structural notes, and optional Core-workspace examples only when needed to prove the placement contract
-blueprint_manifest_defaults: manifest_version 1, stable database_id, database_name, one non-empty data_collections list, and draft database_status
+blueprint_minimum_contents: app/Blueprints/Games with Database.md, Data/Game/Attachments/, and Views/; tracked .gitkeep files preserve empty directories; sanitized structural examples live separately in app/Scripts/fixtures/valid-database
+blueprint_manifest_defaults: manifest_version 1, database_id games, database_name Games, data_collections [Game], and the explicitly approved active database_status
 blueprint_placeholder_policy: blueprint content is sanitized and reusable; no private live data is copied
 blueprint_views_policy: Views/ is present but may remain empty
 blueprint_structural_content_policy: structural YAML and minimal Markdown scaffolding only; domain prose remains database-owned
@@ -2509,8 +2509,8 @@ commit_22_subject: registry: define database discovery contract
 commit_22_status: complete
 registry_discovery_source: direct app/Knowledge/Databases children containing root-level Database.md
 registry_valid_database_test: manifest identifies a direct database root and uses manifest_version 1
-registry_display_fields: database_name, database_status, and data_collections/data_folder in the Dataview projection
-registry_invalid_database_behavior: invalid or incomplete roots are not treated as valid registry entries and are reported by the validator
+registry_display_fields: database_name, database_status, and data_collections in the Dataview projection
+registry_invalid_database_behavior: the view filters direct version-1 manifest locations but does not certify validity; the validator examines every direct database directory, including missing manifests, and reports detected errors
 registry_authority_boundary: Registry is navigational; Database.md remains authoritative
 registry_manual_vs_generated_behavior: discovery is runtime-based; no generated inventory is required
 
@@ -2524,6 +2524,9 @@ validate_manifest_fields: all five required fields
 validate_manifest_values: manifest_version 1 and active/draft/archived database_status
 validate_data_collections: non-empty unique declared directories, each with root Attachments/; direct-child Core workspaces are optional and are not additional data collections
 validate_required_body_sections: Purpose, Scope, Includes, Excludes, Architecture, Schema, Conventions, Resources
+validate_required_directories: declared collections, root Attachments/, and Views/; empty Views/ is valid
+validate_yaml: pinned safe YAML parser; duplicate keys, malformed frontmatter, invalid shapes, and unsupported manifest versions produce diagnostics
+validate_path_boundary: reject collection paths and resolved escapes before reading contents; database-root symlinks require ownership review
 validation_output_format: human-readable path, stable issue code, and message
 validation_failure_behavior: print all discovered issues and return non-zero
 
@@ -2533,7 +2536,7 @@ commit_24_subject: validate: add structural metadata validation
 commit_24_status: complete
 validate_required_structural_fields: type, pool, core, parent_note, and status
 validate_type: core, shard, or pebble only
-validate_pool: non-empty scalar string
+validate_pool: non-empty scalar string; supporting notes must match their root Core's Pool; database-local vocabularies are not automatically interpreted
 validate_core: supporting notes resolve to a Core; Cores self-reference
 validate_parent_note: Core is empty; supporting notes resolve to an existing note
 validate_status: active, draft, or archived
@@ -2548,31 +2551,34 @@ validate_parent_exists: enforced
 validate_no_self_parent: enforced
 validate_no_cycles: enforced
 validate_no_self_ancestor: enforced by cycle traversal
-validate_root_core: enforced through core resolution
+validate_root_core: enforced through unambiguous core resolution, parent/Core agreement, and parent-chain traversal to the declared root
 validate_pebble_terminal: enforced
+validate_archived_ancestors: active descendants beneath archived structural ancestors are reported; database archival does not require per-note status duplication
 validate_missing_parent_behavior: reported without guessing a replacement
 
 ### Commit 26 — Naming and Placement Checks
 
 commit_26_subject: validate: add naming and placement checks
 commit_26_status: complete
-validate_core_filename: canonical stem
+validate_core_filename: portable filename derived from the opening H1 under the documented supported title convention
 validate_supporting_filename: Core - Current Node or Core - Immediate Parent - Current Node
 validate_bounded_core_context: enforced
 validate_immediate_parent_current_node_naming: enforced
-validate_max_three_filename_components: enforced
+validate_max_three_filename_components: compose at most Core, immediate parent, and local node; a canonical name containing the literal delimiter remains one name component
 validate_no_full_ancestry_accumulation: enforced
 validate_filename_collision: report colliding expected filenames with stable issue code
 validate_primary_heading: level-one heading followed by a blank line
 validate_file_location: canonical notes may live at declared collection roots or directly inside one valid Core workspace for their lineage; nested structural directories are invalid, a lineage may not be split across flat and workspace placement, and workspace paths never resolve filename collisions
 validate_filename_metadata_consistency: enforced
+validate_naming_scope: default H1-as-canonical-entity/local-node convention; alternate database display-title conventions require a database-aware adapter; see app/Scripts/README.md
+validate_resource_scope: Attachments/ excluded; other nested workspace directories receive resource-contract review diagnostics without recursive structural discovery
 
 ### Commit 27 — Markdown Structure Checks
 
 commit_27_subject: validate: add markdown structure checks
 commit_27_status: complete
-validate_heading_sequence: minimum heading check implemented; full heading-depth validation remains follow-up work
-validate_heading_blank_line: enforced for the opening level-one heading
+validate_heading_sequence: incremental top-level ATX heading levels checked outside fenced code blocks
+validate_heading_blank_line: exactly one following blank line checked for top-level ATX headings; leading body blank lines after YAML accepted
 validate_structural_heading_usage: structural notes require a level-one opening heading
 validate_empty_headings: deferred
 markdown_validation_scope: focused Foundation proof scope, not a complete Markdown linter
@@ -2583,13 +2589,17 @@ commit_28_subject: test: add canonical validation fixtures
 commit_28_status: complete
 fixture_valid_database: app/Scripts/fixtures/valid-database
 fixture_invalid_manifest: covered by test mutation
-fixture_invalid_type: follow-up fixture
-fixture_invalid_core: follow-up fixture
-fixture_missing_parent: follow-up fixture
+fixture_invalid_type: covered by test mutation, including list and mapping shapes
+fixture_invalid_core: covered by test mutation, including ambiguous and cross-lineage references
+fixture_missing_parent: covered by test mutation
 fixture_cycle: covered by test mutation
 fixture_pebble_parent: covered by test mutation
 fixture_bad_filename: covered by test mutation
-fixture_bad_heading_structure: follow-up fixture
+fixture_bad_heading_structure: covered by test mutation, including fenced-code exclusion
+fixture_workspace_placement: temporary bundled, split, foreign-lineage, misnamed, and nested-directory cases
+fixture_boundary_escape: traversal, absolute paths, and symlink escapes; tests assert outside contents are not read
+fixture_yaml_compatibility: valid flow/block collections, comments, escaped strings, multiline values, aliases/merges, malformed documents, duplicate keys, and unsupported versions
+fixture_blueprint_package: file-only copy proves tracked scaffolding preserves the required directory structure
 fixture_fragmentation_case: 
 fixture_attachment_violation: 
 fixture_inbox_case: 
@@ -2684,7 +2694,7 @@ example_database_scope: intentionally non-private example content only
 example_database_complexity: one Core, one Shard, and one Pebble
 example_database_lineages: Example -> Weapons -> Blade
 example_database_views: empty Views/ boundary
-example_database_attachments: root collection Attachments/ plus one optional Core-workspace Attachments/ example proving database-level ownership and database-wide reference scope
+example_database_attachments: root collection Attachments/ in the committed fixture; tests construct a temporary Core-workspace Attachments/ example to verify discovery exclusion; attachment-reference auditing remains unimplemented
 example_database_reason_for_inclusion: provide a committed, inspectable proof fixture without user data
 
 ### Commit 30 — End-to-End Shard Workflow
@@ -2797,9 +2807,9 @@ definition_of_done_status: approved
 
 dod_purpose_is_explicit: complete
 dod_target_users_are_explicit: complete
-dod_primary_use_cases_are_explicit: incomplete
-dod_goals_are_explicit: incomplete
-dod_non_goals_are_explicit: incomplete
+dod_primary_use_cases_are_explicit: complete
+dod_goals_are_explicit: complete
+dod_non_goals_are_explicit: complete
 
 ### Architecture
 
@@ -2819,14 +2829,14 @@ dod_breaking_change_expectations_are_defined: incomplete
 ### Understandability
 
 dod_newcomer_can_understand_without_source_code: incomplete
-dod_complete_example_database_exists: incomplete
+dod_complete_example_database_exists: complete — sanitized structural fixture; broader end-to-end workflow proof remains in progress
 dod_good_and_bad_examples_exist: incomplete
 
 ### Implementability
 
-dod_minimal_blueprint_exists: incomplete
+dod_minimal_blueprint_exists: complete — Games contract and tracked required directory scaffolding
 dod_structural_rules_can_be_validated_deterministically: specification-exists-implementation-incomplete
-dod_validation_fixtures_prove_expected_behavior: incomplete
+dod_validation_fixtures_prove_expected_behavior: partial — implemented structural checks have regression coverage; semantic, attachment-reference, fragmentation, and broader Foundation proof remain incomplete
 
 ### Stability
 
@@ -2891,6 +2901,12 @@ decision_needing_research_03:
 ---
 
 ## 12. Review Log
+
+implementation_review_2026_09_05:
+  - User-approved repository evaluation fixes replace the ad-hoc YAML parser, enforce collection/read boundaries, discover incomplete databases and workspace notes, validate lineage/Pool/archive consistency, derive portable names, and preserve Games blueprint scaffolding in Git.
+  - Regression coverage includes valid states as well as the formerly accepted invalid states, no-read boundary assertions, read-only validation, and CLI failure behavior.
+  - app/Scripts/README.md records runtime setup outside the vault, supported title/link/resource conventions, compatibility effects, and the remaining semantic and Foundation proof limitations.
+  - This is implementation and supporting-documentation alignment with accepted architectural rules, not a System Specification change, manifest-version change, live-database migration, or Foundation sign-off.
 
 review_round_01_date: 
 review_round_01_focus: 

@@ -129,7 +129,7 @@ ShardBase distinguishes framework-owned agents, database-owned specialist agents
 
 When operating on a database, Shard follows this authority order:
 
-1. `app/Docs/Shard - System Specification.md` — universal ShardBase rules.
+1. `app/Docs/Shard System Specification.md` — universal ShardBase rules.
 2. The target database's `Database.md` — database-local purpose, scope, schema, and conventions.
 3. Existing valid database content — continuity and established local practice.
 4. The current user request — desired outcome, subject to structural validity and change-safety rules.
@@ -142,8 +142,8 @@ shardbase/
 ├── app/
 │   ├── Blueprints/
 │   ├── Docs/
-│   │   ├── Shard - System Specification.md
-│   │   └── ShardBase - Foundation Roadmap Workbook.md
+│   │   ├── Shard System Specification.md
+│   │   └── ShardBase Foundation Roadmap.md
 │   ├── Knowledge/
 │   │   ├── Inbox/
 │   │   └── Databases/
@@ -314,6 +314,8 @@ Backward compatibility means preserving the documented meaning of older supporte
 
 ## Project Status
 
+The read-only validator and regression suite are available now. See [validation setup and supported scope](app/Scripts/README.md) for the required external Python environment, commands, and current limitations. It checks manifests, safe discovery, structural lineage, workspace placement, portable filenames under the supported title convention, and Markdown headings. Database-semantic validation and canonical creation remain unfinished.
+
 ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Goals and Non-Goals, Design Principles, Foundation Success Criteria, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, the Knowledge Boundary Model, Canonical Database Experience, Knowledge Lifecycle, Database Ownership Model, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Milestone 1 — Define the Product is complete. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
 
 The foundation standardizes durable and observable contracts before locking in replaceable implementation details. Its accepted success standard is that product direction is explicit, architecture is coherent and deterministic where appropriate, safety and user control are built into normal operation, the system remains understandable without hidden dependencies, and initial tooling can implement the documented contracts without inventing foundational meaning. Stability does not mean freezing ShardBase; implementation may still discover details, but it should no longer have to invent architecture.
@@ -322,4 +324,4 @@ A minimal CLI may begin as soon as the creation contracts it depends on are suff
 
 The architectural source of truth is:
 
-`app/Docs/Shard - System Specification.md`
+`app/Docs/Shard System Specification.md`

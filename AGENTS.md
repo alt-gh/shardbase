@@ -18,7 +18,7 @@ Treat user customization as a specialization or restriction layer, not as permis
 
 Before making structural or architectural changes, follow this authority order:
 
-1. `app/Docs/Shard - System Specification.md`
+1. `app/Docs/Shard System Specification.md`
 2. The target database's root-level `Database.md`
 3. Existing valid local conventions in that database
 4. The current user request

@@ -34,6 +34,8 @@ The `entity_kind` field is database-local semantic metadata.
 
 Pool values use readable domain names.
 
+The Core's opening level-one heading records its canonical entity name. Each supporting note's opening level-one heading records its canonical local node name; its filename supplies bounded Core and immediate-parent context under the System Specification.
+
 ## Resources
 
 Attachments remain inside the collection boundary.
