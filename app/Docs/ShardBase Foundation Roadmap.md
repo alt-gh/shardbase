@@ -2908,6 +2908,24 @@ decision_needing_research_03:
 
 ## 12. Review Log
 
+review_cli_unverified_inbox_capture_2026_09_05:
+  - Supersedes the parent-eligibility gate below. All three types can be created as Inbox captures without existing ancestors; supporting starters leave `core` and `parent_note` blank. Filenames use the entered title without lineage-derived context. Creation does not check structural or semantic conformance.
+  - An optional alias prompt immediately follows type selection. A supplied alias is written as a one-item YAML string list; skipping preserves the template default. `--alias ""` supports unattended skipping; `--parent` has been removed with the parent picker.
+  - Template parsing and file-preservation safeguards remain. Live database validation is a separate read-only command used at promotion; there is no automatic move watcher. Existing notes, live templates, and canonical contracts remain unchanged. Specification `foundation-2` and manifest version `1` are unchanged.
+
+review_cli_structural_type_selection_2026_09_05:
+  - Historical implementation; the parent-selection and lineage-validation behavior is superseded by review_cli_unverified_inbox_capture_2026_09_05 above.
+  - `new` now prompts for Core, Shard, or Pebble, with eligible Core/Shard parent selection for supporting notes. Root Core links and bounded filenames derive from explicit YAML lineage and local titles. Inbox drafts may be selected as provisional ancestors; promotion and canonical ownership remain separate deliberate decisions.
+  - The Games blueprint supplies separate minimal supporting templates. Live template adoption remains deliberate; existing files and metadata are never rewritten. No universal schema or specification version changes are needed to exercise these existing structural roles.
+  - The terminal flow adds readable menus, type explanations, optional color, and a compact result summary using the existing runtime. `--type`, `--parent`, and `--no-color` support explicit command usage; omitted type selection prompts. Domain-template selection and automatic promotion remain deferred.
+
+review_minimal_note_cli_2026_09_05:
+  - The initial `new` command creates required Game Core YAML with a draft status and only a title H1. Inbox writes to `Knowledge/Inbox/`; Databases writes to `Knowledge/Inbox/Staged/` for editor review. Both remain pre-structural captures pending deliberate promotion.
+  - System Specification §5.3 already establishes database-root `Templates/` as the canonical template location. The Games blueprint now supplies an optional `Templates/Game.md`; live database templates take precedence, and no blueprint changes are synchronized into live databases. Instances without a live Games database can prepare provisional captures using their blueprint.
+  - This is a tooling subset of the existing Inbox and promotion contracts. Staged is not a new lifecycle status, database, or mandatory universal step; specification `foundation-2` and `manifest_version: 1` remain unchanged. No existing durable state requires migration.
+  - The CLI reuses the existing Python/PyYAML runtime and shared validation helpers. Runtime environments, dependencies, bytecode, and test instances remain outside the vault. Regression coverage exercises destinations, template ownership, metadata, naming, cancellation, preservation, and filesystem boundaries.
+  - Direct canonical creation, automated promotion, database creation commands, template selection, and body generation remain deferred. No live knowledge was created or migrated to implement this MVP; verification uses temporary isolated instances.
+
 review_required_common_note_metadata:
   - The approved requirement applies to every Core, Shard, and Pebble. `aliases`, `id`, and `tags` are required common note fields with blank YAML defaults; framework documentation, manifests, Agent resources, Views, attachments, and Inbox captures retain their existing contracts.
   - System Specification `foundation-2` records this breaking universal schema change and its bounded preservation-oriented transition. `manifest_version` remains `1`. Existing values must be preserved; missing fields may be added under authorization after retaining a recoverable local copy, and incompatible existing values require deliberate resolution.

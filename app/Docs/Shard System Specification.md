@@ -1082,6 +1082,10 @@ During review, an Inbox item may be discarded, incorporated into an existing can
 
 The CLI is the recommended path for creating new canonical database notes directly. Intentional manual canonical creation remains possible for knowledgeable users, but notes created ad hoc through a Markdown editor or filesystem should normally enter Inbox rather than bypass classification merely because a file can physically be placed inside a database.
 
+The initial CLI implements a limited review workflow: its Inbox choice writes to `app/Knowledge/Inbox/`, and its Databases choice prepares a draft in `app/Knowledge/Inbox/Staged/`. Both remain pre-structural Inbox captures even when they contain proposed database YAML. `Staged/` is an implementation convention within Inbox, not a database, structural lifecycle value, or mandatory architectural stage. This implementation does not yet create canonical database files or perform promotion; the canonical creation and promotion requirements above still apply. See [CLI tooling](../Scripts/README.md) for its supported template and command behavior.
+
+Within this draft-only workflow, choosing Core, Shard, or Pebble records intended structure without requiring existing ancestors or structural/semantic validation. Supporting drafts may leave lineage fields blank, and an optional alias may be captured for review. Conformance is required at canonical promotion; the CLI does not automatically validate files moved through an editor or filesystem.
+
 Promotion requires classification under this specification and conformance to the destination `Database.md`.
 
 Inbox contents must be ignored by the framework repository by default and must not be externally transmitted merely because framework tooling can read them. Deliberate external versioning or sharing remains a user choice.

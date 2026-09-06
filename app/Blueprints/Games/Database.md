@@ -167,6 +167,8 @@ Reference content explains the game; a completionist checklist records the user'
 
 New documentation defaults to a compact, game-specific heading skeleton with a brief scope statement and valid structural metadata when canonical. Deliberately unfinished headings are permitted; use precise `TODO-DOC` markers to identify missing information, with one marker covering a group when its scope is clear. Headings do not require separate notes. Granular reference content and objective catalogs may be supplied by the user or developed when requested. A scaffold is not evidence of documentation or gameplay completeness, and this authoring default does not require removing existing content or restructuring valid notes.
 
+Empty-note creation is a narrower authoring operation: the starter Game template provides required YAML and only the game's title as an H1. Body development remains a separate user-directed step; no scope statement, additional headings, or prose is inserted by the initial CLI.
+
 ### Completion Records
 
 The following is the Games completion-record convention for newly authored checklists that explicitly adopt it in their scope or conventions section. It is optional for a valid Games database. Existing records retain their documented meanings; applying this convention to an existing record requires a deliberate, preservation-oriented transition. It does not introduce YAML fields or change structural `status` or semantic `play_state`.
@@ -219,7 +221,15 @@ A reference guide may contain a clearly labeled temporary run checklist with che
 
 ### Templates
 
-No database-owned template is required by the initial contract. If a starter template is added later, it should provide only deterministic required note YAML (including blank `aliases`, `id`, and `tags` defaults), applicable semantic fields, and minimal body scaffolding justified by this contract; it must not prescribe substantive game prose or create additional structural notes from headings.
+The blueprint supplies [Templates/Game.md](Templates/Game.md), an optional starter resource for a draft Game Core. It includes all eight required note fields, `pool: Games`, `status: draft`, an empty parent, and blank `aliases`, `id`, and `tags`. Optional semantic facts are omitted until known. A valid Games database still does not require a template.
+
+The CLI selects `Templates/Game.md`, `Templates/Game Shard.md`, or `Templates/Game Pebble.md` according to the requested type. These are Inbox draft resources: the supporting templates leave `core` and `parent_note` blank, and no existing ancestors are required to create a capture. Game Core semantic fields still do not apply to canonical supporting notes; draft creation postpones conformance checks until promotion.
+
+The CLI uses the template from an identified live Games database when available, otherwise the instance's Games blueprint. A missing selected live template is reported rather than copied or synchronized. Database manifests are used for template-owner lookup only, not validated as an Inbox creation gate. Existing databases and notes are never modified by this operation.
+
+In the Core starter, `[[{{stem}}]]` means a provisional self-link based on the entered title. `{{title}}` illustrates the H1. Supporting starters provide blank lineage fields for review; legacy unresolved Core/parent placeholders are also rendered blank without resolving ancestors. The optional alias prompt supplies a one-item `aliases` list, or leaves the template default when skipped. The CLI includes all eight fields and preserves other unverified template defaults without applying a semantic schema. It always generates only the title H1, ignores template body prose, and executes no template code.
+
+These creation conventions do not relax canonical Games rules. At promotion, complete structural metadata and lineage, apply bounded filenames and valid placement, and establish conformance to this contract and the System Specification. No automatic validation is triggered by a filesystem move; the current validator is a separate read-only command.
 
 ### Agents
 
