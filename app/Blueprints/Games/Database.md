@@ -11,7 +11,7 @@ database_status: active
 
 ## Purpose
 
-The Games database owns the user's durable knowledge about video games and game-specific subjects that are best understood in the context of a particular game. It is intended to support long-term personal reference, play-related notes, discovery, querying, and growth without requiring an exhaustive games-industry ontology.
+The Games database owns the user's durable knowledge about games across physical and digital forms and game-specific subjects that are best understood in the context of a particular game. It is intended to support long-term personal reference, play-related notes, discovery, querying, and growth without requiring an exhaustive games-industry ontology.
 
 The database should begin with the smallest useful domain contract. Additional collections, semantic fields, note kinds, Views, templates, or specialist Agent resources should be introduced only when real use demonstrates concrete value.
 
@@ -19,16 +19,16 @@ The database should begin with the smallest useful domain contract. Additional c
 
 ### Includes
 
-- Video games that the user wants to track, study, remember, reference, or develop knowledge about.
-- Game-specific knowledge whose canonical meaning depends on a particular game, including mechanics, systems, quests, characters, locations, strategies, builds, lore, progression notes, and similar subjects when they earn independent materialization.
+- Video games, board games, card games, tabletop role-playing games, miniatures games, and other games that the user wants to track, study, remember, reference, or develop knowledge about.
+- Game-specific knowledge whose canonical meaning depends on a particular game, including rules, setup, components, mechanics, systems, scenarios, quests, characters, locations, strategies, builds, lore, session or progression notes, and similar subjects when they earn independent materialization.
 - Personal play-state information and other documented game-specific semantic metadata defined by this database.
-- Relationships from a game to developers, publishers, platforms, genres, and series when represented by the semantic fields defined below.
+- Relationships from a game to designers, developers, publishers, platforms, genres, and series when represented by the semantic fields defined below.
 
 ### Excludes
 
 - General-purpose canonical knowledge about people, companies, organizations, hardware platforms, storefronts, or other entities whose meaning is independent of a particular game. Those subjects may be referenced by name here but should be canonically owned by another database if a suitable database exists.
 - General games-industry news, business analysis, or market information that is not primarily knowledge about a particular game.
-- A universal franchise, series, platform, developer, publisher, character, or genre ontology. These concepts must not become new data collections, structural parents, or universal ShardBase concepts merely because individual games relate to them.
+- A universal game-category, franchise, series, platform, designer, developer, publisher, character, or genre ontology. These concepts must not become new data collections, structural parents, or universal ShardBase concepts merely because individual games relate to them.
 - Duplicate authoritative copies of knowledge canonically owned by another database. Cross-database relationships do not transfer ownership.
 
 ## Architecture
@@ -37,7 +37,7 @@ The database should begin with the smallest useful domain contract. Additional c
 
 #### `Game`
 
-`Game` is the initial and primary data collection. It contains canonical structural notes whose root Core is an independently meaningful video game.
+`Game` is the initial and primary data collection. It contains canonical structural notes whose root Core is an independently meaningful game.
 
 The database intentionally begins with one declared data collection. Additional collections must earn their complexity through demonstrated ownership, querying, navigation, lifecycle, or portability needs and require an explicit update to this contract before use.
 
@@ -55,13 +55,13 @@ The single Pool is intentional. Additional Pools should not be introduced for ge
 
 ### Core Strategy
 
-A Core normally represents one independently meaningful video game title.
+A Core normally represents one independently meaningful game title.
 
 A game should become its own Core when it has a stable identity and is useful to manage, query, navigate, link to, or grow as the root of its own knowledge lineage. A Game Core may remain a single Markdown note indefinitely.
 
-Expansions, downloadable content, editions, remasters, ports, seasons, campaigns, and similar related releases do not automatically become separate Cores. They should remain ordinary content or semantic relationships unless independent growth, querying, navigation, reference, lifecycle management, or another concrete benefit justifies separate canonical representation.
+Expansions, downloadable content, editions, remasters, ports, adaptations, rules revisions, seasons, campaigns, and similar related releases or implementations do not automatically become separate Cores. They should remain ordinary content or semantic relationships unless a distinct identity, independent growth, querying, navigation, reference, lifecycle management, or another concrete benefit justifies separate canonical representation.
 
-Game series, franchises, developers, publishers, platforms, genres, characters, locations, quests, mechanics, and other concepts do not become structural ancestors merely because they group or relate to games. Structural ancestry expresses decomposition within one Game Core lineage; domain relationships remain semantic.
+Game categories, series, franchises, designers, developers, publishers, platforms, genres, characters, locations, quests, mechanics, and other concepts do not become structural ancestors merely because they group or relate to games. Structural ancestry expresses decomposition within one Game Core lineage; domain relationships remain semantic.
 
 Supporting knowledge should remain ordinary Markdown headings or sections inside the Game Core unless a separate Shard or Pebble independently earns materialization under the universal ShardBase materialization rules.
 
@@ -70,6 +70,17 @@ Supporting knowledge should remain ordinary Markdown headings or sections inside
 The five universal structural fields and the required common note fields `aliases`, `id`, and `tags` retain their System Specification meanings and value shapes. Every Core, Shard, and Pebble includes all eight fields; the three common fields default to blank YAML values. This database does not add an ID convention or required alias/tag vocabulary.
 
 The initial Games semantic schema is deliberately small. Unless stated otherwise, these fields apply to Game Cores only and are optional. Omitted optional fields mean the database does not currently assert that fact.
+
+### `game_categories`
+
+- Meaning: the broad physical or digital forms in which the game is represented, such as `video_game`, `board_game`, `card_game`, `tabletop_roleplaying_game`, or `miniatures_game`.
+- Applies to: Game Cores.
+- Required: no.
+- Shape: YAML list of one or more unique, non-empty strings when populated.
+- Vocabulary: initially open. Values use lowercase `snake_case`; recurring inconsistency or a need for deterministic validation should be resolved by deliberately bounding the vocabulary in this contract rather than inferring it from existing notes.
+- Classification semantics: categories may overlap, and one Game Core may use multiple values. List order carries no precedence or primary-category meaning. Categories classify the game without defining data-collection placement, Pool membership, structural lineage, or canonical identity. Supporting Shards and Pebbles obtain this context through their root Core and normally omit the field.
+
+`game_categories` describes broad game form rather than genre. For example, a card-driven board game may use both `board_game` and `card_game`, while its thematic or mechanical genres remain in `genres`. Multiple categories do not justify duplicate Game Cores.
 
 ### `release_date`
 
@@ -82,10 +93,18 @@ The initial Games semantic schema is deliberately small. Unless stated otherwise
 ### `developers`
 
 - Meaning: developer names associated with the game.
-- Applies to: Game Cores.
+- Applies to: Game Cores for which software or other game development attribution is meaningful.
 - Required: no.
 - Shape: YAML list of non-empty strings.
 - Relationship semantics: the values identify developers by name for Games-domain querying; they do not make the Games database the canonical owner of the developer entity.
+
+### `designers`
+
+- Meaning: game designer names associated with the game.
+- Applies to: Game Cores for which design attribution is meaningful.
+- Required: no.
+- Shape: YAML list of non-empty strings.
+- Relationship semantics: the values identify designers by name for Games-domain querying; they do not make the Games database the canonical owner of the designer entity.
 
 ### `publishers`
 
@@ -97,8 +116,8 @@ The initial Games semantic schema is deliberately small. Unless stated otherwise
 
 ### `platforms`
 
-- Meaning: platforms on which the user wants to record that the game is available or relevant.
-- Applies to: Game Cores.
+- Meaning: hardware or software platforms on which the user wants to record that a digital game is available or relevant.
+- Applies to: Game Cores with a relevant digital implementation.
 - Required: no.
 - Shape: YAML list of non-empty strings.
 - Relationship semantics: platform names are semantic classifications for this database and are not structural ownership or lineage.
@@ -131,7 +150,7 @@ The initial Games semantic schema is deliberately small. Unless stated otherwise
   - `paused`
   - `completed`
   - `stopped`
-- Constraint: `play_state` is a database-local semantic field and must never replace or alter universal structural `status`.
+- Constraint: use this field only when the allowed states meaningfully describe the user's relationship to the game; omit it rather than repurposing a value for a repeatable, session-based, or otherwise incompatible play pattern. `play_state` is a database-local semantic field and must never replace or alter universal structural `status`.
 
 ### Semantic Note Kinds
 
@@ -154,9 +173,11 @@ Reference content explains the game; a completionist checklist records the user'
 ## Conventions
 
 - A Game Core level-one heading uses the game's canonical human-facing title. Its filename uses the deterministic portable filename stem derived from that title by the System Specification; do not duplicate the title into semantic YAML merely for convenience.
+- When independently meaningful games would otherwise have the same canonical name, disambiguate each Core's canonical name with the shortest stable, human-meaningful qualifier that distinguishes its identity. A game category is suitable when it resolves the identity, as in `Monopoly (Board Game)` and `Monopoly (Video Game)`; otherwise use a more precise qualifier such as edition, year, platform, or publisher. The Core file and optional Core workspace use the portable stem derived from that disambiguated canonical name. Metadata or separate workspace placement alone does not resolve a filename collision.
+- A game represented by multiple categories remains one Game Core. Create separate Cores for physical editions, digital adaptations, or other implementations only when each has a distinct identity and independently earns canonical representation; relate them semantically rather than treating one as structural ancestry for the other.
 - Prefer ordinary Markdown headings inside a Game Core for information that does not independently justify a structural file.
-- Do not materialize every quest, character, location, mechanic, item, build, achievement, chapter, or piece of lore as a Shard or Pebble. Materialize only when the knowledge independently earns it under the System Specification.
-- Domain relationships such as developer, publisher, platform, genre, series, sequel/prequel, adaptation, and shared universe are semantic relationships, not structural ancestry.
+- Do not materialize every rule, component, scenario, quest, character, location, mechanic, item, build, achievement, chapter, or piece of lore as a Shard or Pebble. Materialize only when the knowledge independently earns it under the System Specification.
+- Domain relationships such as designer, developer, publisher, platform, genre, series, sequel/prequel, adaptation, and shared universe are semantic relationships, not structural ancestry.
 - When a scalar/list semantic field cannot represent a domain fact without becoming misleading, preserve the richer fact in Markdown rather than forcing it into the current schema. Extend the schema deliberately if the need recurs.
 - Prefer one authoritative representation for a fact. Do not maintain competing metadata and prose values that are both treated as canonical merely for visibility.
 - Missing optional semantic metadata is valid. Do not manufacture values solely to make notes look complete.
