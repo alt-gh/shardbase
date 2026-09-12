@@ -1,8 +1,8 @@
 # ShardBase Registry
 
-The registry is the global discovery surface for live ShardBase databases.
+The Registry is the instance-wide **navigation and discovery** surface for live databases. It is not an architectural authority and does not certify database validity.
 
-Database roots are direct children of `app/Knowledge/Databases/` and are identified by a root-level `Database.md` manifest.
+Universal discovery rules come from the [System Specification](../Docs/Shard%20System%20Specification.md). Each database's root `Database.md` remains authoritative for its identity and local contract.
 
 ## Databases
 
@@ -17,22 +17,12 @@ WHERE file.name = "Database" AND manifest_version = 1
 SORT database_name ASC
 ```
 
-This view is navigational only. Each database's `Database.md` remains authoritative for its identity and local contract.
+This query discovers version-1 manifests at direct database-root locations for navigation. It does not prove that the manifest, database structure, canonical notes, or semantic data are valid.
 
-## Deterministic Discovery Contract
+## Validation Companion
 
-The Registry discovers databases at runtime from direct children of `app/Knowledge/Databases/` that contain a root-level `Database.md`. It does not maintain a generated inventory and does not treat database names, views, or query output as authoritative.
+Use [`../Scripts/README.md`](../Scripts/README.md) for the current read-only validator. The validator examines every direct database directory, including incomplete roots the Dataview query cannot present as valid manifests, and reports issues within its documented structural scope.
 
-The validator in `app/Scripts/validate_shardbase.py` is the deterministic companion to this view. It examines every direct database directory, including roots missing a manifest, and reports malformed manifests, unsafe collection paths, structural metadata and lineage errors, workspace placement errors, portable filename mismatches, and supported Markdown heading violations. Structural discovery includes collection roots and one Core-workspace level while excluding attachment subtrees, Agents, Templates, and Views.
+`manifest_version = 1` identifies the manifest schema only. It does not imply System Specification version compatibility.
 
-Follow [validator setup and scope](../Scripts/README.md) to install its pinned dependency in an environment outside the vault. With the documented environment, run from the repository root:
-
-```text
-/tmp/shardbase-validator-venv/bin/python -B app/Scripts/validate_shardbase.py
-```
-
-Detected issues use stable issue codes and cause a non-zero exit status. An empty `app/Knowledge/Databases/` is valid during bootstrap and reports that no databases were found. Passing means the implemented structural checks passed, not that every database-semantic requirement was validated. The Registry query filters direct version-1 manifest locations for navigation; it does not certify manifest or database validity.
-
-The validator targets System Specification `foundation-2`, including required `aliases`, `id`, and `tags` with validated value shapes, normalized wikilink-safe filenames, manifest heading structure, and review of misplaced root structural declarations. Registry `manifest_version = 1` filtering identifies the manifest schema only; it does not establish specification-version compatibility.
-
-Python bytecode, virtual environments, package installations, Node dependencies, test caches, and other generated runtime state must remain outside the vault. The `-B` flag prevents the validator command from creating `__pycache__/` files.
+The Registry maintains no generated authoritative inventory. An empty `app/Knowledge/Databases/` is valid during bootstrap.

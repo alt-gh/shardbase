@@ -2,137 +2,42 @@
 
 ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth.
 
-It uses human-readable Markdown and YAML to organize knowledge through explicit structure, metadata, relationships, links, search, views, and AI-assisted interaction while keeping the underlying information understandable and editable independently of any single tool. ShardBase targets Obsidian as its primary knowledge environment, supports modular databases and extensible tooling, and is designed to let a user's knowledge grow across many areas of life without sacrificing readability, portability, structural integrity, privacy, or control.
+Its durable source is ordinary Markdown and YAML. Obsidian is the primary knowledge environment, Dataview is a primary query interface, and scripts or external AI systems may assist with the knowledge, but none of those tools owns or defines the canonical meaning of the data.
 
-## Why ShardBase
+ShardBase is local-first: user-owned knowledge stays local unless the user deliberately chooses to synchronize, publish, share, back up, or provide it to an external service.
 
-Personal knowledge becomes more valuable as it accumulates, connects, and remains usable over time, but it also becomes harder to keep coherent, connected, understandable, and useful as it grows. The problem is not simply storing more notes; it is allowing accumulated knowledge to become more useful and interconnected without the organizational system becoming harder to maintain than the knowledge is valuable.
+## The Core Idea
 
-Most of the useful primitives for personal knowledge management already exist: Markdown, YAML, folders, links and backlinks, tags, search, queries, templates, version control, automation, and AI assistance. ShardBase's central observation is that the missing piece is not another replacement for those primitives, but a durable shared contract that lets humans and tools interpret and operate over the same growing body of user-owned knowledge predictably.
+ShardBase adds a small shared architectural contract to familiar knowledge-management primitives such as Markdown, YAML, folders, wikilinks, tags, queries, templates, scripts, and AI assistance.
 
-ShardBase provides that shared architecture while keeping Markdown and YAML as the durable source. It is designed to reduce fragmentation, preserve lineage and context, support reliable retrieval and machine interpretation, and let structure grow only when it provides meaningful value. Sophisticated views, automation, and AI assistance can build on top of the knowledge without becoming prerequisites for understanding it.
-
-The long-term goal is a user-owned personal source of truth that can support memory, understanding, discovery, learning, reasoning, decision-making, creation, and deliberate AI-assisted interaction without requiring the user to surrender ownership or architectural control of their knowledge. ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.
-
-## What ShardBase Adds
-
-ShardBase is not intended to replace folders, tags, YAML, wikilinks, backlinks, Dataview, templates, scripts, Git, or AI assistance. Each of those tools solves a useful part of the knowledge-management problem. ShardBase adds the shared architectural contract that lets them cooperate over the same user-owned knowledge without requiring any one tool to become the sole source of meaning.
-
-That contract defines database ownership, structural lineage, universal structural metadata, the boundary between structural and semantic meaning, materialization expectations, authority, and change-safety rules. The result is a predictable shared interpretation for humans, Obsidian, Dataview, scripts, validators, and AI agents as the knowledge base grows.
-
-ShardBase deliberately keeps Markdown and YAML as the durable source rather than requiring a traditional database engine or bespoke application for basic access. The files remain directly editable with widely available tools across devices and can be transformed into derived machine-readable formats such as JSON when interoperability or downstream processing requires it. Traditional databases remain a better fit when transactional guarantees, machine-scale relational workloads, or database-engine performance are the primary requirement.
-
-## Core Design Commitments
-
-- **User-owned and privacy-focused** — the user owns and controls their core data. ShardBase does not require that data to leave the user's local environment for core operation.
-- **Local-first by default** — user-owned knowledge and local state stay on the user's machine unless the user deliberately chooses synchronization, backup, external AI, Git hosting, publishing, sharing, or another external service. Reading local data is not permission to transmit it.
-- **Markdown is the foundation** — core knowledge remains stored in human-readable Markdown and YAML so it can be inspected, edited, copied, searched, versioned, and processed independently of ShardBase-specific tooling.
-- **Obsidian is the primary target, not the data owner** — ShardBase is designed for a strong Obsidian experience, but its core knowledge and structural meaning must remain understandable outside Obsidian.
-- **Tools enhance rather than define the knowledge** — Dataview is a primary and canonical interface for interacting with ShardBase data in Obsidian, while views, scripts, plugins, AI agents, and future tooling must not become the sole source of structural truth.
-- **Shared understandability** — important knowledge should be explicit enough that humans can understand it, deterministic tools can query and validate it, and AI can reason over it without optimizing the canonical source exclusively for any one audience.
-- **Explicit without redundant authority** — important architectural meaning should be inspectable and documented, but the same fact should not be duplicated across multiple competing authoritative representations merely for visibility.
-- **AI knowledge without AI integration** — ShardBase may structure, manage, validate, package, and export user-owned AI-related knowledge such as Agents, Prompts, instructions, and context, but ShardBase itself does not execute, invoke, authenticate with, orchestrate, connect to, or transmit data to AI models or AI-agent services. External AI use is a separate user-controlled workflow.
-- **AI assistance is intentional but optional** — external AI agents may interpret, recommend, classify, retrieve, explain, and assist with maintenance when the user deliberately provides authorized ShardBase context, while explicit rules and deterministic validation preserve predictable structure. The knowledge base must remain durable and meaningful without AI.
-- **Human authority is preserved** — ShardBase may automate repetitive, deterministic, and safely reversible work, but consequential, ambiguous, privacy-sensitive, or destructive decisions remain under meaningful user control.
-- **Minimum necessary structure** — ShardBase uses the minimum structure necessary to preserve useful organization, relationships, growth, integrity, queryability, navigation, and lifecycle management, allowing structure to emerge as knowledge develops rather than requiring future complexity to be modeled in advance.
-- **Simplicity without opacity** — ShardBase should minimize conceptual and operational burden, but simplicity must not hide necessary complexity in undocumented behavior, hidden state, or opaque tooling.
-- **Readable, editable, and portable by construction** — canonical knowledge must remain readable, directly editable, and movable without requiring ShardBase-specific tooling; loss of an optional view, AI system, script, or generated runtime may reduce convenience but must not erase essential meaning.
-- **No hidden architectural state** — essential knowledge meaning and architectural behavior must be traceable to canonical files and documented contracts. Undocumented inaccessible state must not become a required interpreter or silent authority merely because an implementation currently works.
-- **Framework, not monolith** — universal rules define what it means to participate in ShardBase, while each database defines how it represents and operates on the particular domain of knowledge it owns. Database contracts may extend areas the framework intentionally leaves open, but they may not contradict universal invariants, and recurring local requirements should be documented rather than hidden in existing content.
-
-External synchronization, backup, cloud storage, publishing, and sharing services are user choices and are separate from ShardBase's core operation.
-
-### Approved Future Context Packs
-
-ShardBase has an approved future **Context Pack** capability for packaging selected authorized context into a single local, provider-neutral artifact that a user can deliberately take to an external AI system or other tool. Context Packs will not make ShardBase an AI integration layer: generation remains local and ShardBase will not transmit the resulting artifact to ChatGPT, Gemini, DeepSeek, Claude, or another service.
-
-A reusable Context Pack Definition will describe what to include, while each generated Context Pack Snapshot will be a timestamped, derived, non-authoritative, isolated snapshot with inspectable provenance. Different packs may select different databases, `Database.md` contracts, representative files, or knowledge for different purposes. Regeneration will create a new snapshot rather than modifying an older one in place.
-
-Privacy-oriented packs will favor explicit inclusion of the minimum necessary context and deterministic filtering rules rather than AI inference. ShardBase will never create, store, manage, export, or require an identity or re-identification map connecting pseudonyms to real identities. A user who chooses to maintain such a mapping must keep it entirely outside ShardBase. Exact Context Pack schemas, locations, CLI syntax, privacy-transformation algorithms, and the relationship to any future universal visibility model remain deliberately deferred until implementation requirements justify standardization.
-
-Context Packs are approved product direction but are **not part of the current Foundation implementation scope**.
-
-### Product Design Principles
-
-The commitments above are summarized by five product-level design principles that should guide feature, architecture, and implementation decisions:
-
-1. **User-Owned Knowledge First** — preserve the user's ownership, privacy, recoverability, intended meaning, and meaningful authority over consequential outcomes before optimizing convenience or capability.
-2. **Durable Source, Replaceable Tools** — keep canonical knowledge and architectural meaning in durable Markdown, YAML, and documented contracts so applications, views, automation, AI, and other tooling can be improved or replaced without redefining the source.
-3. **Explicit Shared Meaning, One Authority** — make important architectural and semantic meaning explicit and inspectable while giving each fact one designated authoritative representation rather than creating competing sources of truth.
-4. **Structure Must Earn Its Complexity** — add files, metadata, hierarchy, schemas, abstractions, workflows, and universal concepts only when they provide concrete value; allow knowledge to begin simply and structure to emerge from demonstrated need.
-5. **Evolve Safely Under Meaningful User Control** — make structural evolution preservation-oriented and inspectable, automate deterministic low-risk mechanics where appropriate, and keep destructive, ambiguous, privacy-sensitive, breaking, or otherwise consequential decisions under meaningful user control.
-
-When these principles conflict, preservation of user-owned knowledge and meaningful user control comes first, followed by structural integrity and explicit shared meaning, then durability and replaceability of the source and tooling. Within those boundaries, prefer the minimum necessary structure and the simplest design that supports safe future growth. Convenience, feature richness, performance, automation, and technical elegance are lower-order optimizations and must not justify sacrificing ownership, privacy, recoverability, or intended meaning.
-
-## Who ShardBase Is For
-
-ShardBase is primarily for individuals who want to build a long-lived personal source of truth across multiple subjects or areas of life without surrendering ownership, privacy, portability, or direct access to their underlying knowledge. The primary profile is defined by the knowledge problem rather than by profession or demographic category: the user expects their knowledge to remain useful and grow over years, wants it to become increasingly interconnected and reusable, and wants structure to reduce long-term organizational burden rather than become maintenance for its own sake.
-
-Ordinary use should not require programming, database administration, Git expertise, advanced YAML knowledge, or memorization of the complete ShardBase architecture. Users should be able to start with basic Markdown-oriented capture, reading, editing, and navigation, while deeper architectural concepts are disclosed when they become useful. Obsidian is the primary supported environment, but it is an interface over the durable Markdown and YAML source rather than a requirement for that source to remain understandable. AI assistance is similarly intentional and valuable but optional.
-
-Secondary profiles include Obsidian and personal-knowledge-management power users, researchers, writers, students, professionals, developers, and other knowledge-intensive users; people who adopt ShardBase for one substantial domain rather than a whole-life knowledge system; and technically inclined users who want to build views, validators, scripts, exports, or other tooling over a predictable Markdown and YAML architecture. AI users are not a separate audience: AI-assisted interaction may support these profiles, but AI adoption is not a prerequisite for ShardBase.
-
-ShardBase is especially suited to knowledge that is expected to grow, connect, be queried, evolve, or remain useful over time. It is less suited to disposable note collections, autonomous systems that replace meaningful user control, cloud-hosted collaboration as a primary requirement, AI-provider integration or orchestration, synchronization or general-purpose search services, and workloads whose primary needs are traditional database transactions and machine-scale relational performance.
-
-## Core Use Cases
-
-ShardBase has three core product use cases:
-
-1. **Build and grow a durable personal source of truth** — capture, develop, and organize knowledge across one or many areas while allowing structure to emerge as the knowledge earns it rather than requiring the complete future model up front.
-2. **Find, connect, and use accumulated knowledge** — rediscover and work with knowledge through search, links, relationships, metadata, queries, views, and other compatible tools rather than depending primarily on remembered storage locations.
-3. **Safely evolve the knowledge base as understanding changes** — expand, materialize, reorganize, refactor, classify, archive, or extend knowledge while preserving ownership, context, lineage, documented meaning, and user-authored source material.
-
-Secondary use cases include maintaining a deep single-domain collection, building Dataview projections and other views, validating structural consistency, automating deterministic creation and maintenance work, using database-owned templates or specialist Agent resources, exporting user-owned knowledge for deliberate use elsewhere, and intentionally moving, backing up, synchronizing, versioning, or sharing databases through user-selected tools.
-
-The product succeeds when accumulated knowledge becomes easier to understand, retrieve, connect, evolve, and build upon without organizational burden growing at the same rate. In the strongest form of that outcome: **ShardBase succeeds when the user's knowledge becomes more valuable as it grows without becoming less theirs.**
-
-## Product Goals and Non-Goals
-
-ShardBase pursues five product goals:
-
-1. **Make accumulated knowledge increasingly useful as it grows** — knowledge should become more connected, discoverable, understandable, reusable, and valuable without organizational burden increasing at the same rate.
-2. **Preserve durable user ownership and control** — canonical knowledge remains directly accessible as user-controlled Markdown and YAML, local-first by default, with consequential and external-exposure decisions under meaningful user control.
-3. **Create a shared, explicit interpretation of knowledge** — humans, deterministic tooling, Obsidian, Dataview, validators, scripts, and deliberately used external AI systems should be able to operate over the same canonical source with a substantially shared understanding of important architectural meaning.
-4. **Make knowledge safe to evolve** — users should be able to expand, materialize, reorganize, refactor, reclassify, archive, migrate, and otherwise evolve knowledge without routinely losing lineage, context, user-authored content, or intended meaning.
-5. **Support extensible knowledge without creating a monolithic system** — a small stable universal framework should support modular databases whose domain-specific schemas, relationships, conventions, resources, and workflows remain local to the databases that need them.
-
-ShardBase also has explicit product non-goals:
-
-- It is **not a proprietary knowledge platform or cloud data service** that users must depend on to access or recover their canonical knowledge.
-- It is **not an AI runtime, AI-service integration layer, or autonomous knowledge manager**. ShardBase may manage, validate, package, convert, and export AI-related knowledge, but it must not execute models, authenticate with AI providers, invoke agents, orchestrate model conversations, automatically transmit local knowledge to AI services, or become an intermediary between the user's knowledge and services such as ChatGPT or Gemini.
-- It is **not a synchronization, backup, publishing, general-purpose search, or indexing service**; those responsibilities belong to user-selected tools.
-- It is **not a replacement for a traditional database engine or cloud-first collaborative application platform** and does not target transactions, ACID guarantees, high-concurrency writes, machine-scale relational workloads, or simultaneous multi-user collaboration as core product responsibilities.
-- It is **not a universal ontology or maximum-structure system**. Domain-specific complexity remains database-local, and new structure must justify itself through concrete value.
-
-A proposed feature should be treated as possible scope creep when it moves canonical meaning into hidden or proprietary state, turns an optional tool into a prerequisite, universalizes a local requirement without independent justification, introduces substantial structure without concrete user value, reduces meaningful user control, prematurely standardizes implementation technology, or starts turning ShardBase into one of the adjacent products listed above.
-
-## Structural Model
-
-ShardBase organizes structural knowledge through four concepts:
+The structural model is:
 
 **Pool → Core → Shard → Pebble**
 
-- **Pool** — a logical grouping inside a database.
-- **Core** — the root entity of a knowledge lineage.
-- **Shard** — a meaningful, reusable subdivision of a Core or another Shard.
-- **Pebble** — a terminal structural note that must not have structural children.
+- **Pool** groups related lineages inside a database.
+- **Core** is the root note of one lineage.
+- **Shard** is a reusable subdivision that may have structural children.
+- **Pebble** is a terminal structural note.
 
-Structural YAML is authoritative for lineage. Filenames provide human-readable relationship context, filesystem paths provide database ownership context, and Markdown headings provide internal document hierarchy.
+Not everything should become a structural note. Ordinary Markdown headings and sections are preferred until a separate file earns independent value through growth, querying, navigation, reuse, reference, or lifecycle management.
 
-## Shard
+For the complete structural contract, see [`app/Docs/Shard System Specification.md`](app/Docs/Shard%20System%20Specification.md).
 
-**Shard** is the canonical primary architectural and database AI agent for ShardBase.
+## Documentation Authority
 
-Shard translates ordinary user intent into safe, minimal operations over the documented ShardBase architecture. It is responsible for understanding database contracts, classifying information, preserving lineage, proposing or creating valid structure, auditing databases, designing queries, retrieving and reasoning over authorized knowledge, and helping the framework evolve safely without requiring users to memorize the complete architecture. ShardBase may support additional AI agents, but structural operations remain subject to the same architectural contracts and user-control boundaries.
+ShardBase deliberately avoids duplicating authoritative rules across documents.
 
-ShardBase distinguishes framework-owned agents, database-owned specialist agents, and user-owned agents or customizations. A specialist agent may operate independently within its documented scope, but agent definitions and customizations never override the System Specification or the applicable database contract. Database-owned specialist Agent resources have an approved optional home at `app/Knowledge/Databases/[Database Name]/Agents/` so they remain portable with their database. Placement follows ownership rather than total read scope: a database-owned specialist remains with its owning database even when its documented purpose permits reading other authorized databases, while writes to another database remain governed by that target database's contract and user authorization. Framework-level and user-local Agent filesystem locations are intentionally deferred until concrete requirements justify standardizing them. Agent files are user-owned knowledge resources rather than an embedded AI runtime: ShardBase manages AI-related knowledge but does not integrate with AI systems.
+| Document | Role | Authority |
+|---|---|---|
+| [`app/Docs/Shard System Specification.md`](app/Docs/Shard%20System%20Specification.md) | Universal architecture, invariants, compatibility, safety, validation contract | **Highest framework authority** |
+| `app/Knowledge/Databases/<Database>/Database.md` | Purpose, scope, semantic schema, Pool vocabulary, local conventions and resources for one live database | **Database-local authority** |
+| [`app/Blueprints/Games/Database.md`](app/Blueprints/Games/Database.md) | Bootstrap contract for a new Games database | Authoritative only as blueprint source before materialization |
+| [`AGENTS.md`](AGENTS.md) | Operating instructions for agents working in this repository | Operational guidance; consumes the authorities above |
+| [`app/Scripts/README.md`](app/Scripts/README.md) | Current CLI/validator setup, behavior, and implementation limits | Tooling documentation; does not define architecture |
+| [`app/Registry/Registry.md`](app/Registry/Registry.md) | Runtime database discovery/navigation view | Navigational only |
+| [`app/Docs/ShardBase Foundation Roadmap.md`](app/Docs/ShardBase%20Foundation%20Roadmap.md) | Current work, milestone status, blockers, and deferred work | Planning only; never architectural authority |
 
-When operating on a database, Shard follows this authority order:
-
-1. `app/Docs/Shard System Specification.md` — universal ShardBase rules.
-2. The target database's `Database.md` — database-local purpose, scope, schema, and conventions.
-3. Existing valid database content — continuity and established local practice.
-4. The current user request — desired outcome, subject to structural validity and change-safety rules.
+If supporting documentation and an authoritative contract disagree, correct the supporting documentation rather than treating the disagreement as a new rule.
 
 ## Repository Structure
 
@@ -142,193 +47,73 @@ shardbase/
 ├── app/
 │   ├── Blueprints/
 │   ├── Docs/
-│   │   ├── Shard System Specification.md
-│   │   └── ShardBase Foundation Roadmap.md
 │   ├── Knowledge/
 │   │   ├── Inbox/
 │   │   └── Databases/
-│   │       └── [Database Name]/
+│   │       └── <Database>/
 │   │           ├── Agents/
 │   │           ├── Data/
-│   │           │   ├── [Primary Data Collection]/
-│   │           │   │   ├── Core.md
-│   │           │   │   ├── Core - Shard.md
-│   │           │   │   ├── Attachments/
-│   │           │   │   └── [Core Workspace]/
-│   │           │   │       ├── Core Name.md
-│   │           │   │       ├── Core Name - Shard.md
-│   │           │   │       └── Attachments/
-│   │           │   └── [Additional Data Collection]/
-│   │           │       └── Attachments/
 │   │           ├── Templates/
 │   │           ├── Views/
 │   │           └── Database.md
 │   ├── Registry/
-│   │   └── Registry.md
 │   └── Scripts/
-├── .gitignore
 ├── AGENTS.md
 └── README.md
 ```
 
-`app/Knowledge/` is the canonical local boundary for user-owned ShardBase knowledge. `Knowledge/Inbox/` holds unresolved pre-structural capture, while `Knowledge/Databases/` holds resolved canonical databases. This keeps both forms of user knowledge together without making Inbox a database or weakening the invariant that every direct child of `Knowledge/Databases/` is a database.
+`app/Knowledge/` is the private-by-default boundary for user-owned knowledge. `Inbox/` contains unresolved pre-structural capture. `Databases/` contains live canonical databases. Every direct child of `app/Knowledge/Databases/` is a database governed by its own root `Database.md`.
 
-`Agents/`, `Templates/`, and additional data collections are optional. A minimal database needs only one declared data collection.
+`app/Blueprints/`, `app/Docs/`, `app/Registry/`, and `app/Scripts/` are framework surfaces intended to be distributable. They must not silently absorb private live knowledge.
 
-## Database Anatomy
+## Working with Databases
 
-Each live database is a direct child of `app/Knowledge/Databases/` and is self-contained. Within ShardBase, database ownership means canonical semantic responsibility for knowledge within the scope documented by that database's `Database.md`; the user still owns all live database data. Physical placement follows ownership rather than defining it.
+Each database owns the domain meaning inside its documented scope. Universal ShardBase structure stays universal; domain-specific fields, relationships, classifications, and conventions stay in the owning database's `Database.md`.
 
-Cross-database semantic relationships are allowed without transferring canonical ownership. Structural lineage remains database-local: `core` and `parent_note` do not cross database boundaries. A database remains responsible only for its own semantic schema and must stay understandable when external relationship targets or cross-database projections are unavailable.
+A database may relate to knowledge in another database without taking ownership of it. Structural lineage remains database-local: `core` and `parent_note` never create cross-database ancestry.
 
-### `Database.md`
+Canonical notes may remain flat at a declared data-collection root or one Core lineage may be deliberately bundled into a direct-child Core workspace. Filesystem placement provides organization; YAML remains authoritative for lineage.
 
-The database manifest and local contract. It defines database identity, scope, declared data collections, semantic schema, conventions, and resources.
+For exact manifest requirements, note metadata, naming, placement, lifecycle, attachment rules, and validation expectations, use the System Specification rather than this README.
 
-### `Agents/`
+## Current Tooling
 
-Optional database-owned specialist Agent resources live here so they remain portable with the database. Placement follows ownership: an Agent primarily owned by this database remains here even when its documented scope allows it to read other authorized databases. Cross-database read access does not transfer ownership, and any cross-database write remains subject to the target database's contract and user authorization. These resources may include Agent definitions, Prompts, instructions, context, or related user-owned files intended for deliberate use with external AI systems. Agent resources may summarize or operationalize database rules, but rules required to interpret canonical knowledge reliably belong in `Database.md`, not only in an Agent file. `Agents/` should stay structurally simple by default; Foundation does not require per-Agent directories, prompt bundles, memory folders, skills trees, or another package hierarchy until concrete use justifies it. `Agents/` does not make ShardBase an AI runtime or integration layer, and Agent files never override the System Specification or `Database.md`.
+ShardBase currently includes:
 
-### `Data/[Data Collection]/`
+- a local draft-creation CLI;
+- a read-only structural validator;
+- regression tests and sanitized fixtures;
+- runtime Registry discovery;
+- a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
 
-Contains canonical database notes for one database-defined data grouping. A database has one or more declared data collections; the primary collection is commonly the singular form of the database subject, while additional collections may represent other domain-owned kinds such as a series or collection concept.
+The current `new` command creates pre-structural drafts in `app/Knowledge/Inbox/` or `app/Knowledge/Inbox/Staged/`. It does **not** yet create canonical database notes or automatically promote drafts. The validator checks the implemented `foundation-2` structural contract but does not yet consume database semantic schemas deterministically.
 
-Canonical Markdown notes may live directly at their declared data-collection root or, when a Core lineage earns stronger filesystem locality, inside one optional **Core workspace** that is a direct child of that collection. A Core workspace is named for its Core, contains that Core and its materialized structural descendants as direct Markdown children, and must not mirror Shard or Pebble ancestry through further structural directories. YAML remains authoritative for lineage; the workspace is physical organization only. A lineage starts flat by default and may be deliberately bundled into a workspace when the organizational value justifies the extra directory.
+See [`app/Scripts/README.md`](app/Scripts/README.md) for commands, supported behavior, and implementation limits.
 
-Tooling should discover canonical-note candidates at declared collection roots and one level inside valid Core workspaces, while excluding every permitted `Attachments/` directory. A Core workspace does not relax the bounded filename or collision rules, and folder placement must never be used as a substitute for filename disambiguation or structural metadata.
+## Games Starter Database
 
-Data collections organize database-owned files; they do not define Pool membership, Core lineage, or structural parentage. Core workspaces likewise do not define lineage. Pools remain **logical metadata values**, not required filesystem folders.
+`app/Blueprints/Games/` is the first framework-supplied proving database. Its `Database.md` defines Games-specific ownership, the `Games` Pool, Game Core strategy, semantic fields such as `release_date`, `genres`, and `play_state`, and database-local completion-record conventions.
 
-### `Data/[Data Collection]/Attachments/` and Core-workspace `Attachments/`
+The blueprint also contains three draft templates and [`Agents/Vera.md`](app/Blueprints/Games/Agents/Vera.md). These resources implement or operationalize the Games contract; they do not replace it.
 
-Contains local non-structural files owned by the database. Every declared collection retains a root `Attachments/` home, and a Core workspace may also contain its own `Attachments/` directory for resources naturally contextualized by that lineage. Attachment ownership remains database-level regardless of physical home: any canonical note in the same database may reference an attachment regardless of collection or Core workspace. Physical placement is organizational context, not an ownership or access boundary, so attachments should not be duplicated merely to satisfy another note or workspace. Cross-database attachment references should be avoided so a database remains portable. A missing or deliberately offloaded attachment reference should be surfaced rather than silently removed; the exact offloading and restoration mechanism remains a lifecycle design question.
+After a blueprint is materialized into a live database, the live copy is user-owned. Later blueprint changes never silently synchronize into it.
 
-### `Templates/`
+## Product Boundaries
 
-Optional database-owned note templates may live with the database so they remain portable with its schema and conventions. Templates and blueprint note material should focus on deterministic YAML metadata, structural scaffolding, and only the minimum body shape justified by the database contract rather than prescribing substantive domain prose. When AI-assisted note development is used, the database-owned specialist Agent is the appropriate domain-aware assistant for developing the body under `Database.md` and the user's intent; AI remains optional and knowledgeable users may author valid bodies manually. Templates may assist manual creation, but they do not replace the recommended workflow of using the CLI for canonical `app/Knowledge/Databases/` notes and Inbox for ad-hoc editor-created notes. Headings or skeleton sections inside a template do not by themselves justify creating additional structural notes.
+ShardBase is designed to preserve user-owned knowledge, shared explicit meaning, safe evolution, and replaceable tooling. It is intentionally **not**:
 
-### `Views/`
+- a proprietary or cloud-owned knowledge platform;
+- an AI runtime or AI-provider integration layer;
+- a synchronization, backup, publishing, or general-purpose search/indexing service;
+- a replacement for a transactional database engine;
+- a universal ontology or maximum-structure system.
 
-Contains database-local views and queries. Dataview is a primary and canonical ShardBase interface in Obsidian. Views consume metadata; they do not define structural truth. Database-local Views are local-first but may query other authorized databases when a cross-database projection genuinely serves the owning database's use case. General instance-wide discovery or aggregation belongs more naturally in Registry infrastructure, and no cross-database View may redefine another database's ownership, schema, lineage, or canonical meaning.
-
-## Canonical Database Experience
-
-ShardBase is designed to be used primarily through the user's chosen Markdown editor over ordinary local files. Existing canonical notes should remain comfortable to read and edit directly. The intended normal workflow recommends two primary entry paths for new notes: canonical notes intended for `app/Knowledge/Databases/` should normally be created through the ShardBase CLI, while ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Knowledge/Inbox/` for review. Canonical CLI creation should be schema-aware and type-safe in behavior: applicable templates may provide starting shape, while structural and database semantic contracts determine validity and are checked before a write. The exact runtime and validation technology remain implementation-defined. Knowledgeable users may also create canonical files manually subject to the documented contract.
-
-The [initial CLI](app/Scripts/README.md#create-a-note) now provides `new`: it asks for a title, Core/Shard/Pebble type, an optional alias, and an Inbox or Databases destination; it creates required Games YAML and only a title H1, and leaves body development to the user. Inbox writes to `app/Knowledge/Inbox/`; Databases stages the draft in `app/Knowledge/Inbox/Staged/` for editor review and deliberate manual promotion. Both remain pre-structural captures. Shard and Pebble drafts need no existing ancestors and start with blank lineage fields; structural and semantic validation is deferred to promotion into a live database. Direct canonical creation and automated promotion are not implemented yet. Templates belong in `Databases/<Database>/Templates/`; the shipped Games blueprint supplies the starter template for instances without a live Games database.
-
-ShardBase manages AI-related knowledge; it does not integrate with AI systems. Framework scripts and the CLI do not call model-provider APIs, authenticate with providers, invoke or orchestrate external agents, or automatically broker local knowledge to services such as ChatGPT or Gemini. ShardBase may structure, validate, package, convert, or export local user-owned Agent, Prompt, instruction, context, or related files. Users who want an external AI system to receive those files or other ShardBase information perform that transfer through a separate deliberate workflow using the external system of their choice.
-
-## Structural and Semantic Metadata
-
-Every Core, Shard, and Pebble includes five structural fields plus the required common note fields `aliases`, `id`, and `tags`:
-
-```yaml
----
-type: core | shard | pebble
-pool: Pool Name
-core: "[[Canonical Core Note]]"
-parent_note:
-status: active
-aliases:
-id:
-tags:
----
-```
-
-The five structural fields record framework-level role, placement, lineage, and lifecycle state. `type`, `pool`, `core`, `parent_note`, and `status` are reserved structural fields whose universal meanings must not be repurposed for database-domain semantics. For supporting notes, `parent_note` points to the immediate structural parent. For a Core, `parent_note` is empty. A Core and its structural descendants use the same canonical `pool` value. A database may define its permitted Pool vocabulary, but it does not redefine what `pool` means structurally.
-
-`aliases`, `id`, and `tags` default to blank YAML values. Populated aliases and tags use lists of non-empty strings (`[]` is also valid); a populated ID uses a string. Existing values are preserved. These common fields do not establish lineage or replace canonical references, and IDs are not automatically generated. The requirement covers canonical notes, not documentation, manifests, Agent resources, Views, attachments, or Inbox captures. See [the required note metadata schema](app/Docs/Shard%20System%20Specification.md#8-required-note-metadata-schema) for the full contract.
-
-Domain-specific meaning belongs in separate database-defined semantic metadata, such as `entity_kind`, `developer`, `author`, `release_date`, `project_phase`, or `relationship_kind`. These are illustrative rather than universal fields; their meanings and constraints belong to the owning database's `Database.md`. Semantic metadata may inform a structural classification decision, but it never substitutes for or overrides structural metadata. In particular, `type` is never repurposed for semantic categories such as person, project, game, book, source, or organization, and structural `status` is not a substitute for a database-specific workflow or domain-state field.
-
-## Naming
-
-Core files use their canonical name:
-
-```text
-Core.md
-```
-
-Supporting notes use bounded Core context:
-
-```text
-Core - Current Node.md
-Core - Immediate Parent - Current Node.md
-```
-
-A direct child of the Core uses two structural context components. A deeper descendant uses three: the root Core, the immediate parent's current-node name, and the current node. The immediate-parent component is not the parent's full filename, so filenames never accumulate beyond three structural context components.
-
-Full ancestry remains in YAML lineage through `core` and `parent_note`. If two notes would still produce the same filename, the collision must be reported and resolved through meaningful disambiguation rather than by adding more ancestor components.
-
-## Minimum Necessary Structure
-
-ShardBase intentionally avoids premature fragmentation.
-
-A new structural note should exist only when it provides meaningful value through independent growth, querying, navigation, reuse, or lifecycle management. Otherwise, the information should remain inside its parent note as ordinary Markdown structure. A heading, including a heading in a skeleton or template, is never sufficient evidence by itself that a separate Shard or Pebble should be materialized. If creating the requested note suggests additional structural notes, those additional notes should be proposed rather than created without deliberate user action.
-
-Future notes may be represented by unresolved wikilinks until they justify materialization.
-
-## Knowledge Lifecycle
-
-ShardBase treats lifecycle as a state-and-decision model rather than a mandatory pipeline. Knowledge may enter through private pre-structural Inbox capture, direct canonical creation when its representation is already resolved, or incorporation into existing canonical notes. Review may incorporate information, leave it unresolved, retain only a Ghost Shard, materialize new canonical structure, or result in user discard. When canonical representation is unresolved, classification determines database ownership, declared data collection, Pool, root Core, immediate parent, structural role where applicable, and the database-semantic requirements needed for the intended outcome; classification may also conclude that ordinary Markdown is the correct representation.
-
-ShardBase allows knowledge to begin simply and gain structure only when that structure earns a purpose. A separate canonical file is justified by meaningful independent growth, querying, navigation, reuse, reference, lifecycle management, structural organization, or another concrete benefit rather than by conceptual hierarchy, headings, or note length alone. Content may continue growing within an existing note indefinitely. Materializing one note does not authorize additional implied notes; each additional structural note must independently earn materialization and be deliberately created.
-
-Refactoring is preservation-oriented and should move knowledge from one coherent representation to another through the smallest valid change. Archived knowledge remains canonical and in place with an archived lifecycle status; archiving is not deletion. During the Foundation stage, normal deletion is a deliberate user action through Obsidian, another Markdown editor, or the filesystem rather than an autonomous ShardBase operation. Structural and attachment orphans may be reported for review but are never repaired or deleted through guesswork. Attachments remain database-owned resources whose existence does not silently follow the lifecycle of any one referencing note. Ghost Shards may remain unresolved indefinitely and become real notes only when the knowledge earns materialization and the user deliberately creates them.
-
-## Framework Boundaries
-
-- `app/Knowledge/` is the canonical local user-owned knowledge boundary and is private by default. It contains `Inbox/` for unresolved pre-structural capture and `Databases/` for resolved canonical databases; it is not a catch-all for unrelated local state.
-- `app/Knowledge/Databases/` contains live canonical databases. Every direct child is a database, and database-owned specialist Agents travel inside their owning database.
-- `app/Knowledge/Inbox/` contains local user-owned unverified, pre-structural capture. It remains outside every database even though it shares the broader Knowledge boundary.
-- `app/Blueprints/` contains framework-owned reusable database bootstrap material. ShardBase may eventually ship optional or default database packages here, including an initial specialist Agent when agent packaging is finalized.
-- `app/Docs/` contains committed framework documentation and architectural specifications and must not embed private user data.
-- `app/Registry/` contains committed discovery and navigation infrastructure; user-specific Registry output remains local by default.
-- `app/Scripts/` contains optional framework automation, validation, migration, conversion, and maintenance tooling, not generated runtimes or machine-specific dependency state.
-
-Blueprints may initialize a database, but a live database owns its state after creation. Blueprint changes must never silently rewrite existing databases. Users may also create their own databases and database Agents.
-
-## Local-First and Git Policy
-
-ShardBase is local-first. User-owned knowledge and local state remain on the user's machine by default. ShardBase does not transmit, synchronize, publish, upload, share, or otherwise make that state available outside the local environment unless the user deliberately chooses an external service or explicitly authorizes the action. Local-first is not local-only: users remain free to choose cloud synchronization, remote backup, private or public Git hosting, external AI, publishing, database sharing, or other external services.
-
-The framework repository is intended to be safe to publish. Git policy follows ownership and intended distribution rather than filesystem path alone: committed framework surfaces are potentially public, while user-owned live state is private and untracked by default. Putting private data beneath a normally committed directory does not make it framework data, and generated output inherits the sensitivity of the information it contains.
-
-Copies of the repository are independent local instances. ShardBase does not assume shared state, shared migrations, or ongoing synchronization between copied repositories. Each developer is responsible for managing compatibility and migration work within their own local copy and for deciding how to preserve or migrate their own live data when contracts change.
-
-By default:
-
-- live database contents under `app/Knowledge/Databases/` are ignored;
-- Inbox contents under `app/Knowledge/Inbox/` are ignored;
-- user-owned Agents, customizations, private local configuration, sensitive Registry-derived state, credentials, and other user-local state are ignored;
-- generated runtimes, virtual environments, installed dependencies such as `node_modules`, Python bytecode such as `__pycache__`, caches, indexes, embeddings, temporary files, and build artifacts must remain outside the ShardBase vault and are not durable repository content;
-- framework documentation, generic Registry infrastructure, framework scripts, blueprints, repository guidance, and eventually framework-owned Agents are committed;
-- committed Docs, Registry resources, scripts, examples, and other framework surfaces must not copy or embed private live user data;
-- empty local-data boundaries may be retained with `.gitkeep` files or an equivalent minimal mechanism.
-
-A user may deliberately version a live database or other user-owned state, including in a private Git repository. Tracking material that ShardBase ignores by default, or changing its normal distribution expectation, requires an explicit and inspectable repository-policy change rather than an accidental Git side effect. Git ignore rules prevent future accidental tracking; they do not erase private information already recorded in repository history.
-
-## Architectural Evolution and Compatibility
-
-ShardBase distinguishes architectural clarification, extension, schema change, migration, and breaking change rather than treating all architectural evolution as equivalent. A breaking change is one that makes previously compliant knowledge, databases, documented workflows, or observable tooling assumptions invalid, changes their intended meaning, removes supported meaning, or requires modification for continued compliance. The existence of a migration does not make such a change non-breaking.
-
-Normative changes to the universal System Specification require an explicit specification-version boundary, while `manifest_version` identifies only the database-manifest schema. Existing databases should not be migrated merely to normalize them when the newer contract can safely interpret them unchanged. When migration is required, it must be explicit and preservation-oriented; compatibility boundaries, unsupported versions, changes to existing canonical meaning, and other breaking transformations must never be silently guessed through or applied.
-
-The approved `app/Knowledge/` boundary is such a placement change: live databases move from `app/Databases/` to `app/Knowledge/Databases/`, and Inbox contents move from `app/Inbox/` to `app/Knowledge/Inbox/`. The transition is breaking because canonical paths change, but it is meaning-preserving: database identity, lineage, semantic meaning, Inbox semantics, and `manifest_version: 1` remain unchanged. Existing user-owned knowledge must be moved intact and affected discovery, validation, ignore, view, script, and documentation assumptions must be updated before the transition is complete.
-
-Backward compatibility means preserving the documented meaning of older supported state. It does not mean ShardBase architecture can never change or that every historical implementation detail must be supported indefinitely.
+ShardBase may manage, validate, package, convert, or export user-owned AI-related files, but it does not execute models, authenticate with providers, orchestrate agents, or transmit local knowledge to AI services. Any external AI use is a separate user-controlled workflow.
 
 ## Project Status
 
-The minimal note-creation CLI, read-only validator, and regression suite are available now. See [tooling setup and supported scope](app/Scripts/README.md) for the required external Python environment, commands, and current limitations. It checks manifests, required common note fields and their value shapes, safe discovery, structural lineage, workspace placement, portable filenames under the supported title convention, and Markdown headings. The CLI prepares title-only Game drafts in Inbox or Inbox/Staged. General database-semantic validation, direct canonical creation, and automated promotion remain unfinished.
+ShardBase is in the **Foundation** stage. The universal architecture and substantial deterministic validation are already implemented, but Foundation is not complete.
 
-ShardBase is in its foundation stage. Product Identity, the Product Thesis, Target Users and Use Cases, Goals and Non-Goals, Design Principles, Foundation Success Criteria, Differentiation, Audience, the Shard AI-agent definition, Design Philosophy, Guarantees and Expectations, Universal vs Database-Specific Rules, Agent Architecture and Customization, Repository vs Local User Data, the Knowledge Boundary Model, Canonical Database Experience, Knowledge Lifecycle, Database Ownership Model, Foundation Boundaries, the Breaking Change Definition, and Foundation Exit Criteria have been defined in the Foundation Roadmap Workbook. Milestone 1 — Define the Product is complete. Detailed versioning, migration, and compatibility governance, canonical implementation artifacts, validation behavior, and foundation proof are still in progress. The exact universal `visibility` model is an approved post-Foundation deferral; existing local-first privacy, authorization, and external-exposure boundaries remain authoritative until a concrete requirement justifies a universal visibility contract.
+The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, implement safe canonical creation/promotion, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
 
-The foundation standardizes durable and observable contracts before locking in replaceable implementation details. Its accepted success standard is that product direction is explicit, architecture is coherent and deterministic where appropriate, safety and user control are built into normal operation, the system remains understandable without hidden dependencies, and initial tooling can implement the documented contracts without inventing foundational meaning. Stability does not mean freezing ShardBase; implementation may still discover details, but it should no longer have to invent architecture.
-
-The initial CLI exercises draft creation; mature CLI UX, compatibility matrices, migration engines, validation libraries, blueprint packaging details, and the approved Context Pack generator should be added only when implementation demonstrates the need and the contracts they depend on are sufficiently settled. Context Packs are approved post-Foundation product direction, not current Foundation implementation scope. AI-provider integration, synchronization systems, and general-purpose search/indexing engines are not deferred ShardBase implementation targets: AI integration remains outside the product boundary, while synchronization and search/indexing are provided by user-selected external tools.
-
-The architectural source of truth is:
-
-`app/Docs/Shard System Specification.md`
+See [`app/Docs/ShardBase Foundation Roadmap.md`](app/Docs/ShardBase%20Foundation%20Roadmap.md) for current status only. Architectural requirements belong in the System Specification, not the roadmap.

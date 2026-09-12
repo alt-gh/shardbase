@@ -1,14 +1,16 @@
 # ShardBase CLI and Validation Tooling
 
-The initial CLI creates a Game note containing required YAML and one H1. It supports Inbox capture and database-intended staging for editor review. Creation and validation run locally and do not access external services.
+This document describes the **current implementation** in `app/Scripts/`: how to run it, what it does, and what it does not yet do.
 
-The validator performs read-only structural checks against version `foundation-2` of the [System Specification](../Docs/Shard%20System%20Specification.md). A successful run means the implemented checks passed; it is not proof of full database-semantic conformance or Foundation completion.
+It does not define ShardBase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
 
-## Setup and Commands
+Current tooling targets System Specification `foundation-2` within the implementation scope described below.
 
-This implementation requires Python 3.10 or newer and the pinned PyYAML dependency in `requirements.txt`. It has been tested with Python 3.14. These are tooling requirements, not universal ShardBase architectural requirements.
+## Runtime Setup
 
-Run these commands from the repository root. The example environment is temporary and entirely outside the vault; recreate it if the operating system removes it. A persistent environment may instead live in another user-selected location outside the project and synchronized vault.
+The current scripts require Python 3.10 or newer and the pinned PyYAML dependency in `requirements.txt`. These are tooling requirements, not universal ShardBase requirements.
+
+Keep the Python environment, dependencies, bytecode, caches, and test instances outside the project/vault. Run from the repository root:
 
 ```sh
 shardbase_runtime="/tmp/shardbase-validator-venv"
@@ -19,24 +21,30 @@ python3 -B -m venv "$shardbase_runtime"
 "$shardbase_runtime/bin/python" -B -m unittest discover -s app/Scripts -p 'test_*.py' -v
 ```
 
-To inspect one database, append its root path to the validator command. The path must be a direct child of an `app/Knowledge/Databases/` boundary, including when testing a temporary copy. The sanitized fixture and Games blueprint must be copied into that layout before validating them; the tests do this automatically in temporary storage outside the vault.
+Dependency installation may access the network. Draft creation and validation operate locally and do not call external services.
 
-Dependency installation downloads software; validation itself performs no network operations. Validation never writes, renames, repairs, or migrates canonical files. `-B` keeps Python bytecode out of the project, and dependency installation disables persistent pip caching and compilation.
+Use `-B` or `PYTHONDONTWRITEBYTECODE=1` for every Python runner that touches the project. These settings prevent new bytecode but do not remove stale generated files already present.
 
-The repository runtime policy requires these artifacts to remain physically outside the project and vault; `.gitignore` only prevents tracking. Apply bytecode suppression to every Python entry point, including test discovery, custom import commands, and IDE runners: use `-B` or set `PYTHONDONTWRITEBYTECODE=1` in that runner's environment before starting Python. Keep virtual environments, dependencies, caches, and build output outside the vault as well. These settings prevent new bytecode files but do not remove an existing `__pycache__/` directory; inspect and remove stale generated files separately, preserving source files and user-owned knowledge.
+## Draft Creation
 
-## Create a Note
+Run:
 
-Run `shardbase.py new` using the external Python environment above. The flow asks for a title, a type (Core, Shard, or Pebble), an optional alias immediately after type selection, and a destination:
+```sh
+"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new
+```
 
-| Choice | File location beneath the selected instance |
+The current `new` command creates an **Inbox draft**, not canonical database state. It asks for a title, Core/Shard/Pebble draft type, optional alias, and destination.
+
+| Destination | Output |
 |---|---|
-| `1` / Inbox | `app/Knowledge/Inbox/<portable title>.md` |
-| `2` / Databases | `app/Knowledge/Inbox/Staged/<portable title>.md` |
+| Inbox | `app/Knowledge/Inbox/<portable title>.md` |
+| Databases | `app/Knowledge/Inbox/Staged/<portable title>.md` |
 
-Both destinations are Inbox capture. Any type can be created without an existing Core, parent, or live database. There is no parent picker or `--parent` option. Creation does not validate structural lineage, semantic metadata, database conformance, or canonical filenames. These drafts are for editing and review; selecting Databases does not make the file canonical.
+Both are pre-structural Inbox captures. `Staged/` is only an implementation convention for database-intended drafts.
 
-Supply all answers explicitly for unattended use:
+Any draft type may be created without an existing Core, parent, or live database. The command has no parent picker and no `--parent` option. Supporting drafts may leave `core` and `parent_note` blank for later review.
+
+For unattended use:
 
 ```sh
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Example Game" --type core --alias "" --destination databases
@@ -45,11 +53,11 @@ Supply all answers explicitly for unattended use:
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --help
 ```
 
-The default instance is the checkout containing the script, regardless of the shell's working directory. Use `new --root "/path/to/instance"` to select another existing instance root containing `app/`. Runtime environments and test instances must remain outside the vault.
+The default instance is the checkout containing the script. Use `new --root "/path/to/instance"` to target another existing ShardBase instance containing `app/`.
 
-### Draft Metadata and Alias
+### Draft Contents
 
-The shipped templates create all eight note fields plus a single H1. A Shard named `Terminus` with alias `Island` contains:
+The shipped Games templates create all eight universal note fields and a single H1. For example:
 
 ```markdown
 ---
@@ -67,71 +75,139 @@ tags:
 
 ```
 
-Shard and Pebble templates leave `core` and `parent_note` blank for later review. A Core template uses a provisional self-link and an empty parent. All types use the entered title for the H1 and derive the output filename from that title alone. The CLI does not infer ancestry from a title containing ` - ` or require bounded canonical filenames in Inbox. There is exactly one blank line after the H1 and no additional body content.
+This is a draft representation. It is not proof that the note is a valid canonical Shard.
 
-Press Enter at the alias prompt to skip it, or pass `--alias ""`. With the shipped templates this leaves `aliases:` blank. An entered alias becomes a one-item YAML string list; punctuation, numeric-looking strings, and commas are retained as part of that one alias. Skipping preserves an existing template alias default. Supplying an alias replaces that default in the new draft only. IDs and timestamps are never generated.
+The title is used for the H1 and draft filename. The command does not infer ancestry from the title, does not construct bounded canonical supporting filenames, and does not validate the database semantic contract.
 
-### Template Sources
+The optional alias becomes a one-item YAML string list. Skipping it preserves the template default. IDs and timestamps are not generated.
 
-System Specification §5.3 establishes the optional database-root `Templates/` directory as the canonical database-owned template location. The framework ships `Game.md`, `Game Shard.md`, and `Game Pebble.md` in [Games/Templates/](../Blueprints/Games/Templates/), selected by the requested structural type.
+### Template Resolution
 
-The CLI reads database manifests only to locate a template owner by `database_id: games`; it does not validate their versions, required fields, lifecycle status, declared collections, or canonical notes. Missing or malformed manifests cannot identify a template owner and are skipped during this lookup. If no Games owner is identified, the selected instance's Games blueprint supplies the template. Multiple matching owners remain a template-selection ambiguity that must be resolved explicitly. A selected live database's missing template is reported rather than silently copied or replaced from a blueprint. No database is created or synchronized as a side effect.
+The Games blueprint supplies:
 
-A template must be readable YAML frontmatter with string field names so its values can be loaded safely. Malformed YAML, duplicate keys, or unsupported YAML tags still produce parse errors; this is input decoding rather than database conformance validation. The CLI supplies missing note fields with editing defaults, applies the selected `type`, and preserves other template metadata for review without checking its schema or meaning. The Core template's `[[{{stem}}]]` becomes the provisional self-link. Legacy unresolved `[[{{core}}]]` and `[[{{parent}}]]` placeholders become blank values; no parent lookup occurs. Literal template links remain unverified. Template bodies are ignored, and no template code is executed.
+- `Templates/Game.md`
+- `Templates/Game Shard.md`
+- `Templates/Game Pebble.md`
 
-These are Inbox starter resources, not immediately valid canonical Shards or Pebbles. The Games contract and System Specification still determine what is valid when a note is promoted. Unknown semantic fields, unresolved links, or invalid values in a draft must be reviewed at that boundary.
+The requested structural draft type chooses the corresponding template.
 
-### Review and Canonical Validation
+The CLI looks for a live database whose manifest identifies `database_id: games`. If exactly one owner is identified, its matching template is used. If no live Games owner is identified, the instance's Games blueprint is used. Multiple matching owners are an ambiguity and must be resolved explicitly.
 
-Edit the file freely in your Markdown editor. When promoting it into a live database, classify ownership and placement, complete `core` and `parent_note` as applicable, conform the filename to canonical rules, and review metadata under the destination `Database.md`. Canonical creation/promotion must result in conformant knowledge; this change does not relax live-database rules.
+A missing selected live template is reported rather than silently copied from the blueprint. The CLI never creates or synchronizes a live database as a side effect.
 
-The existing read-only validator inspects live database notes and excludes Inbox, including Staged. Run it against the destination database as part of manual promotion, and review database semantics separately. This MVP has no automatic promotion command or folder watcher; manually moving a file does not automatically run validation. Automatic promotion, direct canonical creation, database creation commands, domain-template selection, and body generation remain deferred.
+Template YAML must be safely parseable. The creator supplies missing universal draft fields, applies the selected draft `type`, and preserves other template metadata without claiming semantic conformance. Template bodies are ignored and no template code is executed.
 
-### Terminal Presentation and File Safety
+The Core template's `[[{{stem}}]]` becomes a provisional self-link. Legacy unresolved Core/parent placeholders are rendered blank rather than resolved through a parent search.
 
-The interactive flow uses spaced menus, short descriptions, and a compact result summary. Color is enabled only for terminal output; redirected output stays plain. Use `--no-color`, `NO_COLOR`, or `TERM=dumb` to disable it. Ctrl+C or end-of-input cancels without implicitly selecting an option.
+## Promotion Status
 
-Creation retains basic file safety: a non-empty single-line title, a usable portable filename, output-boundary and symlink checks, and exclusive creation. Existing output filenames, including case and Unicode normalization collisions, are never overwritten or silently numbered. No existing note contents are read to establish eligibility or check canonical collisions. These protections prevent accidental file damage; they do not certify structural validity.
+There is currently **no automatic promotion command, direct canonical creation command, or filesystem watcher**.
 
-`shardbase.py` owns prompts and arguments; `note_creation.py` owns template loading, draft rendering, and exclusive file creation. YAML parsing and portable filename normalization reuse helpers in `validate_shardbase.py`; its conformance checks are not invoked by `new`. No new dependencies are required.
+To promote a draft manually, the user must determine database ownership, collection, Pool, Core, parent, structural role, semantic metadata, canonical filename, and valid placement under the System Specification and destination `Database.md`. The current validator can then check its implemented structural scope, but database semantics still require separate review.
 
-The implementation assumes a stable local directory tree and is not a transaction system. An interrupted write can leave a partial new draft for review, which a rerun will refuse to overwrite. It does not protect against concurrent directory/symlink replacement or differently cased concurrent writes on a case-sensitive filesystem. Existing knowledge is never deleted as error recovery.
+Moving a file manually does not automatically run validation.
 
-Exit codes are `0` for creation, `1` for an operation error, `2` for invalid command syntax, and `130` for cancellation or end-of-input. The entry point suppresses project bytecode; retain `-B` for tests and other Python runners. Tests use temporary instances outside the vault; keep `TMPDIR` (or its platform equivalent) outside the vault when customizing it.
+Canonical creation/promotion should eventually validate both universal and database-semantic constraints before a write. That capability is not implemented yet.
 
-## Implemented Checks
+## Read-Only Validator
 
-- Discover every direct database directory, including incomplete roots missing `Database.md`; report discovery failures rather than treating them as an empty instance.
-- Parse UTF-8 YAML frontmatter with [PyYAML's safe loader](https://pyyaml.org/wiki/PyYAMLDocumentation), supporting block and flow collections, comments, quoted escapes, multiline values, and ordinary aliases/merges. Explicit duplicate keys, unsupported tags, malformed YAML, and non-mapping frontmatter produce diagnostics. PyYAML's scalar resolution applies: quote text such as `yes`, `on`, or numeric identifiers when a string is intended.
-- Check manifest fields and scalar/list shapes, integer `manifest_version: 1`, an opening H1, required H2 sections and H3 Includes/Excludes beneath Scope, heading depth/spacing, collection declarations, root `Attachments/`, and `Views/`. Unsupported manifest versions stop inspection of that database's contents.
-- Reject traversal and absolute collection paths before scanning. Check resolved containment before reading structural files or directories, including symlink targets. Database-root symlinks require ownership review and are not followed by this implementation.
-- Discover structural candidates at collection roots and one workspace level. Exclude attachment subtrees and root Agents, Templates, and Views. Check workspace Core identity, naming, lineage membership, and split placement. Nested directories other than `Attachments/` are reported for resource-contract review without recursively scanning them.
-- Inspect direct root Markdown files other than `Database.md` for misplaced `type`, `core`, or `parent_note` declarations and report `note-location`. These files never enter structural link resolution. Ordinary root resources without those declarations are not treated as structural notes; malformed frontmatter or unreadable root Markdown receives `root-frontmatter` or `read-error`. This targeted check does not certify arbitrary resource contracts or infer structural intent from prose.
-- Require `aliases`, `id`, and `tags` on every discovered Core, Shard, and Pebble. Blank YAML values are valid defaults; aliases/tags also accept empty lists or lists of non-empty strings, and IDs accept strings. Report missing keys as `note-field` and invalid shapes as `note-aliases`, `note-id`, or `note-tags`. Common fields do not participate in structural reference resolution; no IDs are generated or checked for uniqueness.
-- Check required structural fields, unambiguous local Core/parent resolution, empty Core parent fields, permitted parent types, Pool consistency, cycles, self-parenting, parent-chain root consistency, and active descendants beneath archived ancestors. Archiving a database does not require rewriting every contained note's status.
-- Derive portable filenames from canonical title components under the supported convention below. Check bounded context, portable characters and reserved stems, actual duplicate stems, and collisions in expected filenames across all scanned collections/workspaces. Never resolve collisions by choosing one duplicate or by using directory placement.
-- Check opening headings, incremental top-level ATX heading depth, and exactly one following blank line, excluding fenced code blocks. Blank lines between frontmatter and the first heading are accepted.
+Run all live databases:
 
-Structural wikilinks resolve only against the discovered notes in the selected database. Supported targets are unique stems, filenames with `.md`, database-relative paths, and repository/vault-root-relative paths beginning with `app/Knowledge/Databases/`; path forms may omit `.md`. Aliases and heading fragments do not change the selected structural note. Arbitrary relative traversal, absolute paths, and cross-database targets are not followed. Ordinary body links and Ghost Shards do not establish structural parentage.
+```sh
+"$shardbase_runtime/bin/python" -B app/Scripts/validate_shardbase.py
+```
 
-## Naming Convention and Remaining Scope
+To inspect one database, append its root path. The path must be a direct child of an `app/Knowledge/Databases/` boundary, including for temporary test copies.
 
-The filename checker currently supports the convention that a Core's opening H1 is its canonical entity name and a supporting note's opening H1 is its canonical local node name. It derives Core and immediate-parent context through YAML references, not by splitting ancestor filenames. A local name containing ` - ` is still one name component.
+The validator is read-only. It does not write, rename, repair, migrate, or normalize canonical files.
 
-Portable normalization replaces wikilink delimiters `#`, `[` and `]` with spaces, as well as the other forbidden characters, and removes the entire trailing sequence of spaces and periods. `Game #1` derives `Game 1.md` with `core: "[[Game 1]]"`; `Game. .` derives `Game.md`. Display titles remain intact. Aliases and fragments still work after the normalized target. Names that normalize to the same filename produce collision diagnostics.
+### Implemented Scope
 
-The sanitized fixtures use this convention; Games explicitly uses it for Core titles. The universal specification permits other documented display-title conventions. A database with another convention needs a database-aware naming adapter before this tool's filename findings can be treated as conformance findings. This implementation does not infer alternate title meanings from prose or invent a new semantic title field.
+The validator currently checks:
 
-Database-semantic schemas and Pool vocabularies are not automatically interpreted from `Database.md` prose. Semantic field validation, materialization/fragmentation judgment, attachment reference and orphan audits, arbitrary database-local resources, full Markdown parsing, and specification-version migration remain separate work. Additional resource directories reported as `nested-directory` require review against their database contract; the diagnostic is not a new universal prohibition on permitted resources.
+- discovery of direct database roots, including incomplete roots missing `Database.md`;
+- UTF-8 YAML frontmatter using a safe PyYAML loader, including duplicate-key/malformed/unsupported-tag diagnostics;
+- manifest field/value/shape requirements and required manifest body headings;
+- declared data collections, root `Attachments/`, and `Views/`;
+- traversal, absolute-path, containment, and relevant symlink boundaries before scanning;
+- structural discovery at collection roots and one Core-workspace level;
+- exclusion of attachment subtrees and root `Agents/`, `Templates/`, and `Views/` from structural discovery;
+- misplaced root Markdown files that declare structural metadata;
+- required structural fields and common fields `aliases`, `id`, and `tags` with their current value shapes;
+- same-database Core/parent resolution, Core self-reference, permitted parent types, Pool consistency, cycles, self-parenting, parent-chain root consistency, and active descendants beneath archived ancestors;
+- Core-workspace naming/membership and split-lineage placement;
+- portable canonical filenames, bounded supporting context, actual duplicate stems, and expected-filename collisions;
+- opening H1, incremental top-level ATX heading depth, and exactly one blank line after headings outside fenced code blocks.
 
-The filesystem checks assume a stable local tree during a run; they do not provide a transaction or protection against concurrent replacement of files. Avoid using the validator as a write/migration gate until the operation's full structural and database-semantic requirements are covered.
+Structural wikilinks resolve only against discovered notes in the selected database. Supported target forms include unique stems, `.md` filenames, database-relative paths, and repository/vault-root-relative paths beginning with `app/Knowledge/Databases/`; supported path forms may omit `.md`. Aliases and heading fragments do not change the selected structural note. Cross-database structural targets and arbitrary traversal are not followed.
 
-## Results and Compatibility
+### Naming Assumption
 
-Exit status `0` means no issues in the implemented scope (or no database candidates in an empty instance). Exit status `1` means validation or discovery found issues. Diagnostics contain a path, an issue code, and a message; consumers should use issue codes rather than parse message text or rely on issue counts. One problem can generate several dependent diagnostics. YAML errors report location without echoing source content.
+The current filename checker assumes:
 
-Root placement and manifest heading checks correct false acceptance under existing rules. The naming fixes implement the approved normative `foundation-1` specification boundary and can change expected filenames for previously accepted state. `manifest_version` remains `1`; it does not identify the specification version under which a database was authored. The validator checks only the current documented scope, without historical-version inference or migration. See System Specification Section 19.2 for the preservation-oriented transition: review affected files and references, retain a recoverable local copy, resolve collisions, explicitly authorize the bounded rename/reference update, and validate preservation and conformance. The `foundation-2` boundary additionally requires `aliases`, `id`, and `tags`. This is breaking for notes missing these keys or using incompatible values. Its bounded transition reviews existing uses, preserves a recoverable local copy, adds only missing blank keys under authorization, resolves incompatible existing values deliberately, and validates conformance and content preservation. Existing valid values are never cleared. Nothing is automatically normalized, renamed, or migrated.
+- a Core's opening H1 is its canonical entity name;
+- a supporting note's opening H1 is its canonical local node name.
+
+It derives Core and immediate-parent context from YAML lineage rather than by splitting filenames. A local title containing the literal delimiter ` - ` remains one local-name component.
+
+A database that intentionally uses another documented display-title convention requires a database-aware naming adapter before the validator's filename findings can be treated as complete conformance findings.
+
+For the normative portable normalization and bounded filename algorithm, use the System Specification rather than this implementation guide.
+
+### Not Yet Implemented Generically
+
+The validator does **not** currently determine or enforce:
+
+- database semantic schema fields, shapes, bounded values, or applicability from `Database.md`;
+- database Pool vocabulary from prose;
+- whether a note genuinely earns materialization versus remaining a heading;
+- duplicate/overlapping semantic content beyond deterministic structural collisions;
+- attachment references, missing attachments, or attachment-orphan audits;
+- arbitrary database-local resource contracts;
+- complete Markdown linting;
+- historical System Specification version detection;
+- migrations;
+- canonical draft promotion or canonical note creation.
+
+A successful run therefore means the implemented structural checks passed. It is not proof of complete database-semantic validity or Foundation completion.
+
+## Results
+
+Exit status:
+
+- `0` — no issues in implemented scope, including an empty instance with no database candidates;
+- `1` — validation/discovery issues or an operation error, depending on command;
+- `2` — invalid CLI command syntax for `shardbase.py`;
+- `130` — draft creation cancelled or ended by input termination.
+
+Validator diagnostics include a path, stable issue code, and message. Consumers should use issue codes rather than parse human-readable messages or rely on issue counts.
+
+YAML errors report location without echoing source content.
+
+## File Safety
+
+Draft creation uses a non-empty single-line title, portable output filename, output-boundary/symlink checks, and exclusive creation. It never overwrites an existing output path or silently numbers collisions.
+
+These are file-safety protections, not structural validation. Draft creation does not inspect existing canonical notes to establish eligibility or resolve canonical naming collisions.
+
+The implementation assumes a stable local filesystem during an operation and is not transactional. An interrupted draft write may leave a partial new draft; a rerun will refuse to overwrite it. Error recovery never deletes existing user knowledge.
+
+## Tests and Fixtures
+
+Tests use temporary instances outside the vault. Keep `TMPDIR` or its platform equivalent outside the vault when customizing it.
+
+The sanitized fixtures and tests prove the current structural validation behavior, including valid/invalid manifests, YAML shapes, common note metadata, lineage failures, workspace placement, filename normalization/collisions, boundary escapes, and Markdown heading checks.
+
+Semantic-schema, attachment-reference, fragmentation/materialization, and full Inbox-to-canonical proof fixtures remain future work.
+
+## Compatibility
+
+The validator checks the current `foundation-2` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
+
+The validator does not migrate older state. For the recorded `foundation-1` and `foundation-2` compatibility boundaries and preservation-oriented transitions, use the System Specification.
 
 ## Blueprint Scaffolding
 
-`app/Blueprints/Games/` includes empty `.gitkeep` files so Git preserves `Data/Game/Attachments/` and `Views/`. These are packaging placeholders, not notes or semantic knowledge. Copying this starter material into a new database preserves the required empty directory structure. Later blueprint changes do not update an existing live database.
+`app/Blueprints/Games/` includes tracked empty-directory scaffolding for `Data/Game/Attachments/` and `Views/`, plus draft templates and the optional Vera Agent resource. Packaging placeholders are not semantic knowledge.
+
+Copying a blueprint materializes a starting database package. Later blueprint changes never silently update a live database.

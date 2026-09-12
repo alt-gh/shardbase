@@ -11,202 +11,222 @@ database_status: active
 
 ## Purpose
 
-The Games database owns the user's durable knowledge about games across physical and digital forms and game-specific subjects that are best understood in the context of a particular game. It is intended to support long-term personal reference, play-related notes, discovery, querying, and growth without requiring an exhaustive games-industry ontology.
+The Games database owns the user's durable knowledge about games across physical and digital forms and game-specific subjects best understood in the context of a particular game. It supports long-term reference, play-related notes, discovery, querying, and growth without attempting to model an exhaustive games-industry ontology.
 
-The database should begin with the smallest useful domain contract. Additional collections, semantic fields, note kinds, Views, templates, or specialist Agent resources should be introduced only when real use demonstrates concrete value.
+This file defines **Games-specific meaning only**. Universal ShardBase structure, metadata, lineage, placement, filename, lifecycle, attachment, safety, and validation rules come from the [System Specification](../../Docs/Shard%20System%20Specification.md).
 
 ## Scope
 
 ### Includes
 
-- Video games, board games, card games, tabletop role-playing games, miniatures games, and other games that the user wants to track, study, remember, reference, or develop knowledge about.
-- Game-specific knowledge whose canonical meaning depends on a particular game, including rules, setup, components, mechanics, systems, scenarios, quests, characters, locations, strategies, builds, lore, session or progression notes, and similar subjects when they earn independent materialization.
-- Personal play-state information and other documented game-specific semantic metadata defined by this database.
-- Relationships from a game to designers, developers, publishers, platforms, genres, and series when represented by the semantic fields defined below.
+- Video games, board games, card games, tabletop role-playing games, miniatures games, and other games the user wants to track, study, remember, reference, or develop knowledge about.
+- Game-specific knowledge whose canonical meaning depends on a particular game, including rules, setup, components, mechanics, systems, scenarios, quests, characters, locations, strategies, builds, lore, session/progression notes, and similar subjects when they earn independent representation.
+- Personal play-state information and other Games semantic metadata defined below.
+- Semantic relationships from games to designers, developers, publishers, platforms, genres, and series.
 
 ### Excludes
 
-- General-purpose canonical knowledge about people, companies, organizations, hardware platforms, storefronts, or other entities whose meaning is independent of a particular game. Those subjects may be referenced by name here but should be canonically owned by another database if a suitable database exists.
-- General games-industry news, business analysis, or market information that is not primarily knowledge about a particular game.
-- A universal game-category, franchise, series, platform, designer, developer, publisher, character, or genre ontology. These concepts must not become new data collections, structural parents, or universal ShardBase concepts merely because individual games relate to them.
-- Duplicate authoritative copies of knowledge canonically owned by another database. Cross-database relationships do not transfer ownership.
+- General-purpose canonical knowledge about people, companies, organizations, hardware platforms, storefronts, or other entities whose meaning is independent of a particular game. These may be referenced by name here but should be canonically owned elsewhere when a suitable database exists.
+- General games-industry news, business analysis, or market information not primarily about a particular game.
+- A universal category, franchise, series, platform, designer, developer, publisher, character, or genre ontology.
+- Duplicate authoritative copies of knowledge canonically owned by another database.
 
 ## Architecture
 
-### Data Collections
+### Data Collection — `Game`
 
-#### `Game`
+`Game` is the initial and primary collection. Its root Cores are independently meaningful games.
 
-`Game` is the initial and primary data collection. It contains canonical structural notes whose root Core is an independently meaningful game.
+The database intentionally begins with one collection. Additional collections require a demonstrated ownership, querying, navigation, lifecycle, or portability need and an explicit update to this contract.
 
-The database intentionally begins with one declared data collection. Additional collections must earn their complexity through demonstrated ownership, querying, navigation, lifecycle, or portability needs and require an explicit update to this contract before use.
+Game lineages use universal flat/Core-workspace placement rules from the System Specification. Workspace placement never defines lineage.
 
-Canonical Game lineages use flat placement at `Data/Game/` by default. A Game Core lineage may be bundled into one direct-child Core workspace only when concrete organizational value justifies the additional directory. Workspace placement is physical organization only and never defines lineage.
+### Pool Vocabulary
 
-### Pools
-
-The canonical Pool vocabulary initially contains one value:
+The canonical Pool vocabulary contains one value:
 
 - `Games`
 
-Every Game Core and its structural descendants use `pool: Games`.
+Every Game Core and structural descendant uses `pool: Games`.
 
-The single Pool is intentional. Additional Pools should not be introduced for genres, platforms, play state, franchises, or other classifications that are better represented through semantic metadata unless future use demonstrates a genuinely broad lineage-grouping need.
+Do not create Pools for genres, platforms, play state, franchises, or other domain classifications. Those concepts remain semantic unless a future database-contract change demonstrates a true broad lineage-grouping need.
 
 ### Core Strategy
 
-A Core normally represents one independently meaningful game title.
+One independently meaningful game normally owns one Core.
 
-A game should become its own Core when it has a stable identity and is useful to manage, query, navigate, link to, or grow as the root of its own knowledge lineage. A Game Core may remain a single Markdown note indefinitely.
+A game is a Core when it has stable identity and is useful to manage, query, navigate, link to, or grow as the root of its own lineage. It may remain a single Markdown file indefinitely.
 
-Expansions, downloadable content, editions, remasters, ports, adaptations, rules revisions, seasons, campaigns, and similar related releases or implementations do not automatically become separate Cores. They should remain ordinary content or semantic relationships unless a distinct identity, independent growth, querying, navigation, reference, lifecycle management, or another concrete benefit justifies separate canonical representation.
+Expansions, DLC, editions, remasters, ports, adaptations, rules revisions, seasons, campaigns, and similar related releases do not automatically become separate Cores. Give them independent canonical representation only when distinct identity plus independent growth, querying, navigation, reference, lifecycle, or another concrete need justifies it.
 
-Game categories, series, franchises, designers, developers, publishers, platforms, genres, characters, locations, quests, mechanics, and other concepts do not become structural ancestors merely because they group or relate to games. Structural ancestry expresses decomposition within one Game Core lineage; domain relationships remain semantic.
+Categories, series, franchises, designers, developers, publishers, platforms, genres, characters, locations, quests, mechanics, and similar relationships are semantic. They do not create structural ancestry.
 
-Supporting knowledge should remain ordinary Markdown headings or sections inside the Game Core unless a separate Shard or Pebble independently earns materialization under the universal ShardBase materialization rules.
+Supporting knowledge should remain ordinary Markdown inside the Game Core until a separate Shard or Pebble earns materialization under the System Specification.
 
 ## Schema
 
-The five universal structural fields and the required common note fields `aliases`, `id`, and `tags` retain their System Specification meanings and value shapes. Every Core, Shard, and Pebble includes all eight fields; the three common fields default to blank YAML values. This database does not add an ID convention or required alias/tag vocabulary.
+Universal structural/common note fields keep the meanings and shapes defined by the System Specification and are not repeated here. Games adds the following semantic fields.
 
-The initial Games semantic schema is deliberately small. Unless stated otherwise, these fields apply to Game Cores only and are optional. Omitted optional fields mean the database does not currently assert that fact.
+Unless stated otherwise, these fields apply to Game Cores only and are optional. Omission means the database does not currently assert that fact.
 
 ### `game_categories`
 
-- Meaning: the broad physical or digital forms in which the game is represented, such as `video_game`, `board_game`, `card_game`, `tabletop_roleplaying_game`, or `miniatures_game`.
-- Applies to: Game Cores.
-- Required: no.
-- Shape: YAML list of one or more unique, non-empty strings when populated.
-- Vocabulary: initially open. Values use lowercase `snake_case`; recurring inconsistency or a need for deterministic validation should be resolved by deliberately bounding the vocabulary in this contract rather than inferring it from existing notes.
-- Classification semantics: categories may overlap, and one Game Core may use multiple values. List order carries no precedence or primary-category meaning. Categories classify the game without defining data-collection placement, Pool membership, structural lineage, or canonical identity. Supporting Shards and Pebbles obtain this context through their root Core and normally omit the field.
+- **Meaning:** broad physical or digital forms in which the game is represented.
+- **Applies to:** Game Cores.
+- **Required:** no.
+- **Shape:** YAML list of one or more unique, non-empty strings when populated.
+- **Vocabulary:** open; use lowercase `snake_case`.
+- **Examples:** `video_game`, `board_game`, `card_game`, `tabletop_roleplaying_game`, `miniatures_game`.
+- **Semantics:** values may overlap and list order has no precedence. Categories do not define collection placement, Pool membership, lineage, or canonical identity.
 
-`game_categories` describes broad game form rather than genre. For example, a card-driven board game may use both `board_game` and `card_game`, while its thematic or mechanical genres remain in `genres`. Multiple categories do not justify duplicate Game Cores.
+`game_categories` describes broad game form rather than genre. Multiple categories still describe one Game Core unless the underlying implementations have distinct identities that independently earn separate representation.
 
 ### `release_date`
 
-- Meaning: the game's original first public release date when the user chooses to record it.
-- Applies to: Game Cores.
-- Required: no.
-- Shape: ISO calendar date in `YYYY-MM-DD` form.
-- Constraint: omit the field when a sufficiently precise date is not known rather than inventing a placeholder or mixing year-only and full-date values.
+- **Meaning:** original first public release date when the user chooses to record it.
+- **Applies to:** Game Cores.
+- **Required:** no.
+- **Shape:** ISO date `YYYY-MM-DD`.
+- **Constraint:** omit when a sufficiently precise date is not known rather than inventing a placeholder or mixing partial date formats.
 
 ### `developers`
 
-- Meaning: developer names associated with the game.
-- Applies to: Game Cores for which software or other game development attribution is meaningful.
-- Required: no.
-- Shape: YAML list of non-empty strings.
-- Relationship semantics: the values identify developers by name for Games-domain querying; they do not make the Games database the canonical owner of the developer entity.
+- **Meaning:** developer names associated with the game.
+- **Applies to:** Game Cores where development attribution is meaningful.
+- **Required:** no.
+- **Shape:** YAML list of non-empty strings.
+- **Ownership:** values identify relationships; they do not make Games the canonical owner of developer entities.
 
 ### `designers`
 
-- Meaning: game designer names associated with the game.
-- Applies to: Game Cores for which design attribution is meaningful.
-- Required: no.
-- Shape: YAML list of non-empty strings.
-- Relationship semantics: the values identify designers by name for Games-domain querying; they do not make the Games database the canonical owner of the designer entity.
+- **Meaning:** game designer names associated with the game.
+- **Applies to:** Game Cores where design attribution is meaningful.
+- **Required:** no.
+- **Shape:** YAML list of non-empty strings.
+- **Ownership:** values identify relationships; they do not make Games the canonical owner of designer entities.
 
 ### `publishers`
 
-- Meaning: publisher names associated with the game.
-- Applies to: Game Cores.
-- Required: no.
-- Shape: YAML list of non-empty strings.
-- Relationship semantics: the values identify publishers by name for Games-domain querying; they do not make the Games database the canonical owner of the publisher entity.
+- **Meaning:** publisher names associated with the game.
+- **Applies to:** Game Cores.
+- **Required:** no.
+- **Shape:** YAML list of non-empty strings.
+- **Ownership:** values identify relationships; they do not make Games the canonical owner of publisher entities.
 
 ### `platforms`
 
-- Meaning: hardware or software platforms on which the user wants to record that a digital game is available or relevant.
-- Applies to: Game Cores with a relevant digital implementation.
-- Required: no.
-- Shape: YAML list of non-empty strings.
-- Relationship semantics: platform names are semantic classifications for this database and are not structural ownership or lineage.
+- **Meaning:** hardware or software platforms on which a digital game is available or relevant to the user's record.
+- **Applies to:** Game Cores with a relevant digital implementation.
+- **Required:** no.
+- **Shape:** YAML list of non-empty strings.
+- **Semantics:** platform values are semantic classifications, not structural ownership or lineage.
 
 ### `genres`
 
-- Meaning: useful genre classifications for the game.
-- Applies to: Game Cores.
-- Required: no.
-- Shape: YAML list of non-empty strings.
-- Vocabulary: initially open rather than centrally enumerated. If inconsistent vocabulary becomes a recurring query or validation problem, the vocabulary should be deliberately bounded in this contract rather than inferred from existing notes.
+- **Meaning:** useful genre classifications for the game.
+- **Applies to:** Game Cores.
+- **Required:** no.
+- **Shape:** YAML list of non-empty strings.
+- **Vocabulary:** open until recurring query/validation needs justify a bounded vocabulary in this contract.
 
 ### `series`
 
-- Meaning: a series or franchise name that is useful for relating the game to other games.
-- Applies to: Game Cores.
-- Required: no.
-- Shape: YAML list of non-empty strings.
-- Relationship semantics: series membership is semantic. It does not make a series a structural parent, Core, or data collection.
+- **Meaning:** series or franchise names useful for relating games.
+- **Applies to:** Game Cores.
+- **Required:** no.
+- **Shape:** YAML list of non-empty strings.
+- **Semantics:** series membership is semantic and never creates a structural parent, Core, or data collection.
 
 ### `play_state`
 
-- Meaning: the user's current high-level play relationship to the game.
-- Applies to: Game Cores.
-- Required: no.
-- Shape: one scalar string.
-- Allowed values:
+- **Meaning:** the user's current high-level play relationship to the game.
+- **Applies to:** Game Cores.
+- **Required:** no.
+- **Shape:** scalar string.
+- **Allowed values:**
   - `not_started`
   - `playing`
   - `paused`
   - `completed`
   - `stopped`
-- Constraint: use this field only when the allowed states meaningfully describe the user's relationship to the game; omit it rather than repurposing a value for a repeatable, session-based, or otherwise incompatible play pattern. `play_state` is a database-local semantic field and must never replace or alter universal structural `status`.
+
+Omit `play_state` when these values do not meaningfully describe the user's relationship. Do not repurpose them for session state, repeatable play, or other incompatible concepts. `play_state` is unrelated to universal structural `status`.
 
 ### Semantic Note Kinds
 
-The Games database currently defines no additional semantic note-kind field. Structural role is represented only by the universal `type` field, and game-specific subject matter should normally be expressed through the note body, links, and the semantic fields above.
+Games currently defines no additional semantic note-kind field. Structural role remains the universal `type` field.
 
-A new semantic note-kind system should be added only if real use shows that deterministic creation, interpretation, querying, or validation needs a bounded domain classification that cannot be represented adequately without it.
+Add a domain-specific note-kind system only if real use shows that deterministic creation, interpretation, querying, or validation needs a bounded Games classification that cannot be represented adequately through existing semantics and ordinary Markdown.
 
 ### Supported Document Purposes
 
-The initial documentation workflows support three purposes. These are body-level purposes, not additional values of `type`, a required semantic discriminator, or a requirement to create three files for every game.
+These are body-level purposes, not values of `type` and not a requirement to create multiple files per game.
 
 | Purpose | Representation |
 |---|---|
-| Game reference | A Game Core containing broad reference knowledge and applicable Game Core metadata. |
-| Focused reference or guide | Ordinary content until independent materialization earns a Shard or terminal Pebble under the System Specification. Modes, systems, maps, quests, and procedural routes are possible subjects, not automatic structural levels. |
-| Completionist checklist | A personal completion record, normally a direct-child Shard named with the local node name `Completionist Checklist` when requested as an independent record. A smaller record may remain a section in an existing note. |
+| Game reference | Game Core containing broad reference knowledge and applicable Core metadata |
+| Focused reference or guide | Ordinary content until it earns a Shard or terminal Pebble under universal materialization rules |
+| Completionist checklist | Personal completion record; when independently materialized, normally a direct-child Shard named `Completionist Checklist` |
 
-Reference content explains the game; a completionist checklist records the user's progress. A guide's temporary execution checkboxes do not assert durable personal completion. Document purpose and checkbox meaning must be explicit in the containing note or section; tools must not classify them from filenames, indentation, or checkbox syntax alone.
+A reference explains a game. A completionist checklist records the user's progress. Temporary guide checkboxes do not assert durable personal completion. The containing note or section must make checkbox purpose explicit.
 
 ## Conventions
 
-- A Game Core level-one heading uses the game's canonical human-facing title. Its filename uses the deterministic portable filename stem derived from that title by the System Specification; do not duplicate the title into semantic YAML merely for convenience.
-- When independently meaningful games would otherwise have the same canonical name, disambiguate each Core's canonical name with the shortest stable, human-meaningful qualifier that distinguishes its identity. A game category is suitable when it resolves the identity, as in `Monopoly (Board Game)` and `Monopoly (Video Game)`; otherwise use a more precise qualifier such as edition, year, platform, or publisher. The Core file and optional Core workspace use the portable stem derived from that disambiguated canonical name. Metadata or separate workspace placement alone does not resolve a filename collision.
-- A game represented by multiple categories remains one Game Core. Create separate Cores for physical editions, digital adaptations, or other implementations only when each has a distinct identity and independently earns canonical representation; relate them semantically rather than treating one as structural ancestry for the other.
-- Prefer ordinary Markdown headings inside a Game Core for information that does not independently justify a structural file.
-- Do not materialize every rule, component, scenario, quest, character, location, mechanic, item, build, achievement, chapter, or piece of lore as a Shard or Pebble. Materialize only when the knowledge independently earns it under the System Specification.
-- Domain relationships such as designer, developer, publisher, platform, genre, series, sequel/prequel, adaptation, and shared universe are semantic relationships, not structural ancestry.
-- When a scalar/list semantic field cannot represent a domain fact without becoming misleading, preserve the richer fact in Markdown rather than forcing it into the current schema. Extend the schema deliberately if the need recurs.
-- Prefer one authoritative representation for a fact. Do not maintain competing metadata and prose values that are both treated as canonical merely for visibility.
-- Missing optional semantic metadata is valid. Do not manufacture values solely to make notes look complete.
-- Supporting structural notes inherit the root Game Core's `pool: Games` and remain within the same database and Game lineage.
-- The initial database should preserve flat placement unless a specific Game lineage earns a Core workspace through concrete organizational value.
+### Identity and Naming
+
+- A Game Core H1 uses the canonical human-facing game title. The filename uses the universal portable filename derivation.
+- Do not duplicate the game title into semantic YAML merely for convenience.
+- If distinct games would otherwise share a canonical name, add the shortest stable human-meaningful qualifier that distinguishes identity. Prefer category when sufficient, otherwise edition, year, platform, publisher, or another stable discriminator.
+- Multiple `game_categories` values do not create duplicate Cores.
+- Metadata, folders, or separate workspaces do not resolve identity/filename collisions.
+
+### Structure
+
+- Prefer ordinary headings inside the Game Core when a separate file provides no independent value.
+- Do not materialize every rule, component, scenario, quest, character, location, mechanic, item, build, achievement, chapter, or lore topic.
+- Domain relationships remain semantic rather than structural ancestry.
+- Supporting structural notes stay inside the same Game lineage and inherit its `pool: Games` under the universal contract.
+- Keep a lineage flat unless a specific Game Core earns a workspace for concrete organizational reasons.
+
+### Semantic Data
+
+- Missing optional semantic metadata is valid. Do not manufacture values for visual completeness.
+- When a scalar/list field would make a richer domain fact misleading, preserve the richer fact in Markdown. If the need recurs, extend this schema deliberately.
+- Prefer one authoritative representation for a fact. Do not maintain competing prose and metadata values that are both treated as canonical.
 
 ### Document Scaffolding
 
-New documentation defaults to a compact, game-specific heading skeleton with a brief scope statement and valid structural metadata when canonical. Deliberately unfinished headings are permitted; use precise `TODO-DOC` markers to identify missing information, with one marker covering a group when its scope is clear. Headings do not require separate notes. Granular reference content and objective catalogs may be supplied by the user or developed when requested. A scaffold is not evidence of documentation or gameplay completeness, and this authoring default does not require removing existing content or restructuring valid notes.
+New documentation may begin as a compact game-specific skeleton with a brief scope statement and purposeful headings. Deliberately unfinished headings are allowed.
 
-Empty-note creation is a narrower authoring operation: the starter Game template provides required YAML and only the game's title as an H1. Body development remains a separate user-directed step; no scope statement, additional headings, or prose is inserted by the initial CLI.
+Use:
+
+```markdown
+> **TODO-DOC:** [Specific missing information or unresolved scope decision].
+```
+
+One marker may cover a clearly scoped group. A scaffold is not evidence of researched completeness, and headings never imply separate structural notes.
+
+The starter draft templates are narrower: they create universal YAML plus only the title H1. Body development remains separate.
 
 ### Completion Records
 
-The following is the Games completion-record convention for newly authored checklists that explicitly adopt it in their scope or conventions section. It is optional for a valid Games database. Existing records retain their documented meanings; applying this convention to an existing record requires a deliberate, preservation-oriented transition. It does not introduce YAML fields or change structural `status` or semantic `play_state`.
+The following convention applies to newly authored Games completion records that explicitly adopt it. It is optional for a valid Games database. Existing records retain their documented meanings until deliberately migrated.
 
 #### Scope and Completeness
 
-- A completion-bearing objective is a finite gameplay accomplishment included in the record's stated personal completion scope. State relevant game edition, platform differences, expansions, content snapshot, and exclusions where they affect that scope.
-- Equivalent shared objectives have one authoritative progress record. Distinct modes, difficulties, characters, or other independent completion axes remain separate when the game and the user's scope distinguish them.
-- Research establishes possible objectives, never personal completion. Research-only entries start unchecked with an empty timestamp.
-- Containers group objectives without checkboxes or timestamps. Indentation is grouping, not structural lineage or proof of completion.
-- `> **TODO-DOC:** [Specific gap or unresolved scope decision].` marks incomplete documentation, not a gameplay objective. A gap within tracked scope prevents a claim of authoritative completeness for that scope.
-- Documented-scope completion means all currently documented in-scope objectives are checked. Authoritative 100% completion additionally requires a verified objective set for the stated scope and no unresolved documentation gaps within it. Removing markers alone does not establish completeness. Do not infer 100% from an empty or unverified objective set.
-- New post-launch, seasonal, or expansion objectives enter personal scope only through a deliberate scope update. Research does not silently redefine an existing completion record.
+- A completion-bearing objective is a finite gameplay accomplishment included in the record's stated personal scope.
+- State edition/platform differences, expansions, content snapshot, and exclusions where they affect scope.
+- Equivalent shared objectives have one authoritative progress record. Distinct modes, difficulties, characters, or other independent completion axes remain separate when the game/user scope distinguishes them.
+- Research establishes possible objectives, never personal completion. Research-only objectives begin unchecked with an empty timestamp.
+- Containers group objectives without checkboxes/timestamps. Indentation is grouping, not structural lineage.
+- `TODO-DOC` marks incomplete documentation, not a gameplay objective.
+- **Documented-scope completion** means every currently documented in-scope objective is checked.
+- **Authoritative 100% completion** additionally requires a verified complete objective set for the stated scope and no unresolved in-scope documentation gaps.
+- Post-launch, seasonal, expansion, or other new objectives enter personal scope only through deliberate scope change.
 
 #### Completion State and Timestamps
 
-Use ordinary Markdown task items for completion-bearing objectives:
+Use ordinary Markdown task items:
 
 ```markdown
 - [ ] Objective `[Timestamp: ]`
@@ -214,50 +234,58 @@ Use ordinary Markdown task items for completion-bearing objectives:
 - [x] Objective `[Timestamp: Unknown]`
 ```
 
-`Timestamp` means when the objective was completed, not when the note was created, researched, imported, or edited. A known timestamp uses `YYYY-MM-DDTHH:MM:SS±HH:MM` with an explicit UTC offset. `Unknown` preserves confirmed completion whose original time is unavailable; it does not mean incomplete. Never fabricate missing date, time, or timezone precision. Preserve any supplied partial time information in ordinary prose alongside `Unknown` until the full completion time is established.
+`Timestamp` means the time the objective was completed, not note creation, research, import, or edit time.
 
-A checked objective with an empty timestamp or an unchecked objective with a non-empty timestamp is an integrity warning. Preserve both values and report the inconsistency; do not silently repair it. Changes to existing progress and timestamps require the user's authorized update or reconciliation.
+A known timestamp uses `YYYY-MM-DDTHH:MM:SS±HH:MM` with an explicit UTC offset. `Unknown` preserves confirmed completion whose original time is unavailable. Never fabricate date/time/timezone precision. Preserve known partial timing information in prose when useful.
 
-#### Dependencies and Summaries
+A checked objective with an empty timestamp, or an unchecked objective with a populated timestamp, is an integrity warning. Preserve the existing values and report the inconsistency; do not silently repair it.
 
-A completion dependency applies only when explicitly documented for that game and record. State the affected objectives, direction of implication, conditions, and timestamp behavior, including unknown or missing timestamps. A terminal milestone does not imply independent progression axes. A task item that merely aggregates other objectives is a rollup and is excluded from objective totals, even if nested among them.
+#### Dependencies and Rollups
 
-Optional completion summaries are explicitly labeled rollups over a stated scope, never additional gameplay objectives. A rollup can be complete only when every objective in that scope is complete and that scope's documentation is complete. Prefer derived summaries without stored checkboxes; if stored summary checkboxes are used, update them only during authorized reconciliation. Their timestamp records the completion that made the scope complete; use `Unknown` when that event's time cannot be established, and preserve/report inconsistent existing timestamps. Do not use the reconciliation time or guess a triggering event from an incomplete history.
+A completion dependency applies only when explicitly documented for that game/record. Record affected objectives, direction of implication, conditions, and timestamp behavior.
 
-Game-specific completion criteria and dependencies are explicit record content governed by these conventions, not new database-wide rules. If a recurring interpretation or automated behavior needs a shared field or note-kind contract, extend this `Database.md` deliberately before relying on it.
+A terminal milestone does not imply independent progression axes.
+
+A task item that only aggregates other objectives is a **rollup**, not an additional gameplay objective. Optional summaries must state their scope and remain non-authoritative over the underlying objectives.
+
+A rollup is complete only when every objective in its scope is complete and the scope's documentation is complete. If a stored rollup timestamp cannot be established, use `Unknown`; do not substitute reconciliation time.
 
 #### Execution Aids and Other Personal Records
 
-A reference guide may contain a clearly labeled temporary run checklist with checkboxes and no completion timestamps. These boxes track actions during a run and never enter completionist totals or automatically update personal history. Personal bests, loadouts, recommendations, and annotations remain distinct from completion-bearing objectives unless the record explicitly defines a finite objective around them; do not infer completion from them.
+A reference guide may contain a clearly labeled temporary execution checklist with no completion timestamps. Those checkboxes track actions during a run and never enter completionist totals or personal history.
+
+Personal bests, loadouts, recommendations, and annotations remain distinct from completion-bearing objectives unless the record explicitly defines a finite objective around them.
 
 ## Resources
 
 ### Views
 
-`Views/` is part of the database boundary. No View is required by this initial contract. Starter Views may be added after this contract is accepted when they provide concrete navigation or querying value over the documented schema. Views remain non-authoritative projections over canonical source data.
+`Views/` belongs to the Games database boundary. No View is required by the initial contract. Views remain non-authoritative projections over canonical source data.
 
 ### Attachments
 
-`Data/Game/Attachments/` is the root attachment home for the Game collection. A valid Game Core workspace may also contain its own `Attachments/` directory. Attachments remain database-owned resources and may be referenced by canonical notes anywhere in the Games database regardless of which permitted attachment home contains them.
+Games uses the universal attachment model. The collection root is `Data/Game/Attachments/`; a valid Game Core workspace may also contain `Attachments/`. Attachment ownership remains database-level.
 
 ### Templates
 
-The blueprint supplies [Templates/Game.md](Templates/Game.md), an optional starter resource for a draft Game Core. It includes all eight required note fields, `pool: Games`, `status: draft`, an empty parent, and blank `aliases`, `id`, and `tags`. Optional semantic facts are omitted until known. A valid Games database still does not require a template.
+The blueprint supplies:
 
-The CLI selects `Templates/Game.md`, `Templates/Game Shard.md`, or `Templates/Game Pebble.md` according to the requested type. These are Inbox draft resources: the supporting templates leave `core` and `parent_note` blank, and no existing ancestors are required to create a capture. Game Core semantic fields still do not apply to canonical supporting notes; draft creation postpones conformance checks until promotion.
+- [`Templates/Game.md`](Templates/Game.md)
+- [`Templates/Game Shard.md`](Templates/Game%20Shard.md)
+- [`Templates/Game Pebble.md`](Templates/Game%20Pebble.md)
 
-The CLI uses the template from an identified live Games database when available, otherwise the instance's Games blueprint. A missing selected live template is reported rather than copied or synchronized. Database manifests are used for template-owner lookup only, not validated as an Inbox creation gate. Existing databases and notes are never modified by this operation.
+These are optional Inbox draft resources. They provide starting YAML and a title H1 but do not define canonical validity. Supporting templates intentionally leave unresolved lineage blank for later classification/promotion.
 
-In the Core starter, `[[{{stem}}]]` means a provisional self-link based on the entered title. `{{title}}` illustrates the H1. Supporting starters provide blank lineage fields for review; legacy unresolved Core/parent placeholders are also rendered blank without resolving ancestors. The optional alias prompt supplies a one-item `aliases` list, or leaves the template default when skipped. The CLI includes all eight fields and preserves other unverified template defaults without applying a semantic schema. It always generates only the title H1, ignores template body prose, and executes no template code.
-
-These creation conventions do not relax canonical Games rules. At promotion, complete structural metadata and lineage, apply bounded filenames and valid placement, and establish conformance to this contract and the System Specification. No automatic validation is triggered by a filesystem move; the current validator is a separate read-only command.
+The current CLI may use a live Games database's matching template or fall back to the blueprint according to the behavior documented in [`../../Scripts/README.md`](../../Scripts/README.md). Template selection never synchronizes or modifies a live database.
 
 ### Agents
 
-The Games blueprint ships [Vera](Agents/Vera.md), an optional specialist Agent resource for Game Core references, focused references and guides, and completionist checklists. Vera operationalizes this contract; it does not define additional schema or architectural authority. A valid Games database does not require Vera or any AI assistance.
+The blueprint ships [`Agents/Vera.md`](Agents/Vera.md), an optional Games specialist Agent resource. Vera contains Games-specific workflow guidance but does not define schema or architecture; this `Database.md` remains the Games authority.
 
-The shipped definition is framework-owned bootstrap material. When materialized into a new database's `Agents/` directory, that copy becomes user-owned and portable with the database. Later blueprint edits do not update the live copy or its contract; adopting them requires an explicit preservation-oriented migration. ShardBase stores the resource but does not execute Vera, connect to an AI provider, or transmit database content. Any external use is a separate workflow deliberately controlled by the user.
+Once materialized into a live database, the Vera copy becomes user-owned and travels with that database. Later blueprint edits do not silently update it.
+
+ShardBase stores/manages the Agent resource but does not execute Vera, connect to an AI provider, or transmit database content. External use is a separate user-controlled workflow.
 
 ### Scripts
 
-No Games-specific script is required by the initial contract. Framework validation and future canonical creation tooling should consume this documented contract rather than introduce hidden Games semantics.
+No Games-specific script is required. Framework tooling should consume this `Database.md` as the authoritative Games semantic contract rather than hard-code Games semantics as hidden framework behavior.
