@@ -33,23 +33,18 @@ Run:
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new
 ```
 
-The current `new` command creates an **Inbox draft**, not canonical database state. It asks for a title, Core/Shard/Pebble draft type, optional alias, and destination.
+The current `new` command creates an **Inbox draft**, not canonical database state. It asks for a title, Core/Shard/Pebble draft type, and optional alias, then automatically saves to `app/Knowledge/Inbox/<portable title>.md`. There is no destination prompt or option.
 
-| Destination | Output |
-|---|---|
-| Inbox | `app/Knowledge/Inbox/<portable title>.md` |
-| Databases | `app/Knowledge/Inbox/Staged/<portable title>.md` |
-
-Both are pre-structural Inbox captures. `Staged/` is only an implementation convention for database-intended drafts.
+Users can edit and move drafts manually when ready. Moving a draft into a live database requires the review described under **Promotion Status** below.
 
 Any draft type may be created without an existing Core, parent, or live database. The command has no parent picker and no `--parent` option. Supporting drafts may leave `core` and `parent_note` blank for later review.
 
 For unattended use:
 
 ```sh
-"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Example Game" --type core --alias "" --destination databases
-"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Zombies" --type shard --alias "Survival" --destination databases
-"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Terminus" --type pebble --alias "" --destination inbox
+"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Example Game" --type core --alias ""
+"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Zombies" --type shard --alias "Survival"
+"$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --title "Terminus" --type pebble --alias ""
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py new --help
 ```
 
@@ -202,6 +197,8 @@ The sanitized fixtures and tests prove the current structural validation behavio
 Semantic-schema, attachment-reference, fragmentation/materialization, and full Inbox-to-canonical proof fixtures remain future work.
 
 ## Compatibility
+
+The `new` command no longer accepts `--destination`; existing command lines must omit that flag and its value. New drafts always go directly to Inbox. Existing `Inbox/Staged/` files remain untouched and can be organized manually. This CLI interface change does not change the universal contract or require a knowledge migration.
 
 The validator checks the current `foundation-3` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
 

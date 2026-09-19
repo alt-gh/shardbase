@@ -64,21 +64,14 @@ def new_note(args: argparse.Namespace) -> int:
         alias = input("\n  Alias: ")
     else:
         alias = args.alias
-    destination = args.destination or ui.choose("Destination", [
-        ("inbox", "Inbox", "Capture now in Knowledge/Inbox/."),
-        ("databases", "Databases", "Review first in Knowledge/Inbox/Staged/."),
-    ])
-    result = create_note(args.root, title, destination, kind, alias)
+    result = create_note(args.root, title, kind, alias)
     ui.section("Note created")
     print(f"  {ui.style(title.strip(), '1')}  ·  {kind.title()}  ·  Draft")
     print(f"  {ui.style(str(result.path.relative_to(args.root.resolve())), '32')}")
     print(f"  {ui.style('Instance: ' + str(args.root.resolve()), '2')}")
     if alias.strip():
         print(f"  Alias: {ui.style(alias.strip(), '0')}")
-    if destination == "databases":
-        print("\n  Staged for review. Open the file in your Markdown editor.")
-    else:
-        print("\n  Ready for your Markdown editor. Metadata remains provisional.")
+    print("\n  Saved to Inbox. Open the file in your Markdown editor and move it when ready.")
     print("  Complete and validate metadata when promoting to a live database.")
     print()
     return 0
@@ -87,9 +80,8 @@ def new_note(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="shardbase", description="ShardBase — local notes, structured simply.")
     commands = parser.add_subparsers(dest="command", required=True)
-    new = commands.add_parser("new", help="Create a Core, Shard, or Pebble draft", description="Create YAML and a title H1 for Inbox review. Omitted choices are prompted.", epilog='Example: shardbase new --title "Terminus" --type shard --alias "" --destination databases')
+    new = commands.add_parser("new", help="Create a Core, Shard, or Pebble draft", description="Create YAML and a title H1 in app/Knowledge/Inbox/. Omitted title, type, and alias are prompted.", epilog='Example: shardbase new --title "Terminus" --type shard --alias ""')
     new.add_argument("--title", help="Note title; prompted when omitted")
-    new.add_argument("--destination", choices=("inbox", "databases"), help="Databases writes to Inbox/Staged; prompted when omitted")
     new.add_argument("--type", dest="kind", choices=("core", "shard", "pebble"), help="Structural note type; prompted when omitted")
     new.add_argument("--alias", help='Optional alternative name; prompted when omitted (use --alias "" to skip)')
     new.add_argument("--no-color", action="store_true", help="Disable terminal colors (also respects NO_COLOR)")

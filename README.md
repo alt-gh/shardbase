@@ -90,7 +90,7 @@ ShardBase currently includes:
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
 
-The current `new` command creates pre-structural drafts in `app/Knowledge/Inbox/` or `app/Knowledge/Inbox/Staged/`. It does **not** yet create canonical database notes or automatically promote drafts. The validator checks the implemented `foundation-3` structural contract but does not yet consume database semantic schemas deterministically.
+The current `new` command automatically creates pre-structural drafts in `app/Knowledge/Inbox/`. Users can organize drafts manually after capture. It does **not** yet create canonical database notes or automatically promote drafts. The validator checks the implemented `foundation-3` structural contract but does not yet consume database semantic schemas deterministically.
 
 See [`app/Scripts/README.md`](app/Scripts/README.md) for commands, supported behavior, and implementation limits.
 

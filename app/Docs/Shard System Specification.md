@@ -445,7 +445,7 @@ Inbox items are pre-structural. They do not require a database, Pool, Core, stru
 
 Review may incorporate an item into an existing note, promote it into new canonical structure, retain it unresolved, leave only a Ghost Shard, or result in deliberate user discard. Successful review does not imply a new file.
 
-The current CLI may use `app/Knowledge/Inbox/Staged/` as an implementation convention for database-intended drafts. `Staged/` is not a database, structural lifecycle state, or mandatory architectural stage.
+Current CLI capture behavior is documented in [`../Scripts/README.md`](../Scripts/README.md).
 
 ### 11.3 Growth
 

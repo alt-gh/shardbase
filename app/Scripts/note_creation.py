@@ -112,13 +112,11 @@ def refuse_collision(directory: Path, filename: str) -> None:
         raise CreationError(f"A file already uses {filename!r} in {directory}. Choose a meaningfully distinct title.")
 
 
-def create_note(root: Path, title: str, destination: str, kind: str = "core",
+def create_note(root: Path, title: str, kind: str = "core",
                 alias: str | None = None) -> CreatedNote:
     root = root.resolve(strict=True)
     if not root.is_dir() or not checked_path(root, root / "app").is_dir():
         raise CreationError("--root must select an instance directory containing app/.")
-    if destination not in {"inbox", "databases"}:
-        raise CreationError("Destination must be inbox or databases.")
     if kind not in TEMPLATES:
         raise CreationError("Note type must be core, shard, or pebble.")
     title = title.strip()
@@ -131,8 +129,6 @@ def create_note(root: Path, title: str, destination: str, kind: str = "core",
     metadata, _ = read_document(root, template)
     document = render_game(metadata, title, stem, kind, alias)
     directory = checked_path(root, root / "app/Knowledge/Inbox")
-    if destination == "databases":
-        directory = checked_path(root, directory / "Staged")
     filename = stem + ".md"
     refuse_collision(directory, filename)
     path = checked_path(root, directory / filename)
