@@ -34,7 +34,7 @@ The required structural and common note fields follow the System Specification. 
 
 Pool values use readable domain names.
 
-The Core's opening level-one heading records its canonical entity name. Each supporting note's opening level-one heading records its canonical local node name; its filename supplies bounded Core and immediate-parent context under the System Specification.
+The Core's opening level-one heading records its canonical entity name. Each supporting note's opening level-one heading records its canonical local node name; its filename uses that local title plus its stable opaque ID under the System Specification.
 
 ## Resources
 

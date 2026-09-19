@@ -58,7 +58,11 @@ class NoteCreationTests(unittest.TestCase):
         result = create_note(self.root, "Example: Game #1", "databases")
         self.assertEqual(result.template, database / "Templates/Game.md")
         self.assertEqual(list((database / "Data/Game").glob("*.md")), [])
-        shutil.copyfile(result.path, database / "Data/Game" / result.path.name)
+        promoted = database / "Data/Game" / result.path.name
+        shutil.copyfile(result.path, promoted)
+        metadata, body = parse_frontmatter(promoted.read_text())
+        metadata["id"] = "0a1b2c3d4e"
+        promoted.write_text("---\n" + yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False) + "---\n" + body, encoding="utf-8")
         self.assertEqual(validate_database(database), [])
 
     def test_live_template_defaults_preserved_and_body_ignored(self):

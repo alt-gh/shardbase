@@ -5,7 +5,7 @@ core: "[[Example]]"
 parent_note:
 status: active
 aliases:
-id:
+id: 0a1b2c3d4e
 tags:
 entity_kind: example
 ---

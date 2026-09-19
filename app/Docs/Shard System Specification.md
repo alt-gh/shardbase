@@ -1,10 +1,10 @@
 # Shard — System Specification
 
-Specification version: `foundation-2` (2026-09-05)
+Specification version: `foundation-3` (2026-09-19)
 
-Editorial revision: 2026-09-12
+Editorial revision: 2026-09-19
 
-Documentation consolidation note: this edition reorganizes and removes repeated explanatory material without changing the normative `foundation-2` contract. Universal rules remain here; database-local semantics belong in each `Database.md`; operational and planning documents must reference these authorities rather than duplicate them.
+Foundation-3 change note: this edition replaces ancestry-derived supporting filenames with human-readable local titles plus stable opaque note IDs, and makes canonical structural IDs required and database-unique. Universal rules remain here; database-local semantics belong in each `Database.md`; operational and planning documents must reference these authorities rather than duplicate them.
 
 ## 1. Purpose and Authority
 
@@ -276,10 +276,10 @@ Database-specific workflow or domain state must use separately named semantic fi
 `aliases`, `id`, and `tags` are universal common note fields but are not lineage fields.
 
 - `aliases` defaults to blank YAML. When populated, it is a YAML list of non-empty strings; `[]` is valid.
-- `id` defaults to blank YAML. When populated, it is a scalar string, including an empty string. Foundation does not generate IDs or require uniqueness or a universal format.
+- `id` is required on every canonical Core, Shard, and Pebble. It is a stable opaque 10-character lowercase Crockford Base32 token matching `[0-9a-hjkmnp-tv-z]{10}` and must be unique among canonical structural notes in the same database. The token is assigned once when canonical state is materialized and must not encode note type, ancestry, date, sequence, database identity, or other semantic meaning. If a generated token collides, generate another before writing canonical state.
 - `tags` defaults to blank YAML. When populated, it is a YAML list of non-empty strings; `[]` is valid.
 
-Existing populated values must be preserved during updates. These fields never replace canonical filenames, `pool`, `core`, `parent_note`, or structural identity.
+A note's `id` remains unchanged when its title, filename, placement, structural type, or parent changes. Existing valid populated IDs must be preserved during updates. `aliases`, `id`, and `tags` never replace `pool`, `core`, `parent_note`, or structural lineage. Pre-structural Inbox captures may leave `id` blank because they are not canonical structural notes.
 
 ### 6.3 Semantic Metadata
 
@@ -326,7 +326,7 @@ Inbox remains text-oriented and does not own attachments.
 
 ## 8. Canonical Naming and Lineage
 
-YAML is authoritative for lineage. Filenames provide bounded human-readable context and must agree with the authoritative metadata.
+YAML is authoritative for lineage. Filenames identify notes for people and tools without encoding structural ancestry. Core filenames use the Core's human-readable title; supporting filenames use the note's human-readable local title plus its stable opaque `id`.
 
 ### 8.1 Portable Filename Components
 
@@ -356,30 +356,26 @@ The level-one heading preserves the canonical human-facing title.
 
 ### 8.3 Supporting Filenames
 
-A direct child of the Core uses:
+Every Shard and Pebble uses:
 
 ```text
-Core - Current Node.md
+Portable Local Title - Opaque ID.md
 ```
 
-A deeper descendant uses:
-
-```text
-Core - Immediate Parent - Current Node.md
-```
-
-`Immediate Parent` uses the parent's canonical current-node name, not the parent's full filename stem. Supporting filenames contain at most three structural context components and must never accumulate full ancestry.
+`Portable Local Title` is derived from the note's opening H1 using Section 8.1. `Opaque ID` is the note's required stable `id` from Section 6.2. The filename never includes the Core title, parent title, structural type, or other ancestry merely to provide context.
 
 Example:
 
 ```text
 Hades.md
-Hades - Weapons.md
-Hades - Weapons - Stygian Blade.md
-Hades - Stygian Blade - Aspect of Zagreus.md
+Weapons - 2gmcy7r7dr.md
+Stygian Blade - 11hq8bbd1p.md
+Aspect of Zagreus - 3j84q9k6fc.md
 ```
 
-A Core workspace does not create another filename namespace. If two canonical structural notes would derive the same filename, report the collision and resolve it through meaningful identity disambiguation. Do not overwrite, silently number, add more ancestry, or rely on separate workspace paths.
+The supporting note's opening H1 is its canonical local human-facing title, such as `# Weapons` or `# Aspect of Zagreus`. Parentage and root lineage are expressed only through `parent_note` and `core`. A title change updates the human-readable filename component and dependent wikilinks while preserving the note's `id`. Reparenting alone does not require a filename change.
+
+A Core workspace does not create another filename namespace. Canonical `id` values are database-unique, so two supporting notes may legitimately share the same local title while remaining distinguishable by ID. Core title collisions still require meaningful identity disambiguation. Do not overwrite, silently number, encode ancestry, or rely on separate workspace paths to resolve an identity collision.
 
 ### 8.4 Integrity Rules
 
@@ -389,6 +385,7 @@ A Core workspace does not create another filename namespace. If two canonical st
 - the parent chain agrees with the declared root Core;
 - a Pebble never acts as a structural parent;
 - supporting notes use the root Core's Pool;
+- every canonical structural note has one valid database-unique stable `id`;
 - an active structural descendant must not remain beneath an archived structural ancestor unless deliberately restructured first;
 - a missing required parent or root Core is a structural orphan and must be reported without guessing a replacement.
 
@@ -597,7 +594,7 @@ A compatibility boundary must be inspectable before it becomes a data transforma
 
 ### 15.1 `foundation-1`
 
-`foundation-1` records the first explicit Foundation version boundary. It includes the current portable-filename contract and the approved canonical knowledge boundary at `app/Knowledge/Databases/` and `app/Knowledge/Inbox/`.
+`foundation-1` records the first explicit Foundation version boundary. It included the then-current portable-filename contract and the approved canonical knowledge boundary at `app/Knowledge/Databases/` and `app/Knowledge/Inbox/`.
 
 Portable filename changes are breaking only for existing canonical state whose derived filenames differ. Affected state requires a preservation-oriented transition: retain a recoverable copy, identify affected files/workspaces/references, resolve collisions before rename, update dependent references together, preserve canonical display titles and unrelated content, and validate the result.
 
@@ -605,9 +602,9 @@ The historical relocation from `app/Databases/` and `app/Inbox/` to the `app/Kno
 
 ### 15.2 `foundation-2`
 
-`foundation-2` requires `aliases`, `id`, and `tags` on every canonical Core, Shard, and Pebble with the value shapes defined in Section 6.2.
+`foundation-2` required `aliases`, `id`, and `tags` on every canonical Core, Shard, and Pebble. At that boundary, `aliases` and `tags` could be blank or lists of non-empty strings, while `id` could be blank or any scalar string; uniqueness and a universal ID format were not yet required.
 
-This is breaking for previously compliant notes that omit those keys or use incompatible values. Existing valid values remain valid.
+This was breaking for previously compliant notes that omitted those keys or used incompatible values. Foundation-3 supersedes the historical `id` value rule for current canonical state.
 
 The bounded transition is:
 
@@ -620,7 +617,31 @@ The bounded transition is:
 
 `manifest_version` remains `1`.
 
-The current validator targets current `foundation-2` conformance within its documented scope. It does not infer historical specification versions or automatically migrate live state.
+`foundation-2` remains a recorded historical compatibility boundary.
+
+### 15.3 `foundation-3`
+
+`foundation-3` changes canonical structural identity and filename requirements in two coordinated ways:
+
+1. every canonical Core, Shard, and Pebble must have a database-unique stable opaque `id` matching `[0-9a-hjkmnp-tv-z]{10}`;
+2. every Shard and Pebble filename changes from ancestry-derived context to `Portable Local Title - Opaque ID.md`, while Core filenames remain `Portable Core Name.md`.
+
+This is a breaking change for existing canonical state with blank, incompatible, or duplicate IDs and for every supporting filename derived under an earlier naming contract. `manifest_version` remains `1` because the database-manifest schema is unchanged.
+
+The bounded transition is:
+
+1. retain a recoverable local copy of the affected database before changing canonical state;
+2. inventory every canonical structural note, its current filename, `core`, `parent_note`, and inbound structural/ordinary wikilinks;
+3. preserve every already-valid foundation-3 ID; assign a new opaque ID only where the existing value is blank, invalid, or colliding;
+4. rename Shards and Pebbles to `Portable Local Title - Opaque ID.md`; leave Core filenames title-based;
+5. update `core`, `parent_note`, and ordinary wikilinks that target renamed notes in the same coordinated migration;
+6. preserve display titles, aliases, semantic metadata, note bodies, attachments, lineage meaning, completion state, and unrelated user-authored content;
+7. resolve any remaining title or ID collision before finalizing;
+8. validate the migrated database and verify that no intended note or link target was lost.
+
+IDs assigned by this migration become stable thereafter. Reparenting does not change the filename because ancestry is no longer encoded in it.
+
+The current validator targets current `foundation-3` conformance within its documented scope. It does not infer historical specification versions or automatically migrate live state.
 
 ## 16. Validation Protocol
 
@@ -642,6 +663,7 @@ A deterministic audit should validate the following within the capabilities docu
 
 - all eight universal note fields exist on canonical structural notes;
 - structural values and common-field shapes satisfy this specification;
+- canonical note IDs match the foundation-3 opaque-token format and are unique within the database;
 - structural and semantic meanings are not conflated;
 - database-local semantic constraints are validated when an implementation can consume the authoritative `Database.md` contract deterministically.
 
@@ -653,12 +675,12 @@ A deterministic audit should validate the following within the capabilities docu
 
 ### 16.4 Naming
 
-- portable normalization is applied to every structural filename component;
-- Core and supporting filenames match the bounded naming contract;
-- immediate-parent context uses the parent's current-node name;
-- filenames never accumulate full ancestry;
-- collisions are reported rather than resolved through path placement, numbering, overwrite, or extra ancestry;
-- opening H1 preserves the canonical human-facing title.
+- portable normalization is applied to the Core title or supporting local-title filename component;
+- Core filenames match `Portable Core Name.md`;
+- Shard and Pebble filenames match `Portable Local Title - Opaque ID.md`;
+- supporting filenames do not encode Core or parent ancestry;
+- Core-title, actual-stem, derived-filename, and note-ID collisions are reported rather than resolved through path placement, numbering, overwrite, or encoded ancestry;
+- opening H1 preserves the canonical human-facing Core title or supporting local title.
 
 ### 16.5 Markdown
 
@@ -720,6 +742,8 @@ Operational instructions for repository agents live in [`../../AGENTS.md`](../..
 **Lineage** — structural ancestry expressed authoritatively through `core` and `parent_note`.
 
 **Materialization** — deliberate creation of a separate canonical structural file after it earns independent value.
+
+**Opaque note ID** — stable database-unique 10-character lowercase Crockford Base32 token assigned to a canonical structural note without semantic encoding.
 
 **Migration** — explicit bounded preservation-oriented transformation of durable state required by an approved contract change.
 

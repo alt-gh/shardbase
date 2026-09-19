@@ -4,7 +4,7 @@ This document describes the **current implementation** in `app/Scripts/`: how to
 
 It does not define ShardBase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
 
-Current tooling targets System Specification `foundation-2` within the implementation scope described below.
+Current tooling targets System Specification `foundation-3` within the implementation scope described below.
 
 ## Runtime Setup
 
@@ -77,9 +77,9 @@ tags:
 
 This is a draft representation. It is not proof that the note is a valid canonical Shard.
 
-The title is used for the H1 and draft filename. The command does not infer ancestry from the title, does not construct bounded canonical supporting filenames, and does not validate the database semantic contract.
+The title is used for the H1 and draft filename. The command does not infer ancestry from the title, assign the canonical stable opaque ID, construct the foundation-3 supporting filename, or validate the database semantic contract.
 
-The optional alias becomes a one-item YAML string list. Skipping it preserves the template default. IDs and timestamps are not generated.
+The optional alias becomes a one-item YAML string list. Skipping it preserves the template default. Canonical note IDs and timestamps are not generated. A blank `id` is acceptable in these pre-structural Inbox drafts but is invalid after canonical materialization under foundation-3.
 
 ### Template Resolution
 
@@ -103,7 +103,7 @@ The Core template's `[[{{stem}}]]` becomes a provisional self-link. Legacy unres
 
 There is currently **no automatic promotion command, direct canonical creation command, or filesystem watcher**.
 
-To promote a draft manually, the user must determine database ownership, collection, Pool, Core, parent, structural role, semantic metadata, canonical filename, and valid placement under the System Specification and destination `Database.md`. The current validator can then check its implemented structural scope, but database semantics still require separate review.
+To promote a draft manually, the user must determine database ownership, collection, Pool, Core, parent, structural role, semantic metadata, assign a valid database-unique stable opaque `id`, derive the canonical filename, and choose valid placement under the System Specification and destination `Database.md`. The current validator can then check its implemented structural scope, but database semantics still require separate review.
 
 Moving a file manually does not automatically run validation.
 
@@ -133,10 +133,10 @@ The validator currently checks:
 - structural discovery at collection roots and one Core-workspace level;
 - exclusion of attachment subtrees and root `Agents/`, `Templates/`, and `Views/` from structural discovery;
 - misplaced root Markdown files that declare structural metadata;
-- required structural fields and common fields `aliases`, `id`, and `tags` with their current value shapes;
+- required structural fields and common fields `aliases`, `id`, and `tags`, including foundation-3 note-ID format and database-wide uniqueness;
 - same-database Core/parent resolution, Core self-reference, permitted parent types, Pool consistency, cycles, self-parenting, parent-chain root consistency, and active descendants beneath archived ancestors;
 - Core-workspace naming/membership and split-lineage placement;
-- portable canonical filenames, bounded supporting context, actual duplicate stems, and expected-filename collisions;
+- portable Core filenames, supporting local-title + opaque-ID filenames, actual duplicate stems, expected-filename collisions, and duplicate note IDs;
 - opening H1, incremental top-level ATX heading depth, and exactly one blank line after headings outside fenced code blocks.
 
 Structural wikilinks resolve only against discovered notes in the selected database. Supported target forms include unique stems, `.md` filenames, database-relative paths, and repository/vault-root-relative paths beginning with `app/Knowledge/Databases/`; supported path forms may omit `.md`. Aliases and heading fragments do not change the selected structural note. Cross-database structural targets and arbitrary traversal are not followed.
@@ -145,14 +145,15 @@ Structural wikilinks resolve only against discovered notes in the selected datab
 
 The current filename checker assumes:
 
-- a Core's opening H1 is its canonical entity name;
-- a supporting note's opening H1 is its canonical local node name.
+- a Core's opening H1 is its canonical entity name and derives `Portable Core Name.md`;
+- a Shard or Pebble's opening H1 is its canonical local title and derives `Portable Local Title - Opaque ID.md`;
+- canonical IDs match the foundation-3 10-character lowercase Crockford Base32 format and are unique within the database.
 
-It derives Core and immediate-parent context from YAML lineage rather than by splitting filenames. A local title containing the literal delimiter ` - ` remains one local-name component.
+The validator derives structural lineage only from YAML references. It does not parse ancestry from filenames and does not resolve structural wikilinks through aliases or note IDs. A local title may itself contain the literal delimiter ` - `; the required final ID suffix remains unambiguous because the expected filename is derived from metadata rather than inferred by splitting an existing filename.
 
 A database that intentionally uses another documented display-title convention requires a database-aware naming adapter before the validator's filename findings can be treated as complete conformance findings.
 
-For the normative portable normalization and bounded filename algorithm, use the System Specification rather than this implementation guide.
+For the normative portable normalization, ID contract, and filename algorithm, use the System Specification rather than this implementation guide.
 
 ### Not Yet Implemented Generically
 
@@ -202,9 +203,9 @@ Semantic-schema, attachment-reference, fragmentation/materialization, and full I
 
 ## Compatibility
 
-The validator checks the current `foundation-2` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
+The validator checks the current `foundation-3` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
 
-The validator does not migrate older state. For the recorded `foundation-1` and `foundation-2` compatibility boundaries and preservation-oriented transitions, use the System Specification.
+The validator does not migrate older state. For the recorded `foundation-1`, `foundation-2`, and `foundation-3` compatibility boundaries and preservation-oriented transitions, use the System Specification.
 
 ## Blueprint Scaffolding
 

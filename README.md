@@ -36,6 +36,7 @@ ShardBase deliberately avoids duplicating authoritative rules across documents.
 | [`app/Scripts/README.md`](app/Scripts/README.md) | Current CLI/validator setup, behavior, and implementation limits | Tooling documentation; does not define architecture |
 | [`app/Registry/Registry.md`](app/Registry/Registry.md) | Runtime database discovery/navigation view | Navigational only |
 | [`app/Docs/ShardBase Foundation Roadmap.md`](app/Docs/ShardBase%20Foundation%20Roadmap.md) | Current work, milestone status, blockers, and deferred work | Planning only; never architectural authority |
+| [`app/Docs/ADR/`](app/Docs/ADR/) | Accepted architectural decisions and rationale | Historical rationale; current normative rules remain in the System Specification |
 
 If supporting documentation and an authoritative contract disagree, correct the supporting documentation rather than treating the disagreement as a new rule.
 
@@ -47,6 +48,7 @@ shardbase/
 ├── app/
 │   ├── Blueprints/
 │   ├── Docs/
+│   │   └── ADR/
 │   ├── Knowledge/
 │   │   ├── Inbox/
 │   │   └── Databases/
@@ -74,6 +76,8 @@ A database may relate to knowledge in another database without taking ownership 
 
 Canonical notes may remain flat at a declared data-collection root or one Core lineage may be deliberately bundled into a direct-child Core workspace. Filesystem placement provides organization; YAML remains authoritative for lineage.
 
+Under foundation-3, Core filenames remain human-readable title filenames. Shards and Pebbles use their local human-readable title plus a stable opaque note ID; ancestry is carried by `core` and `parent_note`, not repeated in filenames.
+
 For exact manifest requirements, note metadata, naming, placement, lifecycle, attachment rules, and validation expectations, use the System Specification rather than this README.
 
 ## Current Tooling
@@ -86,7 +90,7 @@ ShardBase currently includes:
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
 
-The current `new` command creates pre-structural drafts in `app/Knowledge/Inbox/` or `app/Knowledge/Inbox/Staged/`. It does **not** yet create canonical database notes or automatically promote drafts. The validator checks the implemented `foundation-2` structural contract but does not yet consume database semantic schemas deterministically.
+The current `new` command creates pre-structural drafts in `app/Knowledge/Inbox/` or `app/Knowledge/Inbox/Staged/`. It does **not** yet create canonical database notes or automatically promote drafts. The validator checks the implemented `foundation-3` structural contract but does not yet consume database semantic schemas deterministically.
 
 See [`app/Scripts/README.md`](app/Scripts/README.md) for commands, supported behavior, and implementation limits.
 

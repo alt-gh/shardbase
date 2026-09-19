@@ -33,16 +33,16 @@ current_primary_goal: finish the vertical slice from intent to valid canonical k
 current_architecture_status: substantially settled
 current_implementation_status: substantial deterministic structural validation exists; draft creation exists; canonical semantic validation and canonical promotion/creation remain incomplete
 current_proof_status: Games proving workflow partially complete
-current_documentation_status: authority roles consolidated; duplicated architecture removed from supporting documents
+current_documentation_status: authority roles consolidated; duplicated architecture removed from supporting documents; first accepted ADR records the foundation-3 naming decision
 
 ### What Already Exists
 
-- Universal System Specification at `foundation-2`.
+- Universal System Specification at `foundation-3`.
 - Private `app/Knowledge/` boundary with `Inbox/` and `Databases/`.
 - Database manifest and ownership contracts.
 - Pool → Core → Shard → Pebble structural model.
 - Common required note fields `aliases`, `id`, and `tags` in addition to structural fields.
-- Portable filename and bounded lineage naming contract.
+- Portable Core filenames plus local-title + stable opaque-ID supporting filenames; ancestry remains metadata-authoritative.
 - Flat and optional Core-workspace placement model.
 - Database-local Agents, Templates, Views, and attachment boundaries.
 - Games starter blueprint.
@@ -71,7 +71,7 @@ current_documentation_status: authority roles consolidated; duplicated architect
 | 1 — Define the Product | Establish product identity, audience, goals, non-goals, design principles, success criteria | **Complete** | None for Foundation unless new evidence exposes a contradiction |
 | 2 — Define Conceptual Language | Canonical vocabulary and decision model | **In progress** | Commit 10 — Structural Decision Framework |
 | 3 — Make Architecture Demonstrable | Canonical examples, walkthroughs, failure cases | **Planned** | Commits 11–15 |
-| 4 — Establish Project Governance | Change/version/migration/ADR/compatibility governance | **Partially implemented** | Reconcile existing System Specification governance into concise project governance artifacts; add ADR practice |
+| 4 — Establish Project Governance | Change/version/migration/ADR/compatibility governance | **Partially implemented** | First ADR is accepted; complete lightweight ADR process guidance without duplicating the System Specification |
 | 5 — Create Canonical Implementation Artifacts | Blueprint, Registry, validator, fixtures | **Substantially complete** | Extend proof for semantic validation, attachment reference behavior, fragmentation judgment, and Inbox/promotion boundaries |
 | 6 — Prove Entire Foundation | Real end-to-end proof and sign-off | **In progress** | Complete Games lifecycle, architecture overview/decision record as needed, post-Foundation plan, final review |
 
@@ -122,7 +122,7 @@ These commits should be example-driven and non-normative. They should point to t
 | 16 | `docs: define architectural change policy` | partially represented in System Specification |
 | 17 | `docs: define specification versioning policy` | partially represented in System Specification |
 | 18 | `docs: define migration principles` | partially represented in System Specification |
-| 19 | `docs: add architecture decision records` | planned |
+| 19 | `docs: add architecture decision records` | **in progress — ADR 0001 accepted** |
 | 20 | `docs: define compatibility policy` | partially represented in System Specification |
 
 The System Specification already contains the normative change categories, `foundation-N` boundary, manifest-version distinction, migration principles, backward-compatibility expectations, and no-silent-change rules. Remaining governance work should avoid copying those sections into another competing authority. Instead, create lightweight process documentation and ADRs that **apply** the normative rules.
@@ -140,7 +140,7 @@ The System Specification already contains the normative change categories, `foun
 | 27 | `validate: add markdown structure checks` | complete within stated scope |
 | 28 | `test: add canonical validation fixtures` | complete for implemented structural checks; extension work remains |
 
-Current validator scope includes manifest discovery/shape, safe path boundaries, structural/common metadata, same-database lineage, Pool consistency, archive ancestry, Core workspaces, portable filenames/collisions, and supported Markdown heading checks.
+Current validator scope includes manifest discovery/shape, safe path boundaries, structural/common metadata, foundation-3 note-ID format/uniqueness, same-database lineage, Pool consistency, archive ancestry, Core workspaces, portable Core/supporting filenames and collisions, and supported Markdown heading checks.
 
 Not yet generic/deterministic: database semantic schema validation, Pool-vocabulary interpretation from database contracts, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical promotion/creation.
 
@@ -151,7 +151,7 @@ Not yet generic/deterministic: database semantic schema validation, Pool-vocabul
 | 29 | `example: add canonical shardbase database` | complete |
 | 30 | `docs: document end-to-end shard workflow` | **in progress** |
 | 31 | `docs: add foundation architecture overview` | evaluate after example/docs consolidation; likely concise |
-| 32 | `docs: add foundation decision log` | replace with ADR practice rather than another duplicated history surface |
+| 32 | `docs: add foundation decision log` | replaced by ADR practice; ADR 0001 now records the first accepted architectural decision |
 | 33 | `docs: define post-foundation roadmap` | planned |
 | 34 | `release: complete shardbase foundation` | planned |
 

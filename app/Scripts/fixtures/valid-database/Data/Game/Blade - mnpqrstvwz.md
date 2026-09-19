@@ -2,10 +2,10 @@
 type: pebble
 pool: Examples
 core: "[[Example]]"
-parent_note: "[[Example - Weapons]]"
+parent_note: "[[Weapons - 5f6g7h8j9k]]"
 status: active
 aliases:
-id:
+id: mnpqrstvwz
 tags:
 entity_kind: item
 ---

@@ -174,7 +174,8 @@ A reference explains a game. A completionist checklist records the user's progre
 
 ### Identity and Naming
 
-- A Game Core H1 uses the canonical human-facing game title. The filename uses the universal portable filename derivation.
+- A Game Core H1 uses the canonical human-facing game title. The filename uses the universal portable Core filename derivation.
+- A supporting Games note H1 uses its canonical local human-facing title; its filename and stable opaque ID follow the universal foundation-3 naming contract rather than repeating game or parent ancestry.
 - Do not duplicate the game title into semantic YAML merely for convenience.
 - If distinct games would otherwise share a canonical name, add the shortest stable human-meaningful qualifier that distinguishes identity. Prefer category when sufficient, otherwise edition, year, platform, publisher, or another stable discriminator.
 - Multiple `game_categories` values do not create duplicate Cores.

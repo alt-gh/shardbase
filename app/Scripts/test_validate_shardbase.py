@@ -1,5 +1,7 @@
 import contextlib
 import io
+import hashlib
+import re
 import shutil
 import subprocess
 import sys
@@ -48,9 +50,12 @@ class ValidatorTests(unittest.TestCase):
         metadata[field] = value
         path.write_text("---\n" + yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False) + "---" + body, encoding="utf-8")
 
-    def create_note(self, filename, title, kind="core", core=None, parent=None, directory=None):
+    def create_note(self, filename, title, kind="core", core=None, parent=None, directory=None, note_id=None):
         path = (directory or self.collection) / filename
-        metadata = dict(type=kind, pool="Examples", core=f"[[{core or path.stem}]]", parent_note=f"[[{parent}]]" if parent else None, status="active", aliases=None, id=None, tags=None)
+        if note_id is None:
+            match = re.search(r" - ([0-9a-hjkmnp-tv-z]{10})\.md$", filename)
+            note_id = match.group(1) if match else hashlib.sha1(filename.encode("utf-8")).hexdigest()[:10]
+        metadata = dict(type=kind, pool="Examples", core=f"[[{core or path.stem}]]", parent_note=f"[[{parent}]]" if parent else None, status="active", aliases=None, id=note_id, tags=None)
         path.write_text("---\n" + yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False) + f"---\n# {title}\n\nExample content.\n", encoding="utf-8")
         return path
 
@@ -69,7 +74,7 @@ class ValidatorTests(unittest.TestCase):
             original = path.read_text(encoding="utf-8")
             for field in ("aliases", "id", "tags"):
                 with self.subTest(note=path.name, field=field):
-                    path.write_text(original.replace(f"{field}:\n", ""), encoding="utf-8")
+                    path.write_text(re.sub(rf"(?m)^{re.escape(field)}:.*\n", "", original, count=1), encoding="utf-8")
                     before = path.read_bytes()
                     issues = validate_database(self.database)
                     self.assertTrue(any(issue.path == path and issue.code == "note-field" and f"'{field}'" in issue.message for issue in issues))
@@ -81,7 +86,7 @@ class ValidatorTests(unittest.TestCase):
         for field, values in (
             ("aliases", (None, [], ["Another name", "Exemple"])),
             ("tags", (None, [], ["games", "games/reference"])),
-            ("id", (None, "", "note-001", "001")),
+            ("id", ("0a1b2c3d4e", "1234567890", "zzzzzzzzzz")),
         ):
             for value in values:
                 with self.subTest(field=field, value=value):
@@ -94,7 +99,7 @@ class ValidatorTests(unittest.TestCase):
         for field, values in (
             ("aliases", ("", "Name", True, 1, {}, [None], [1], [False], [""], [" "], [["Name"]], [{}])),
             ("tags", ("", "games", True, 1, {}, [None], [1], [False], [""], [" "], [["games"]], [{}])),
-            ("id", (True, 1, 1.5, [], ["note-001"], {}, {"value": "note-001"})),
+            ("id", (None, "", "note-001", "ABCDEF0123", "iiiiiiiiii", "oooooooooo", "llllllllll", "uuuuuuuuuu", "short", "12345678901", True, 1, 1.5, [], ["abcdef0123"], {}, {"value": "abcdef0123"})),
         ):
             for value in values:
                 with self.subTest(field=field, value=value):
@@ -102,21 +107,27 @@ class ValidatorTests(unittest.TestCase):
                     self.set_field(path, field, value)
                     self.assertIn(f"note-{field}", self.codes())
 
+
+    def test_note_ids_must_be_unique(self):
+        shard = self.collection / "Weapons - 5f6g7h8j9k.md"
+        self.set_field(shard, "id", "0a1b2c3d4e")
+        self.assertIn("note-id-duplicate", self.codes())
+
     def test_common_fields_do_not_change_structural_resolution(self):
         core = self.collection / "Example.md"
         self.set_field(core, "aliases", ["Alternate"])
-        self.set_field(core, "id", "note-001")
+        self.set_field(core, "id", "abcde12345")
         self.set_field(core, "tags", ["Another Pool"])
         self.assertEqual(validate_database(self.database), [])
-        shard = self.collection / "Example - Weapons.md"
-        for target in ("Alternate", "note-001"):
+        shard = self.collection / "Weapons - 5f6g7h8j9k.md"
+        for target in ("Alternate", "abcde12345"):
             with self.subTest(target=target):
                 self.set_field(shard, "parent_note", f"[[{target}]]")
                 self.assertIn("parent-reference", self.codes())
 
     def test_root_structural_notes_are_reported_without_resolving_them(self):
         path = self.create_note("Misplaced.md", "Misplaced", directory=self.database)
-        self.set_field(self.collection / "Example - Weapons.md", "parent_note", "[[Misplaced]]")
+        self.set_field(self.collection / "Weapons - 5f6g7h8j9k.md", "parent_note", "[[Misplaced]]")
         issues = validate_database(self.database)
         self.assertTrue(any(issue.path == path and issue.code == "note-location" for issue in issues))
         self.assertIn("parent-reference", {issue.code for issue in issues})
@@ -161,23 +172,33 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("structural-frontmatter", codes)
 
     def test_pebble_cannot_parent_a_note(self):
-        shard = self.database / "Data" / "Game" / "Example - Weapons.md"
-        shard.write_text(shard.read_text(encoding="utf-8").replace("parent_note: \"[[Example]]\"", "parent_note: \"[[Example - Weapons - Blade]]\""), encoding="utf-8")
+        shard = self.database / "Data" / "Game" / "Weapons - 5f6g7h8j9k.md"
+        shard.write_text(shard.read_text(encoding="utf-8").replace("parent_note: \"[[Example]]\"", "parent_note: \"[[Blade - mnpqrstvwz]]\""), encoding="utf-8")
         codes = {issue.code for issue in validate_database(self.database)}
         self.assertIn("pebble-parent", codes)
 
     def test_lineage_cycle_is_reported(self):
-        first = self.database / "Data" / "Game" / "Example - Weapons.md"
-        first.write_text(first.read_text(encoding="utf-8").replace("parent_note: \"[[Example]]\"", "parent_note: \"[[Example - Weapons - Blade]]\""), encoding="utf-8")
+        first = self.database / "Data" / "Game" / "Weapons - 5f6g7h8j9k.md"
+        first.write_text(first.read_text(encoding="utf-8").replace("parent_note: \"[[Example]]\"", "parent_note: \"[[Blade - mnpqrstvwz]]\""), encoding="utf-8")
         codes = {issue.code for issue in validate_database(self.database)}
         self.assertIn("lineage-cycle", codes)
 
-    def test_unbounded_filename_is_reported(self):
-        source = self.database / "Data" / "Game" / "Example - Weapons - Blade.md"
-        target = source.with_name("Example - Weapons - Blade - Extra.md")
+    def test_supporting_filename_with_ancestry_is_reported(self):
+        source = self.database / "Data" / "Game" / "Blade - mnpqrstvwz.md"
+        target = source.with_name("Example - Weapons - Blade - mnpqrstvwz.md")
         source.rename(target)
-        codes = {issue.code for issue in validate_database(self.database)}
-        self.assertIn("filename-context", codes)
+        self.assertIn("filename", self.codes())
+
+    def test_reparenting_does_not_change_supporting_filename(self):
+        self.create_note("Armor - 6666666666.md", "Armor", "shard", "Example", "Example")
+        blade = self.collection / "Blade - mnpqrstvwz.md"
+        self.set_field(blade, "parent_note", "[[Armor - 6666666666]]")
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_same_local_title_is_valid_with_distinct_ids(self):
+        self.create_note("Topic - 7777777777.md", "Topic", "shard", "Example", "Example")
+        self.create_note("Topic - 8888888888.md", "Topic", "shard", "Example", "Example")
+        self.assertEqual(validate_database(self.database), [])
 
     def test_valid_yaml_forms(self):
         manifest = self.database / "Database.md"
@@ -287,19 +308,19 @@ class ValidatorTests(unittest.TestCase):
 
     def test_invalid_workspace_note_is_checked(self):
         workspace = self.bundle()
-        self.set_field(workspace / "Example - Weapons.md", "type", "invalid")
+        self.set_field(workspace / "Weapons - 5f6g7h8j9k.md", "type", "invalid")
         self.assertIn("structural-type", self.codes())
 
     def test_split_workspace_is_reported(self):
         workspace = self.bundle()
-        note = workspace / "Example - Weapons - Blade.md"
+        note = workspace / "Blade - mnpqrstvwz.md"
         note.rename(self.collection / note.name)
         self.assertIn("workspace-split", self.codes())
 
     def test_workspace_with_flat_core_is_reported(self):
         workspace = self.collection / "Example"
         workspace.mkdir()
-        note = self.collection / "Example - Weapons.md"
+        note = self.collection / "Weapons - 5f6g7h8j9k.md"
         note.rename(workspace / note.name)
         self.assertIn("workspace-core", self.codes())
         self.assertIn("workspace-split", self.codes())
@@ -311,7 +332,7 @@ class ValidatorTests(unittest.TestCase):
     def test_workspace_rejects_foreign_lineage(self):
         workspace = self.bundle()
         self.create_note("Other.md", "Other")
-        self.create_note("Other - Topic.md", "Topic", "shard", "Other", "Other", workspace)
+        self.create_note("Topic - abcdef0123.md", "Topic", "shard", "Other", "Other", workspace)
         self.assertIn("workspace-lineage", self.codes())
 
     def test_nested_structural_directories_are_not_scanned(self):
@@ -334,7 +355,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("manifest-collections", self.codes())
 
     def test_pool_mismatch_is_reported(self):
-        self.set_field(self.collection / "Example - Weapons.md", "pool", "Other")
+        self.set_field(self.collection / "Weapons - 5f6g7h8j9k.md", "pool", "Other")
         self.assertIn("lineage-pool", self.codes())
 
     def test_core_parent_must_be_empty(self):
@@ -349,15 +370,15 @@ class ValidatorTests(unittest.TestCase):
 
     def test_parent_chain_must_reach_declared_core(self):
         self.create_note("Other.md", "Other")
-        self.set_field(self.collection / "Example - Weapons.md", "parent_note", "[[Other]]")
+        self.set_field(self.collection / "Weapons - 5f6g7h8j9k.md", "parent_note", "[[Other]]")
         self.assertTrue({"lineage-core", "lineage-root"} <= self.codes())
 
     def test_archived_ancestors_are_reported(self):
         self.set_field(self.collection / "Example.md", "status", "archived")
-        self.set_field(self.collection / "Example - Weapons.md", "status", "draft")
+        self.set_field(self.collection / "Weapons - 5f6g7h8j9k.md", "status", "draft")
         issues = validate_database(self.database)
-        self.assertTrue(any(issue.path.name.endswith("Blade.md") and issue.code == "archived-ancestor" for issue in issues))
-        self.set_field(self.collection / "Example - Weapons - Blade.md", "status", "archived")
+        self.assertTrue(any(issue.path.name == "Blade - mnpqrstvwz.md" and issue.code == "archived-ancestor" for issue in issues))
+        self.set_field(self.collection / "Blade - mnpqrstvwz.md", "status", "archived")
         self.assertNotIn("archived-ancestor", self.codes())
 
     def test_archived_database_does_not_require_archived_notes(self):
@@ -365,13 +386,13 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(validate_database(self.database), [])
 
     def test_missing_parent_and_core_are_reported(self):
-        path = self.collection / "Example - Weapons.md"
+        path = self.collection / "Weapons - 5f6g7h8j9k.md"
         self.set_field(path, "core", "[[Missing]]")
         self.set_field(path, "parent_note", "[[Missing]]")
         self.assertTrue({"core-reference", "parent-reference"} <= self.codes())
 
     def test_links_only_resolve_inside_discovered_database(self):
-        path = self.collection / "Example - Weapons.md"
+        path = self.collection / "Weapons - 5f6g7h8j9k.md"
         for target in ("[[Example|Display]]", "[[Example.md]]", "[[Data/Game/Example]]", "[[app/Knowledge/Databases/Example Database/Data/Game/Example]]"):
             self.set_field(path, "parent_note", target)
             self.assertEqual(validate_database(self.database), [])
@@ -387,19 +408,19 @@ class ValidatorTests(unittest.TestCase):
         self.create_note("Call of Duty Black Ops 6.md", "Call of Duty: Black Ops 6")
         self.create_note("_CON.md", "CON")
         self.create_note("Étoile.md", "Étoile")
-        self.set_field(self.collection / "Example - Weapons - Blade.md", "type", "shard")
-        self.create_note("Example - Blade - Aspect.md", "Aspect", "pebble", "Example", "Example - Weapons - Blade")
+        self.set_field(self.collection / "Blade - mnpqrstvwz.md", "type", "shard")
+        self.create_note("Aspect - a1b2c3d4e5.md", "Aspect", "pebble", "Example", "Blade - mnpqrstvwz")
         self.assertEqual(validate_database(self.database), [])
 
     def test_wikilink_delimiters_normalize_in_every_name_component(self):
         self.create_note("Game 1.md", "Game #1")
-        self.create_note("Game 1 - Weapons primary.md", "Weapons [primary]", "shard", "Game 1", "Game 1")
-        self.create_note("Game 1 - Weapons primary - Blade 2.md", "Blade #2", "pebble", "Game 1", "Game 1 - Weapons primary")
+        self.create_note("Weapons primary - 1111111111.md", "Weapons [primary]", "shard", "Game 1", "Game 1")
+        self.create_note("Blade 2 - 2222222222.md", "Blade #2", "pebble", "Game 1", "Weapons primary - 1111111111")
         workspace = self.collection / "Game 1"
         workspace.mkdir()
-        for path in self.collection.glob("Game 1*.md"):
+        for path in [p for p in self.collection.glob("*.md") if p.stem in {"Game 1", "Weapons primary - 1111111111", "Blade 2 - 2222222222"}]:
             path.rename(workspace / path.name)
-        self.set_field(workspace / "Game 1 - Weapons primary.md", "parent_note", "[[Game 1#Overview|Game #1]]")
+        self.set_field(workspace / "Weapons primary - 1111111111.md", "parent_note", "[[Game 1#Overview|Game #1]]")
         self.assertEqual(validate_database(self.database), [])
 
     def test_wikilink_normalization_collisions_and_legacy_names(self):
@@ -409,7 +430,7 @@ class ValidatorTests(unittest.TestCase):
 
     def test_alternating_trailing_spaces_and_periods(self):
         self.create_note("Game.md", "Game. .")
-        self.create_note("Game - Topic.md", "Topic. . .", "shard", "Game", "Game")
+        self.create_note("Topic - 3333333333.md", "Topic. . .", "shard", "Game", "Game")
         self.create_note("_CON.md", "CON. .")
         self.assertEqual(validate_database(self.database), [])
         self.create_note("Unusable.md", ". . .")
@@ -418,8 +439,8 @@ class ValidatorTests(unittest.TestCase):
     def test_delimiter_inside_canonical_name_is_not_extra_ancestry(self):
         core = "Alpha - Beta"
         self.create_note(core + ".md", core)
-        self.create_note(core + " - Weapons.md", "Weapons", "shard", core, core)
-        self.create_note(core + " - Weapons - Blade - Silver.md", "Blade - Silver", "pebble", core, core + " - Weapons")
+        self.create_note("Weapons - 4444444444.md", "Weapons", "shard", core, core)
+        self.create_note("Blade - Silver - 5555555555.md", "Blade - Silver", "pebble", core, "Weapons - 4444444444")
         self.assertEqual(validate_database(self.database), [])
 
     def test_unsafe_and_mismatched_core_filenames(self):
@@ -444,7 +465,7 @@ class ValidatorTests(unittest.TestCase):
         (other / "Attachments").mkdir()
         self.set_field(self.database / "Database.md", "data_collections", ["Game", "Other"])
         self.create_note("Example.md", "Example", directory=other)
-        self.set_field(self.collection / "Example - Weapons.md", "core", "[[Data/Game/Example]]")
+        self.set_field(self.collection / "Weapons - 5f6g7h8j9k.md", "core", "[[Data/Game/Example]]")
         self.assertTrue({"filename-collision", "core-reference"} <= self.codes())
 
     def test_heading_spacing_and_depth(self):

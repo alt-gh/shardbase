@@ -28,6 +28,7 @@ VALID_STATUSES = {"active", "draft", "archived"}
 REQUIRED_BODY_SECTIONS = ("Purpose", "Scope", "Includes", "Excludes", "Architecture", "Schema", "Conventions", "Resources")
 FORBIDDEN = re.compile(r'[\x00-\x1f<>:"/\\|?*#\[\]]')
 DEVICE_STEMS = {"CON", "PRN", "AUX", "NUL"} | {f"{prefix}{i}" for prefix in ("COM", "LPT") for i in range(1, 10)}
+NOTE_ID = re.compile(r"^[0-9a-hjkmnp-tv-z]{10}$")
 
 
 @dataclass(frozen=True)
@@ -182,25 +183,20 @@ def portable_component(name: str) -> str | None:
     return "_" + component if component.upper() in DEVICE_STEMS else component
 
 
-def expected_filename(note: Note, core: Note | None, parent: Note | None) -> str | None:
-    """Default title convention: opening H1 is the Core/local node name."""
+def expected_filename(note: Note) -> str | None:
+    """Foundation-3 naming: Core title, or supporting local title plus stable opaque ID."""
     title = primary_title(note)
     if title is None:
         return None
-    names = [title]
-    if note.metadata.get("type") != "core":
-        if core is None or parent is None:
-            return None
-        names = [primary_title(core)]
-        if parent.path != core.path:
-            names.append(primary_title(parent))
-        names.append(title)
-    if any(name is None for name in names):
+    component = portable_component(title)
+    if component is None:
         return None
-    components = [portable_component(name) for name in names]
-    if any(component is None for component in components):
+    if note.metadata.get("type") == "core":
+        return component + ".md"
+    note_id = note.metadata.get("id")
+    if not isinstance(note_id, str) or not NOTE_ID.fullmatch(note_id):
         return None
-    return " - ".join(components) + ".md"
+    return f"{component} - {note_id}.md"
 
 
 def check_markdown(note: Note, issues: list[Issue]) -> None:
@@ -375,6 +371,7 @@ def validate_database(root: Path) -> list[Issue]:
     cores = {note.path: resolve(note.metadata.get("core")) for note in notes}
     parents = {note.path: resolve(note.metadata.get("parent_note")) for note in notes}
     expected_names: dict[str, list[Note]] = defaultdict(list)
+    note_ids: dict[str, list[Note]] = defaultdict(list)
     for note in notes:
         metadata = note.metadata
         note_type = metadata.get("type")
@@ -384,12 +381,14 @@ def validate_database(root: Path) -> list[Issue]:
                 issues.append(Issue(note.path, "structural-field", f"missing required field '{field}'"))
         for field in COMMON_NOTE_FIELDS:
             if field not in metadata:
-                issues.append(Issue(note.path, "note-field", f"missing required field '{field}' (foundation-2); review the Section 19.2 transition"))
+                issues.append(Issue(note.path, "note-field", f"missing required field '{field}'"))
                 continue
             value = metadata[field]
             if field == "id":
-                if value is not None and not isinstance(value, str):
-                    issues.append(Issue(note.path, "note-id", "id must be empty or a scalar string"))
+                if not isinstance(value, str) or not NOTE_ID.fullmatch(value):
+                    issues.append(Issue(note.path, "note-id", "id must be a 10-character lowercase Crockford Base32 token"))
+                else:
+                    note_ids[value].append(note)
             elif value is not None and not (
                 isinstance(value, list) and all(nonempty_string(item) for item in value)
             ):
@@ -426,14 +425,11 @@ def validate_database(root: Path) -> list[Issue]:
         title = primary_title(note)
         if title is not None and portable_component(title) is None:
             issues.append(Issue(note.path, "filename-name", "canonical name has no usable portable filename component"))
-        expected = expected_filename(note, core, parent)
+        expected = expected_filename(note)
         if expected:
             expected_names[expected].append(note)
             if note.path.name != expected:
-                issues.append(Issue(note.path, "filename", f"expected '{expected}' under the default heading/title convention"))
-                # A legitimate local name may itself contain ' - '.
-                if scalar_choice(note_type, {"shard", "pebble"}) and len(note.path.stem.split(" - ")) > 3:
-                    issues.append(Issue(note.path, "filename-context", "supporting filename accumulates context inconsistent with its canonical names"))
+                issues.append(Issue(note.path, "filename", f"expected '{expected}' under the foundation-3 naming convention"))
         check_markdown(note, issues)
         if note_type != "core":
             seen = {note.path}
@@ -455,6 +451,10 @@ def validate_database(root: Path) -> list[Issue]:
         if len(matches) > 1:
             for note in matches:
                 issues.append(Issue(note.path, "filename-collision", "canonical names derive the same expected filename"))
+    for note_id, matches in note_ids.items():
+        if len(matches) > 1:
+            for note in matches:
+                issues.append(Issue(note.path, "note-id-duplicate", f"id '{note_id}' is not unique within the database"))
     for workspace in workspaces:
         contained = [note for note in notes if note.path.parent == workspace]
         roots = [note for note in contained if note.metadata.get("type") == "core"]
