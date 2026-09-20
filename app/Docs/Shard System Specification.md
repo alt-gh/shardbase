@@ -72,7 +72,7 @@ shardbase/
 │   │           │       ├── Attachments/
 │   │           │       └── <Core Workspace>/
 │   │           │           ├── Core Name.md
-│   │           │           ├── Core Name - Shard.md
+│   │           │           ├── Topic - 2gmcy7r7dr.md
 │   │           │           └── Attachments/
 │   │           ├── Templates/
 │   │           ├── Views/
@@ -276,7 +276,7 @@ Database-specific workflow or domain state must use separately named semantic fi
 `aliases`, `id`, and `tags` are universal common note fields but are not lineage fields.
 
 - `aliases` defaults to blank YAML. When populated, it is a YAML list of non-empty strings; `[]` is valid.
-- `id` is required on every canonical Core, Shard, and Pebble. It is a stable opaque 10-character lowercase Crockford Base32 token matching `[0-9a-hjkmnp-tv-z]{10}` and must be unique among canonical structural notes in the same database. The token is assigned once when canonical state is materialized and must not encode note type, ancestry, date, sequence, database identity, or other semantic meaning. If a generated token collides, generate another before writing canonical state.
+- `id` is required on every canonical Core, Shard, and Pebble. It is a stable opaque 10-character lowercase Crockford Base32 token matching `[0-9a-hjkmnp-tv-z]{10}` and must be unique among canonical structural notes in the same database. The token is assigned once when canonical state is materialized, or prepared earlier for that purpose, and must not encode note type, ancestry, date, sequence, database identity, or other semantic meaning. If a generated token collides, generate another before writing canonical state.
 - `tags` defaults to blank YAML. When populated, it is a YAML list of non-empty strings; `[]` is valid.
 
 A note's `id` remains unchanged when its title, filename, placement, structural type, or parent changes. Existing valid populated IDs must be preserved during updates. `aliases`, `id`, and `tags` never replace `pool`, `core`, `parent_note`, or structural lineage. Pre-structural Inbox captures may leave `id` blank because they are not canonical structural notes.
@@ -364,16 +364,16 @@ Portable Local Title - Opaque ID.md
 
 `Portable Local Title` is derived from the note's opening H1 using Section 8.1. `Opaque ID` is the note's required stable `id` from Section 6.2. The filename never includes the Core title, parent title, structural type, or other ancestry merely to provide context.
 
-Example:
+Example using synthetic titles:
 
 ```text
-Hades.md
-Weapons - 2gmcy7r7dr.md
-Stygian Blade - 11hq8bbd1p.md
-Aspect of Zagreus - 3j84q9k6fc.md
+Example Game.md
+Topics - 2gmcy7r7dr.md
+Subtopic - 11hq8bbd1p.md
+Detail - 3j84q9k6fc.md
 ```
 
-The supporting note's opening H1 is its canonical local human-facing title, such as `# Weapons` or `# Aspect of Zagreus`. Parentage and root lineage are expressed only through `parent_note` and `core`. A title change updates the human-readable filename component and dependent wikilinks while preserving the note's `id`. Reparenting alone does not require a filename change.
+The supporting note's opening H1 is its canonical local human-facing title, such as `# Topics` or `# Detail`. Parentage and root lineage are expressed only through `parent_note` and `core`. A title change updates the human-readable filename component and dependent wikilinks while preserving the note's `id`. Reparenting alone does not require a filename change.
 
 A Core workspace does not create another filename namespace. Canonical `id` values are database-unique, so two supporting notes may legitimately share the same local title while remaining distinguishable by ID. Core title collisions still require meaningful identity disambiguation. Do not overwrite, silently number, encode ancestry, or rely on separate workspace paths to resolve an identity collision.
 
@@ -434,14 +434,16 @@ The lifecycle is a state-and-decision model rather than a mandatory linear pipel
 
 ShardBase recommends two primary creation paths:
 
-- notes intended to become canonical under `app/Knowledge/Databases/` should normally use a ShardBase-aware canonical creation path once available;
-- ad-hoc notes created through a Markdown editor or filesystem should normally enter `app/Knowledge/Inbox/`.
+- notes intended to become canonical under `app/Knowledge/Databases/` should normally use the CLI to prepare their filename and metadata, then be reviewed and moved manually into the owning database;
+- temporary or ad-hoc notes created through a Markdown editor (preferably Obsidian) or filesystem should normally enter `app/Knowledge/Inbox/`.
 
 Knowledgeable users may create canonical files manually if they intentionally satisfy the complete contract.
 
 ### 11.2 Inbox
 
 Inbox items are pre-structural. They do not require a database, Pool, Core, structural `type`, lineage, canonical filename, or database semantic schema.
+
+A database-intended note may already carry a prepared canonical filename, metadata, and ID while it waits in Inbox. Preparation does not make it canonical or prove conformance. Preserve its valid prepared ID during manual promotion and check uniqueness against the destination at that time.
 
 Review may incorporate an item into an existing note, promote it into new canonical structure, retain it unresolved, leave only a Ghost Shard, or result in deliberate user discard. Successful review does not imply a new file.
 

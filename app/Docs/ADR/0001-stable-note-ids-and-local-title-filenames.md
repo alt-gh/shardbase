@@ -28,9 +28,9 @@ ShardBase also needs canonical filenames to remain understandable to people rath
 
 Every canonical structural note receives one stable database-unique 10-character lowercase Crockford Base32 `id`. The ID is opaque: it carries no structural type, parentage, date, sequence, database identity, or other semantic meaning.
 
-The note ID is assigned when canonical state is materialized and remains unchanged across title changes, moves, structural-type changes, and reparenting. A supporting note's filename uses its local H1 plus that ID. Structural ancestry remains authoritative only through `core` and `parent_note`.
+The note ID is assigned for canonical materialization, including preparation before a manual move, and remains unchanged across title changes, moves, structural-type changes, and reparenting. A supporting note's filename uses its local H1 plus that ID. Structural ancestry remains authoritative only through `core` and `parent_note`.
 
-Pre-structural Inbox drafts may keep a blank `id`; assigning and validating the canonical ID is part of promotion/materialization rather than capture.
+Ordinary pre-structural Inbox captures may keep a blank `id`. Database-intended preparation may assign it earlier; final canonical validity still depends on promotion review. See the System Specification's lifecycle rules and the [current CLI workflow](../../Scripts/README.md#note-creation).
 
 The System Specification is the normative authority for the exact ID format, portable normalization algorithm, filename construction, migration requirements, and validation contract. This ADR records rationale and tradeoffs only.
 

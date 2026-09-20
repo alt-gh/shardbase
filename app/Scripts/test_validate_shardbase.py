@@ -405,11 +405,11 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(validate_database(self.database), [])
 
     def test_portable_names_and_recursive_lineage(self):
-        self.create_note("Call of Duty Black Ops 6.md", "Call of Duty: Black Ops 6")
+        self.create_note("Example Game Chapter 2.md", "Example Game: Chapter 2")
         self.create_note("_CON.md", "CON")
         self.create_note("Étoile.md", "Étoile")
         self.set_field(self.collection / "Blade - mnpqrstvwz.md", "type", "shard")
-        self.create_note("Aspect - a1b2c3d4e5.md", "Aspect", "pebble", "Example", "Blade - mnpqrstvwz")
+        self.create_note("Detail - a1b2c3d4e5.md", "Detail", "pebble", "Example", "Blade - mnpqrstvwz")
         self.assertEqual(validate_database(self.database), [])
 
     def test_wikilink_delimiters_normalize_in_every_name_component(self):

@@ -31,7 +31,7 @@ The final Foundation sign-off remains a project-owner decision. Passing automate
 current_assessment: late Foundation / convergence and proof
 current_primary_goal: finish the vertical slice from intent to valid canonical knowledge and close remaining Foundation proof/governance gaps
 current_architecture_status: substantially settled
-current_implementation_status: substantial deterministic structural validation exists; draft creation exists; canonical semantic validation and canonical promotion/creation remain incomplete
+current_implementation_status: substantial deterministic structural validation exists; database scaffolding and draft preparation exist; canonical semantic validation and canonical note promotion/creation remain incomplete
 current_proof_status: Games proving workflow partially complete
 current_documentation_status: authority roles consolidated; duplicated architecture removed from supporting documents; first accepted ADR records the foundation-3 naming decision
 
@@ -49,7 +49,8 @@ current_documentation_status: authority roles consolidated; duplicated architect
 - Games draft templates: `Game.md`, `Game Shard.md`, and `Game Pebble.md`.
 - Games specialist Agent resource: `Agents/Vera.md`.
 - Runtime Registry discovery.
-- Local draft-creation CLI.
+- Local draft-creation CLI with Inbox/database intent, database selection, prepared IDs and filenames, and optional parent-derived lineage. Manual movement remains user-controlled.
+- Blueprint-based database scaffolding with dynamic selection, external preflight validation, and no overwrite/merge behavior.
 - Read-only structural validator, tests, and sanitized fixtures.
 
 ### Main Remaining Gaps
@@ -57,7 +58,7 @@ current_documentation_status: authority roles consolidated; duplicated architect
 1. Structural classification guidance is still more implicit than the desired Foundation standard; the planned Structural Decision Framework remains unfinished.
 2. The architecture is not yet demonstrated through a deliberate set of good, bad, and ambiguous canonical examples.
 3. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
-4. The CLI cannot yet promote a draft or directly create validated canonical database state.
+4. The CLI can bootstrap database scaffolding, but cannot yet promote a draft or directly create fully validated canonical notes.
 5. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
 6. Governance substance exists in the System Specification, but the roadmap/decision-record surfaces have not yet been closed out and formally signed off.
 7. A second independently designed domain has not yet tested generalization.
@@ -269,7 +270,7 @@ These are product boundaries, not backlog items.
 
 ### Deferred Until a Concrete Requirement
 
-- mature/full CLI and interactive database wizard
+- mature/full CLI and interactive custom-database design wizard
 - automated Inbox classification
 - generalized migration engine
 - schema migration framework

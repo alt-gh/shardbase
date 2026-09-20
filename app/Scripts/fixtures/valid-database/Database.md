@@ -28,7 +28,7 @@ The example uses one Core, one Shard, and one Pebble.
 
 ## Schema
 
-The required structural and common note fields follow the System Specification. `aliases`, `id`, and `tags` default to blank YAML values. The `entity_kind` field is database-local semantic metadata.
+The required structural and common note fields follow the System Specification. `aliases` and `tags` default to blank YAML values; canonical `id` values follow the current identity contract. The `entity_kind` field is optional database-local semantic metadata: a scalar string on any structural note, with `example`, `topic`, and `item` used by this fixture.
 
 ## Conventions
 

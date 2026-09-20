@@ -61,6 +61,8 @@ ShardBase may store and manage AI-related files such as Agent definitions, Promp
 
 Do not copy private live knowledge into committed documentation, fixtures, blueprints, Registry resources, scripts, examples, or other distributable framework surfaces.
 
+Build distributable examples, CLI help, and test data from synthetic subjects and values. A publicly known title or name selected from a private instance is still user-derived context; replace the subject and its related filenames, links, aliases, and assertions with consistent generic examples.
+
 ## Change Safety
 
 Distinguish clearly between:

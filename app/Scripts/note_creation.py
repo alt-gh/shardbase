@@ -1,7 +1,8 @@
 """Local draft creation, independent of CLI prompts; never promotes or overwrites.
 
-Inbox captures may have unresolved or invalid metadata. Structural and semantic
-validation belongs to canonical promotion, not this creation operation.
+Inbox captures may have unresolved or invalid metadata. Database preparation
+adds IDs, canonical filenames, and selected lineage with bounded checks; full
+structural and semantic review still belongs to manual promotion.
 """
 
 from __future__ import annotations
@@ -23,7 +24,8 @@ class CreationError(ValueError):
 @dataclass(frozen=True)
 class CreatedNote:
     path: Path
-    template: Path
+    template: Path | None
+    suggested_path: Path | None = None
 
 
 TEMPLATES = {"core": "Game.md", "shard": "Game Shard.md", "pebble": "Game Pebble.md"}
@@ -113,23 +115,36 @@ def refuse_collision(directory: Path, filename: str) -> None:
 
 
 def create_note(root: Path, title: str, kind: str = "core",
-                alias: str | None = None) -> CreatedNote:
+                alias: str | None = None, *, intent: str = "inbox",
+                database: str | None = None, template: str | None = None,
+                pool: str | None = None, parent: str | None = None,
+                collection: str | None = None) -> CreatedNote:
     root = root.resolve(strict=True)
     if not root.is_dir() or not checked_path(root, root / "app").is_dir():
         raise CreationError("--root must select an instance directory containing app/.")
     if kind not in TEMPLATES:
         raise CreationError("Note type must be core, shard, or pebble.")
+    if intent not in {"inbox", "database"}:
+        raise CreationError("Intent must be inbox or database.")
+    if intent == "inbox" and any(value is not None for value in (database, template, pool, parent, collection)):
+        raise CreationError("Database options require --intent database.")
     title = title.strip()
     if not title or any(unicodedata.category(char) in {"Cc", "Zl", "Zp"} for char in title):
         raise CreationError("Provide a non-empty, single-line note title without control characters.")
     stem = portable_component(title)
     if stem is None:
         raise CreationError("The title has no usable portable filename; choose a meaningful title.")
-    template = game_source(root, kind)
-    metadata, _ = read_document(root, template)
-    document = render_game(metadata, title, stem, kind, alias)
     directory = checked_path(root, root / "app/Knowledge/Inbox")
-    filename = stem + ".md"
+    suggested_path = None
+    if intent == "database":
+        from database_preparation import prepare_note
+        document, filename, selected_template, suggested_path = prepare_note(
+            root, title, kind, alias, database, template, pool, parent, collection)
+    else:
+        selected_template = game_source(root, kind)
+        metadata, _ = read_document(root, selected_template)
+        document = render_game(metadata, title, stem, kind, alias)
+        filename = stem + ".md"
     refuse_collision(directory, filename)
     path = checked_path(root, directory / filename)
     # Parse the template and prepare output before touching the destination.
@@ -138,4 +153,4 @@ def create_note(root: Path, title: str, kind: str = "core",
     # Never truncate an existing file, including a dangling destination symlink.
     with path.open("x", encoding="utf-8", newline="\n") as stream:
         stream.write(document)
-    return CreatedNote(path, template)
+    return CreatedNote(path, selected_template, suggested_path)

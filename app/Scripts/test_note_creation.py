@@ -217,9 +217,9 @@ class NoteCreationTests(unittest.TestCase):
         self.assertEqual((self.root / "app/Knowledge/Inbox/Example.md").read_text(), "Competing content")
 
     def test_prompts_reprompt_and_create(self):
-        with patch("builtins.input", side_effect=["Example", "invalid", "1", ""]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
+        with patch("builtins.input", side_effect=["Example", "invalid", "1", "", "inbox"]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        self.assertEqual(prompts.call_count, 4)
+        self.assertEqual(prompts.call_count, 5)
         self.assertIn("Choose 1", output.getvalue())
         self.assertIn("Saved to Inbox", output.getvalue())
         self.assertNotIn("Destination", output.getvalue())
@@ -241,7 +241,7 @@ class NoteCreationTests(unittest.TestCase):
         self.assertEqual(new_help.returncode, 0)
         self.assertIn("app/Knowledge/Inbox/", new_help.stdout)
         self.assertNotIn("--destination", new_help.stdout)
-        args = ["new", "--root", str(self.root), "--title", "Example", "--type", "core", "--alias", ""]
+        args = ["new", "--root", str(self.root), "--title", "Example", "--type", "core", "--alias", "", "--intent", "inbox"]
         created = subprocess.run(command + args, input="", capture_output=True, text=True, cwd=self.root)
         self.assertEqual(created.returncode, 0, created.stderr)
         self.assertTrue((self.root / "app/Knowledge/Inbox/Example.md").is_file())
@@ -255,16 +255,6 @@ class NoteCreationTests(unittest.TestCase):
                 self.assertEqual(invalid.returncode, 2)
                 self.assertIn("unrecognized arguments: --destination", invalid.stderr)
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
-
-
-
-
-
-
-
-
-
-
     def test_terminal_color_is_optional_and_control_characters_are_inert(self):
         with patch("sys.stdout.isatty", return_value=True), patch.dict("os.environ", {"TERM": "xterm"}, clear=True):
             self.assertIn("\033[", Terminal().style("Title"))
@@ -287,22 +277,22 @@ class NoteCreationTests(unittest.TestCase):
         self.assertFalse((self.root / "app/Knowledge/Inbox/Staged").exists())
         self.assertFalse((self.root / "app/Knowledge/Databases").exists())
 
-    def test_alias_prompt_finishes_capture_without_parent_or_destination_prompt(self):
-        with patch("builtins.input", side_effect=["Terminus", "2", "Island"]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
+    def test_inbox_intent_finishes_capture_without_parent_or_destination_prompt(self):
+        with patch("builtins.input", side_effect=["Example Detail", "2", "Alternate Detail", "inbox"]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        self.assertEqual(prompts.call_count, 3)
+        self.assertEqual(prompts.call_count, 4)
         self.assertIn("Alias", prompts.call_args_list[2].args[0])
         self.assertNotIn("Parent note", output.getvalue())
         self.assertNotIn("Destination", output.getvalue())
-        path = self.root / "app/Knowledge/Inbox/Terminus.md"
+        path = self.root / "app/Knowledge/Inbox/Example Detail.md"
         metadata, _ = parse_frontmatter(path.read_text())
         self.assertEqual(metadata["type"], "shard")
-        self.assertEqual(metadata["aliases"], ["Island"])
+        self.assertEqual(metadata["aliases"], ["Alternate Detail"])
         self.assertIsNone(metadata["core"])
         self.assertIsNone(metadata["parent_note"])
 
     def test_optional_alias_is_a_yaml_string_list_or_blank(self):
-        for index, alias in enumerate((None, "", "   ", "Terminus Island", "001", "yes", 'A: "B", C', "日本語")):
+        for index, alias in enumerate((None, "", "   ", "Example Detail Alias", "001", "yes", 'A: "B", C', "日本語")):
             with self.subTest(alias=alias):
                 result = create_note(self.root, f"Note {index}", "pebble", alias=alias)
                 metadata, body = parse_frontmatter(result.path.read_text())
@@ -325,7 +315,7 @@ class NoteCreationTests(unittest.TestCase):
 
     def test_existing_notes_are_neither_read_nor_validated(self):
         database = self.live_database()
-        canonical = database / "Data/Game/Terminus.md"
+        canonical = database / "Data/Game/Example Detail.md"
         canonical.write_text("Malformed canonical data\n")
         inbox = self.root / "app/Knowledge/Inbox"
         inbox.mkdir()
@@ -337,14 +327,14 @@ class NoteCreationTests(unittest.TestCase):
                 raise AssertionError("Draft creation must not inspect existing notes")
             return original_read(path, *args, **kwargs)
         with patch.object(Path, "read_text", guard_read), patch("validate_shardbase.validate_database", side_effect=AssertionError("Unexpected validation")):
-            result = create_note(self.root, "Terminus", "shard")
-        self.assertEqual(result.path.name, "Terminus.md")
+            result = create_note(self.root, "Example Detail", "shard")
+        self.assertEqual(result.path.name, "Example Detail.md")
         self.assertEqual(canonical.read_text(), "Malformed canonical data\n")
         self.assertEqual(capture.read_text(), "---\ntype: [broken\n")
 
     def test_canonical_validation_still_reports_unresolved_promoted_draft(self):
         database = self.live_database()
-        result = create_note(self.root, "Terminus", "pebble")
+        result = create_note(self.root, "Example Detail", "pebble")
         self.assertEqual(validate_database(database), [])
         shutil.copyfile(result.path, database / "Data/Game" / result.path.name)
         codes = {issue.code for issue in validate_database(database)}

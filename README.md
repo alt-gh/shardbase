@@ -84,15 +84,36 @@ For exact manifest requirements, note metadata, naming, placement, lifecycle, at
 
 ShardBase currently includes:
 
-- a local draft-creation CLI;
+- a local CLI for blueprint-based database scaffolding and note preparation;
 - a read-only structural validator;
 - regression tests and sanitized fixtures;
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
 
-The current `new` command automatically creates pre-structural drafts in `app/Knowledge/Inbox/`. Users can organize drafts manually after capture. It does **not** yet create canonical database notes or automatically promote drafts. The validator checks the implemented `foundation-3` structural contract but does not yet consume database semantic schemas deterministically.
+Use the CLI when creating notes intended for a permanent database. The `shardbase create new` command lets you choose **Inbox** or **database-intended** creation. Database-intended notes use the selected database's templates, receive a stable ID and the required filename, and can inherit lineage from a selected parent. Both choices save to `app/Knowledge/Inbox/`; you review the note and move it into the database yourself through your Markdown editor or filesystem.
 
-See [`app/Scripts/README.md`](app/Scripts/README.md) for commands, supported behavior, and implementation limits.
+For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. ShardBase does not change your editor settings automatically.
+
+Database preparation supports selection among live databases and available blueprints. It does **not** automatically promote notes or prove database-semantic validity. Unresolved lineage and database-specific requirements still need review before moving; run the structural validator after the move.
+
+Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
+
+## Get Started
+
+After downloading or cloning the repository, open a terminal at its root. On macOS/Linux:
+
+```sh
+python3 -B app/Scripts/install_cli.py
+export PATH="$HOME/.local/bin:$PATH"
+shardbase create new database
+shardbase create new
+```
+
+The first creation command lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are never merged or overwritten.
+
+The second command prepares your first note. Choose database intent and your new database, review the saved Inbox note, and move it into the suggested location using your editor or filesystem. Then run `shardbase validate`. Use `shardbase commands` to explore the CLI.
+
+The Python environment and launcher stay outside the project. For persistent PATH configuration, other platforms, custom locations, and bootstrap behavior, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
 
 ## Games Starter Database
 

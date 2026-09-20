@@ -505,8 +505,12 @@ def discover_databases(app_root: Path, issues: list[Issue] | None = None) -> lis
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path", nargs="?", type=Path, help="database root; defaults to all database candidates under app/Knowledge/Databases")
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="instance root containing app/ (default: this checkout)")
     args = parser.parse_args(argv)
-    workspace = Path(__file__).resolve().parents[2]
+    workspace = args.root.resolve()
+    if not args.path and not (workspace / "app").is_dir():
+        print("Error: --root must select an instance directory containing app/.", file=sys.stderr)
+        return 1
     all_issues: list[Issue] = []
     roots = [args.path] if args.path else discover_databases(workspace / "app", all_issues)
     for issue in all_issues:
