@@ -1,0 +1,5 @@
+{
+  "description": "Fixed synthetic format-v1 compatibility vector. Created independently with one-shot AESGCM; plaintext is one Inbox file containing the four bytes test. Deterministic salt/nonce are for this fixture only.",
+  "passphrase": "synthetic test passphrase",
+  "envelope_base64": "U0hBUkRCSwAAAAABAAECAwQFBgcICQoLDA0ODwABAgMEBQYHCAkKCxM2ZFrCRRezjsn5bLU5V0jdIquNP7As/Ka8jX8nh61RkavOMw85+8/aAiCb9cR4P1f2sgzZ/hrMtdSPCVma+LDGAlXmqUdp1GVvdebTzHjNyzWXfu9SBAJ/Xv/wI7CT+os1YdYCSPbPLp/TsDvmoYavXlueOfMI12s4xEvK+FSNEmnQSlfo8Hv1p7q42K+3CbzCozsBWqbY9OAA3mH2WNPkhNjSEXzsFIMkM63nt5+OnuEhm8//y0pAmz40oUaCTpDSmTvzIUWeB3Juz5Ii2l0IlnOsrCpOJcqXYqjocfQuI2wMB6533UJRQM3NcwFFNelt6bJqqLRffDzVeqmpKoVcEtEsDC1KTQ68cuLDYZv25C2jt7L92DSxObL5IQHXWv4VFA+yBV/llZxcWsSRH1flnxpkw2CH4+b9S/ZbjcA/lzYThwslUBkGsLVcZEm3+cwTqvbxFqgriyS9ta+xg75K0lppw7/i2zkwl+zJ//AsK5cn7tIppPeeiTJmuPekZJhXWxLFtmDRRSks0ft8LjH43wpWZ2BEhS8Hj2wi4VQ9Ggf64jfAFKlOWWr9WH9mJ6dVLH8sc7gGbgRjP/ACFAu0j3SezTEsubJaryzHvzF0i12Xl1Orc0UsIldbU+60PDNXJpQ1OJOXvagBcdUD0JVKri6rGJx8Ss7zT7vyrKRNAkE="
+}

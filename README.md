@@ -86,6 +86,7 @@ ShardBase currently includes:
 
 - a local CLI for blueprint-based database scaffolding and note preparation;
 - a read-only structural validator;
+- manual encrypted knowledge backup and restore commands;
 - regression tests and sanitized fixtures;
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
@@ -97,6 +98,8 @@ For temporary captures, create notes directly in your Markdown editor, preferabl
 Database preparation supports selection among live databases and available blueprints. It does **not** automatically promote notes or prove database-semantic validity. Unresolved lineage and database-specific requirements still need review before moving; run the structural validator after the move.
 
 Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
+
+Use `shardbase backup` and `shardbase restore` to preserve local knowledge or transfer it to a compatible newer checkout. These offline commands exclude framework files and Obsidian settings. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, Git exclusions, and compatibility limits.
 
 ## Get Started
 

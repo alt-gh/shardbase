@@ -34,18 +34,19 @@ class CommandTests(unittest.TestCase):
     def test_command_catalog_and_help_work_without_dependencies(self):
         for arguments in ((), ("commands",), ("--help",), ("help",), ("help", "create", "new"),
                           ("create",), ("create", "new", "--help"), ("validate", "--help"),
-                          ("help", "create", "new", "database"), ("create", "new", "database", "--help")):
+                          ("help", "create", "new", "database"), ("create", "new", "database", "--help"),
+                          ("backup", "--help"), ("restore", "--help"), ("help", "backup"), ("help", "restore")):
             with self.subTest(arguments=arguments):
                 result = self.cli(*arguments, without_dependencies=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("shardbase", result.stdout)
         result = self.cli("commands", without_dependencies=True)
-        for command in ("create", "create new", "create new database", "new", "validate", "commands", "help"):
+        for command in ("create", "create new", "create new database", "new", "validate", "backup", "restore", "commands", "help"):
             self.assertIn(f"shardbase {command}", result.stdout)
         self.assertIn("Alias for create new", result.stdout)
 
     def test_help_topics_share_the_actual_command_parser(self):
-        for route in (("create", "new"), ("create", "new", "database"), ("new",), ("validate",), ("commands",)):
+        for route in (("create", "new"), ("create", "new", "database"), ("new",), ("validate",), ("backup",), ("restore",), ("commands",)):
             with self.subTest(route=route):
                 direct = self.cli(*route, "--help")
                 topic = self.cli("help", *route)

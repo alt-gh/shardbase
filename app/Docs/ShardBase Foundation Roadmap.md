@@ -145,6 +145,8 @@ Current validator scope includes manifest discovery/shape, safe path boundaries,
 
 Not yet generic/deterministic: database semantic schema validation, Pool-vocabulary interpretation from database contracts, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical promotion/creation.
 
+Manual encrypted knowledge backup and restore are implemented, with a versioned format and synthetic round-trip, preservation, and failure tests. They support transfer between compatible checkouts; historical schema migration remains deferred. See the [tooling guide](../Scripts/README.md#encrypted-backup-and-restore) for the supported scope and limits.
+
 ### Milestone 6 — Foundation Proof
 
 | # | Commit | Status |

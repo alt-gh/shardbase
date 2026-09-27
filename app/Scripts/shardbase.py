@@ -168,6 +168,54 @@ def new_database(args: argparse.Namespace) -> int:
     return 0
 
 
+def transfer_knowledge(args: argparse.Namespace) -> int:
+    from datetime import datetime, timezone
+    import secrets
+    from backup_restore import backup, external, instance, read_password, restore
+
+    ui = Terminal()
+    root = instance(args.root)
+    if args.password_file is not None:
+        args.password_file = external(args.password_file, root, "Password file")
+    if args.command == "backup":
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        filename = f"shardbase-{timestamp}-{secrets.token_hex(4)}.sbbackup"
+        output = args.archive
+        if output is None:
+            suggested = Path.home() / "ShardBase Backups" / filename
+            print("Choose an existing folder or a new backup filename. Press Enter to use the suggested location.")
+            chosen = input(f"Save backup to [{ui.style(str(suggested))}]: ").strip()
+            if chosen:
+                output = Path(chosen).expanduser()
+            else:
+                folder = external(suggested.parent, root, "Backup output")
+                folder.mkdir(mode=0o700, exist_ok=True)
+                output = folder / filename
+        output = external(output, root, "Backup output")
+        if output.is_dir():
+            output = output / filename
+        print("Backing up local knowledge only. Git-tracked data and generated caches are excluded.")
+        print("Keep the passphrase: it cannot be recovered by ShardBase.")
+        password = read_password(args.password_file, confirm=True)
+        manifest = backup(root, output, password, args.staging_dir)
+        files = [entry for entry in manifest["entries"] if entry["kind"] == "file"]
+        excluded = sum(entry["kind"] == "git" for entry in manifest["entries"])
+        print(f"Backup verified: {len(files)} local files, {sum(entry['size'] for entry in files)} bytes; {excluded} Git-backed files excluded.")
+        print(ui.style(str(output.expanduser().absolute())))
+    else:
+        source = args.archive or Path(input("Backup file: ").strip()).expanduser()
+        password = read_password(args.password_file, confirm=False)
+        result = restore(root, source, password, args.staging_dir, dry_run=args.dry_run)
+        verb = "Restore checked" if args.dry_run else "Restore complete"
+        action = "to add" if args.dry_run else "added"
+        print(f"{verb}: {result['files_added']} files {action}, {result['files_unchanged']} identical files preserved, {result['git_files']} excluded Git-backed files verified.")
+        if args.dry_run:
+            print("No knowledge was written. This check does not certify database-semantic or structural validity.")
+        else:
+            print("Knowledge transferred unchanged. This does not certify database-semantic or structural validity.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="shardbase", description="ShardBase — local notes, structured simply.")
     commands = parser.add_subparsers(dest="command")
@@ -217,6 +265,18 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("path", nargs="?", type=Path, help="Database root; omit to check all live databases in the instance")
     validate.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: this checkout)")
     validate.set_defaults(handler=run_validation)
+
+    for command, summary in (("backup", "Create and verify an encrypted local-knowledge backup"),
+                             ("restore", "Import an encrypted backup without replacing existing content")):
+        page = register(commands, command, (command,), summary)
+        page.add_argument("archive", nargs="?", type=Path,
+                          help="Output file or existing folder; prompted when omitted (Enter accepts ~/ShardBase Backups/)" if command == "backup" else "Input .sbbackup path; prompted when omitted")
+        page.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: this checkout)")
+        page.add_argument("--password-file", type=Path, help="Read a UTF-8 passphrase from an owner-only file instead of a secure terminal prompt")
+        page.add_argument("--staging-dir", type=Path, help="Existing external temporary directory; restore requires the target filesystem (default: system temp)")
+        if command == "restore":
+            page.add_argument("--dry-run", action="store_true", help="Authenticate, verify, and check conflicts without changing knowledge")
+        page.set_defaults(handler=transfer_knowledge)
 
     def show_commands(args):
         print("ShardBase commands\n")

@@ -8,7 +8,7 @@ Current tooling targets System Specification `foundation-3` within the implement
 
 ## Runtime Setup
 
-The current scripts require Python 3.10 or newer and the pinned PyYAML dependency in `requirements.txt`. These are tooling requirements, not universal ShardBase requirements.
+The current scripts require Python 3.10 or newer and the pinned PyYAML and cryptography dependencies in `requirements.txt`. These are tooling requirements, not universal ShardBase requirements. Existing installations should rerun the installer after updating to install new dependencies.
 
 ### Install the convenient command (macOS/Linux)
 
@@ -46,7 +46,7 @@ python3 -B -m venv "$shardbase_runtime"
 
 These are POSIX shell examples; on Windows choose an external environment directory and use its `Scripts/python.exe`. Temporary environments can be removed by the operating system; use the installed external runtime for regular use.
 
-Dependency installation may access the network. Note creation, help, and validation operate locally and do not call external services. Help and command listing also work before PyYAML is installed.
+Dependency installation may access the network. Creation, help, validation, backup, and restore operate locally and do not call external services. Help and command listing also work before dependencies are installed.
 
 Use `-B` or `PYTHONDONTWRITEBYTECODE=1` for every Python runner that touches the project. Keep environments, dependencies, bytecode, caches, and test instances outside the project/vault. These settings prevent new bytecode but do not remove stale generated files already present.
 
@@ -64,6 +64,9 @@ Run `shardbase commands` to see every available command in the terminal. Running
 | `shardbase validate` | Read-only structural checks on all live databases in the installed instance |
 | `shardbase validate "/path/to/database"` | Check one database root |
 | `shardbase validate --root "/path/to/instance"` | Check all live databases in another instance |
+| `shardbase backup [archive]` | Choose an output file/folder, then encrypt and verify local knowledge |
+| `shardbase restore [archive]` | Authenticate and import a backup; prompt for the file when omitted |
+| `shardbase restore archive --dry-run` | Verify a backup and check destination conflicts without writing knowledge |
 | `shardbase commands` | List all commands, including the compatibility alias |
 | `shardbase help` or `shardbase --help` | Show top-level help |
 | `shardbase help create new` or `shardbase create new --help` | Show creation options |
@@ -71,6 +74,59 @@ Run `shardbase commands` to see every available command in the terminal. Running
 | `shardbase help validate` or `shardbase validate --help` | Show validation options |
 
 `shardbase help <command>` and `<command> --help` use the same parser and stay aligned with the implemented options. The standalone validator script remains available for existing workflows; it accepts the same optional database path and `--root` selection.
+
+## Encrypted Backup and Restore
+
+These are manual CLI commands. They operate only on `app/Knowledge/`, including Inbox, database contracts, notes, attachments, and database-owned resources. Obsidian settings, framework files, and unrelated local files are outside scope. Nothing is uploaded, scheduled, or synchronized.
+
+For a normal backup and restore into another existing ShardBase checkout:
+
+```sh
+shardbase backup "$HOME/knowledge.sbbackup"
+shardbase restore "$HOME/knowledge.sbbackup" --root "/path/to/new/shardbase"
+```
+
+The first command prompts for a hidden passphrase and confirmation. The second prompts for the same passphrase, verifies the entire backup and destination, then imports the knowledge automatically. No decryption, extraction, file rearrangement, or post-import conversion commands are needed. Use a strong passphrase of several random words; creation requires at least 12 UTF-8 bytes. **ShardBase cannot recover a lost passphrase.**
+
+With no output argument, `shardbase backup` prompts for a save location. Enter a new filename or an existing folder; choosing a folder generates a unique `.sbbackup` filename there. Press Enter to accept the suggested unique filename in `~/ShardBase Backups/`; that default folder is created if needed. An explicit output argument also accepts either a filename or an existing folder. For a custom filename, its parent directory must already exist. Output must be outside ShardBase instances and identifiable vaults. An existing backup is never replaced, and the command prints the resulting location.
+
+`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose which existing ShardBase instance receives the restored knowledge; files retain their layout under that instance's `app/Knowledge/`. Both commands accept `--root`, defaulting to the checkout used for installation. For example, `shardbase backup "/Volumes/Archive/My Backups"` saves into that existing folder, and `shardbase restore "/Volumes/Archive/My Backups/chosen.sbbackup" --root "/path/to/new/shardbase"` imports that selected backup into the selected instance.
+
+### Local Data and Git Exclusion
+
+The commands never contact GitHub. For offline operation, **unchanged committed Git-tracked knowledge is the proxy for data already hosted in Git**. Its bytes are omitted, while encrypted references record the paths, sizes, and SHA-256 digests restore must find in the destination checkout. Local commits are not proof of a push; users who deliberately track knowledge must ensure that committed data is available in the target checkout. The CLI does not claim to verify remote availability.
+
+Staged or modified tracked knowledge blocks the operation so local changes cannot be silently omitted. Index flags such as `assume-unchanged` do not bypass this check. Symlink/submodule entries and nested repositories are refused. Git clean/text filters are not executed; transformed working copies of tracked knowledge also block the check. Git is required for an instance with root `.git`. A downloaded/copied instance without root `.git` includes all ordinary knowledge because it has no local tracking information. Framework data is excluded in either case by the knowledge boundary.
+
+Ignored knowledge is included. A small fixed list of generated caches and OS files is excluded; the exact list is in the [format contract](BACKUP_FORMAT.md#path-and-inventory-rules). Other `.gitignore` patterns do not remove user data from backups. Symlinks and special files are refused instead of followed or silently skipped.
+
+### Restoration and Version Updates
+
+Restore preserves bytes, filenames, directory layout, empty directories, and file modification times. It preserves the owner's executable bit while limiting newly restored files to owner access. It does not rewrite metadata, links, IDs, templates, or database contracts. Existing byte-identical files are skipped; differing files and file/directory conflicts stop the entire preflight before any knowledge is written. Destination-only content is preserved. There is no destructive overwrite, merge-resolution, or snapshot-mirroring mode.
+
+The intended update workflow is to back up the old instance and restore into a fresh newer checkout using the two commands above. Do not create replacement databases in the fresh checkout first; restore brings the existing databases and their contracts with it. The target framework and CLI must already be installed, as for all other CLI operations.
+
+Format v1 supports unchanged `foundation-3` data transfer into another `foundation-3` checkout, including newer releases that keep that specification. Restore refuses an unsupported specification transition before writing. It is a temporary **data transfer** mechanism for version updates; it does not implement historical or future schema migrations. The source's declared specification is recorded, not inferred from individual notes. An older or malformed note can therefore be recovered unchanged; successful restore is not a claim of structural or database-semantic validity. The read-only `shardbase validate` remains available for a separate conformance review, but is not required to complete transfer.
+
+### Verification, Password Input, and Failures
+
+Backup streams encryption and then uses the actual restore reader to decrypt, authenticate, and hash-check the result before publishing it. Restore authenticates the entire envelope, validates its inventory, verifies each file, checks compatibility and excluded Git dependencies, and preflights conflicts before publishing any knowledge. Encryption uses AES-256-GCM and scrypt; filenames and manifest metadata are also encrypted. The [versioned format contract](BACKUP_FORMAT.md) defines the complete interoperable file layout.
+
+To inspect a restore without changing knowledge:
+
+```sh
+shardbase restore "$HOME/knowledge.sbbackup" --root "/path/to/new/shardbase" --dry-run
+```
+
+For manually invoked noninteractive use, both commands accept `--password-file "/external/path/passphrase"`. The UTF-8 file must be owner-only on POSIX systems, for example mode `0600`; one terminal LF/CRLF is accepted. Keep it outside knowledge and separate from the backup. No plaintext password command-line option or environment variable is supported. Without a password file, an unavailable secure terminal causes a clean error instead of falling back to an echoed prompt.
+
+Close editors and other writers during backup/restore. Backup checks for changes during inventory/copy and fails if observed, but does not provide a live filesystem snapshot. Restore assumes a stable local filesystem. Each imported file is published complete with exclusive hardlink creation; files are never partially written in knowledge. Ordinary errors and Ctrl+C attempt to roll back only new additions. Abrupt termination can leave some complete additions; rerun the same restore to finish. This is not a globally atomic multi-file transaction, and rollback cannot guarantee cleanup when the filesystem itself fails.
+
+Temporary plaintext is held in owner-private directories outside the vault and cleaned on ordinary completion/error. Abrupt termination may leave an external `shardbase-transfer-*` directory; backup interruptions may also leave an encrypted `.shardbase-backup-*.partial` next to the intended output. There is no secure-deletion guarantee for temporary plaintext, filesystem snapshots, or OS swap. Use an encrypted local filesystem where those at-rest threats matter.
+
+Restore staging must support hardlinks and reside on the same filesystem as its destination. The default is the system temporary directory. For a target on another volume, pass `--staging-dir "/external/directory/on/target-volume"`; this existing directory must be outside every vault. No manual copying or extraction is needed. Backup accepts the same option for verification staging but does not require staging to share the source filesystem. Backups themselves may be stored on another volume, provided that output filesystem supports hardlinks for atomic publication.
+
+Format-v1 limits are a 32 GiB uncompressed payload, a 16 MiB manifest, 100,000 inventory entries, and portable paths. Key derivation needs approximately 128 MiB of RAM; file I/O is streamed in 1 MiB blocks. Allow external staging space for approximately twice the uncompressed backup size during verification/restore. No compression or deduplication is performed. ACLs, ownership, xattrs/resource forks, directory timestamps, and hardlink relationships are not preserved. These limits are checked and failures are reported; they are not silently approximated.
 
 ## Database Creation
 
@@ -263,7 +319,7 @@ Exit status:
 - `0` — command succeeded, or validation found no issues in its implemented scope, including an empty instance with no database candidates;
 - `1` — validation/discovery issues or an operation error, depending on command;
 - `2` — invalid CLI command syntax for `shardbase.py`;
-- `130` — interactive creation cancelled or ended by input termination; an interrupted write may leave partial new output as described under File Safety and Database Creation.
+- `130` — command cancelled or ended by input termination; recovery behavior depends on the operation as described in its section.
 
 Validator diagnostics include a path, stable issue code, and message. Consumers should use issue codes rather than parse human-readable messages or rely on issue counts.
 
@@ -277,6 +333,8 @@ Inbox capture retains its permissive draft behavior. Database preparation additi
 
 The implementation assumes a stable local filesystem during an operation and is not transactional. An interrupted draft write may leave a partial new draft; a rerun will refuse to overwrite it. Error recovery never deletes existing user knowledge.
 
+Backup/restore use separate authenticated staging and publication rules described under [Encrypted Backup and Restore](#encrypted-backup-and-restore).
+
 ## Tests and Fixtures
 
 Tests use temporary instances outside the vault. Keep `TMPDIR` or its platform equivalent outside the vault when customizing it.
@@ -284,6 +342,8 @@ Tests use temporary instances outside the vault. Keep `TMPDIR` or its platform e
 The sanitized fixtures and tests prove the current structural validation behavior, including valid/invalid manifests, YAML shapes, common note metadata, lineage failures, workspace placement, filename normalization/collisions, boundary escapes, and Markdown heading checks.
 
 Database-preparation tests also prove database/template selection, ID generation and collision retries, parent-derived lineage, workspace placement, preservation, cancellation, and a subprocess-driven Core → Shard → Pebble workflow whose files pass the validator after manual movement without metadata or filename edits. These proofs use disposable instances and synthetic examples, never live user knowledge. Command and installer tests also cover grouped/legacy creation, dependency-free help, validation routing, external runtime boundaries, launcher quoting, and preservation of existing files. Database-bootstrap tests cover blueprint discovery, external staging and structural validation, resource/link preservation, existing-database refusal, unsafe source boundaries, and bootstrap-to-note-creation proof. Semantic-schema, attachment-reference, fragmentation/materialization, and complete lifecycle proof fixtures remain future work.
+
+Backup/restore tests use only synthetic external instances. They cover a two-command subprocess round trip, binary attachments, empty directories, metadata, idempotence, Git exclusions, changed tracked data, independent AES-GCM decoding, wrong passphrases, tampering/truncation, authenticated malformed inventories, unsafe paths, collisions, source changes, interrupted publication, rollback, and dependency-free command help.
 
 ## Compatibility
 
