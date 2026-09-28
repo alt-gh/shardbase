@@ -199,6 +199,19 @@ def expected_filename(note: Note) -> str | None:
     return f"{component} - {note_id}.md"
 
 
+def core_creation_placement(metadata: dict[str, Any]) -> str:
+    """Read the optional creation preference without changing placement validity."""
+    if "creation_defaults" not in metadata:
+        return "workspace"
+    defaults = metadata["creation_defaults"]
+    if not isinstance(defaults, dict) or any(not isinstance(key, str) for key in defaults):
+        raise ValueError("creation_defaults must be a mapping with string field names")
+    placement = defaults.get("core_placement", "workspace")
+    if not isinstance(placement, str) or placement not in ("workspace", "flat"):
+        raise ValueError("creation_defaults.core_placement must be workspace or flat")
+    return placement
+
+
 def check_markdown(note: Note, issues: list[Issue]) -> None:
     body = note.body.lstrip("\r\n")
     lines = body.splitlines()
@@ -274,6 +287,10 @@ def validate_database(root: Path) -> list[Issue]:
             issues.append(Issue(manifest_path, code, f"{field} must be a non-empty string"))
     if "type" in metadata:
         issues.append(Issue(manifest_path, "manifest-type", "Database.md is not a structural note and must not declare type"))
+    try:
+        core_creation_placement(metadata)
+    except ValueError as error:
+        issues.append(Issue(manifest_path, "manifest-creation-defaults", str(error)))
     if not scalar_choice(metadata.get("database_status"), VALID_STATUSES):
         issues.append(Issue(manifest_path, "manifest-status", "database_status must be active, draft, or archived"))
     check_markdown(manifest, issues)
@@ -472,6 +489,8 @@ def validate_database(root: Path) -> list[Issue]:
                 issues.append(Issue(note.path, "workspace-split", "a workspace lineage must not be split across other locations"))
     for note in notes:
         core = cores[note.path]
+        if core and note.path.relative_to(root / "Data").parts[0] != core.path.relative_to(root / "Data").parts[0]:
+            issues.append(Issue(note.path, "lineage-collection", "a Core lineage must stay within one collection"))
         if core and note.path.parent in workspaces and core.path.parent != note.path.parent:
             issues.append(Issue(note.path, "workspace-split", "workspace note must be colocated with its Core"))
     return issues

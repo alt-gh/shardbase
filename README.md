@@ -84,18 +84,18 @@ For exact manifest requirements, note metadata, naming, placement, lifecycle, at
 
 ShardBase currently includes:
 
-- a local CLI for blueprint-based database scaffolding and note preparation;
+- a local CLI for blueprint-based database scaffolding and direct canonical note creation;
 - a read-only structural validator;
 - manual encrypted knowledge backup and restore commands;
 - regression tests and sanitized fixtures;
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
 
-Use the CLI when creating notes intended for a permanent database. The `shardbase create new` command lets you choose **Inbox** or **database-intended** creation. Database-intended notes use the selected database's templates, receive a stable ID and the required filename, and can inherit lineage from a selected parent. Both choices save to `app/Knowledge/Inbox/`; you review the note and move it into the database yourself through your Markdown editor or filesystem.
+Use `shardbase create new` to choose **Inbox capture** or **database creation**. Database creation selects a live database, resolves canonical identity and lineage, and writes directly after structural validation. New Cores normally receive a workspace; supporting notes inherit the selected Core’s Pool, collection, and existing workspace or flat location. Each canonical note receives a stable ID and the required filename. Inbox captures remain provisional in `app/Knowledge/Inbox/`.
 
 For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. ShardBase does not change your editor settings automatically.
 
-Database preparation supports selection among live databases and available blueprints. It does **not** automatically promote notes or prove database-semantic validity. Unresolved lineage and database-specific requirements still need review before moving; run the structural validator after the move.
+Canonical creation checks structural validity before and after writing and rolls back its own new artifacts on failure. Database-specific semantics still require review. Existing flat lineages and historical Inbox notes remain unchanged; live databases never synchronize automatically from blueprints.
 
 Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
 
@@ -114,7 +114,7 @@ shardbase create new
 
 The first creation command lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are never merged or overwritten.
 
-The second command prepares your first note. Choose database intent and your new database, review the saved Inbox note, and move it into the suggested location using your editor or filesystem. Then run `shardbase validate`. Use `shardbase commands` to explore the CLI.
+The second command creates your first note. Choose database intent and your new database; the CLI prints its actual canonical path after structural checks pass. Use `shardbase validate` for later edits. Use `shardbase commands` to explore the CLI.
 
 The Python environment and launcher stay outside the project. For persistent PATH configuration, other platforms, custom locations, and bootstrap behavior, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
 
@@ -142,6 +142,6 @@ ShardBase may manage, validate, package, convert, or export user-owned AI-relate
 
 ShardBase is in the **Foundation** stage. The universal architecture and substantial deterministic validation are already implemented, but Foundation is not complete.
 
-The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, implement safe canonical creation/promotion, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
+The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, extend creation with semantic validation and add deliberate draft promotion, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
 
 See [`app/Docs/ShardBase Foundation Roadmap.md`](app/Docs/ShardBase%20Foundation%20Roadmap.md) for current status only. Architectural requirements belong in the System Specification, not the roadmap.

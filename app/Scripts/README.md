@@ -4,7 +4,7 @@ This document describes the **current implementation** in `app/Scripts/`: how to
 
 It does not define ShardBase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
 
-Current tooling targets System Specification `foundation-3` within the implementation scope described below.
+Current tooling targets System Specification `foundation-4`, retaining foundation-3 naming within the implementation scope described below.
 
 ## Runtime Setup
 
@@ -56,7 +56,7 @@ Run `shardbase commands` to see every available command in the terminal. Running
 
 | Command | Purpose |
 |---|---|
-| `shardbase create new` | Create an Inbox or database-intended note; prompt for omitted choices |
+| `shardbase create new` | Create an Inbox capture or canonical database note; prompt for omitted choices |
 | `shardbase create new database` | Select a blueprint and create a new live database scaffold |
 | `shardbase create new database --blueprint games` | Create the Games database without a selection prompt |
 | `shardbase create` | Show the creation command group |
@@ -106,7 +106,7 @@ Restore preserves bytes, filenames, directory layout, empty directories, and fil
 
 The intended update workflow is to back up the old instance and restore into a fresh newer checkout using the two commands above. Do not create replacement databases in the fresh checkout first; restore brings the existing databases and their contracts with it. The target framework and CLI must already be installed, as for all other CLI operations.
 
-Format v1 supports unchanged `foundation-3` data transfer into another `foundation-3` checkout, including newer releases that keep that specification. Restore refuses an unsupported specification transition before writing. It is a temporary **data transfer** mechanism for version updates; it does not implement historical or future schema migrations. The source's declared specification is recorded, not inferred from individual notes. An older or malformed note can therefore be recovered unchanged; successful restore is not a claim of structural or database-semantic validity. The read-only `shardbase validate` remains available for a separate conformance review, but is not required to complete transfer.
+Format v1 supports unchanged `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4` transfer. The archive format is unchanged; downgrades are refused. Restore refuses an unsupported specification transition before writing. It is a temporary **data transfer** mechanism for version updates; it does not implement historical or future schema migrations. The source's declared specification is recorded, not inferred from individual notes. An older or malformed note can therefore be recovered unchanged; successful restore is not a claim of structural or database-semantic validity. The read-only `shardbase validate` remains available for a separate conformance review, but is not required to complete transfer.
 
 ### Verification, Password Input, and Failures
 
@@ -158,96 +158,75 @@ An existing destination, including an empty folder or a case/Unicode-equivalent 
 
 The final copy uses exclusive creation. If an I/O error or interruption occurs during that copy, an incomplete new folder can remain; inspect it before retrying. The command reports copy errors and does not delete or overwrite the partial state. As with other creation operations, the filesystem is assumed stable during the operation; the copy is not a transaction.
 
-Once created, the database is user-owned. Future blueprint changes do not synchronize into it. Review its `Database.md`, then run `shardbase create new` to prepare a note for that database. Structural validation is not a proof of arbitrary database-semantic rules or complete Foundation compliance.
+Once created, the database is user-owned. Future blueprint changes do not synchronize into it. Review its `Database.md`, then run `shardbase create new` to create a canonical note directly in that database. Structural validation is not a proof of arbitrary database-semantic rules or complete Foundation compliance.
 
 ## Note Creation
 
-ShardBase recommends the CLI for new notes intended for permanent database use. Temporary notes can be created directly in a Markdown editor (preferably Obsidian) or filesystem, with `app/Knowledge/Inbox/` configured as the editor's default new-note location. Editor captures need no structural metadata.
+Run `shardbase create new` to choose a title, Core/Shard/Pebble type, optional alias, and intent. Both intents create YAML and a title H1; body development remains separate.
 
-Run:
-
-```sh
-shardbase create new
-```
-
-The command asks for a title, Core/Shard/Pebble type, optional alias, and **note intent**:
-
-| Intent | Preparation | Save location |
+| Intent | Behavior | Save location |
 |---|---|---|
-| Inbox | Existing Games draft scaffold; metadata remains provisional and `id` may be blank | `app/Knowledge/Inbox/<portable title>.md` |
-| Database-intended | Selected database/template, fresh ID, canonical filename, and optional parent-derived lineage | `app/Knowledge/Inbox/<canonical filename>.md` |
+| Inbox | Pre-structural Games draft scaffold; metadata remains provisional | `app/Knowledge/Inbox/<portable title>.md` |
+| Database | Canonical creation after live database selection and structural validation | Selected live database collection/Core workspace |
 
-Both choices create YAML and one title H1. Neither creates canonical database state, moves files, or creates a `Staged/` folder. Review the note and move it manually through your editor or filesystem when ready.
-
-For unattended use, supply the choices needed by your target. These examples use synthetic titles and aliases:
+For unattended use, supply the required choices. These examples use synthetic titles:
 
 ```sh
 shardbase create new --title "Example Game" --type core --alias "" --intent database --database games
-shardbase create new --title "Example Topic" --type shard --alias "Topic Reference" --intent database --database games --parent "Example Game"
-shardbase create new --title "Example Detail" --type pebble --alias "" --intent database --database games --parent ""
+shardbase create new --title "Example Topic" --type shard --alias "Topic Reference" --intent database --database games --core "Example Game" --parent "Example Game"
+shardbase create new --title "Example Detail" --type pebble --alias "" --intent database --database games --core "Example Game" --parent "Example Topic - <generated-id>"
 shardbase create new --title "Temporary idea" --type core --alias "" --intent inbox
 shardbase create new --help
 ```
 
-The second example assumes the Core has already been moved into the live Games database. The third deliberately defers lineage; it requires completion before promotion. Missing choices are prompted. Use `--parent ""` to explicitly defer parent selection, `--template "Filename.md"` when several templates match, `--collection "Name"` when several collections exist, and `--pool "Value"` when neither a template nor a parent supplies the Pool.
+Replace `<generated-id>` with the ID in the preceding command's actual filename. Success prints the actual created path. New canonical notes start with `status: draft` and receive a fresh stable ID, including Cores whose filenames omit the ID. The H1 preserves the display title. Trailing Markdown heading markers that would change the parsed title are rejected for database creation.
 
-The default instance is the checkout containing the script. Use `shardbase create new --root "/path/to/instance"` to target another existing ShardBase instance containing `app/`.
+Missing choices are prompted; input termination or Ctrl+C cancels. Unattended supporting creation must supply a resolved `--parent`; `--parent ""` is rejected. Supplying only `--core` prompts for a parent. `--parent` alone may resolve the Core for script compatibility; if both are supplied, they must agree. Selectors accept unique stems, filenames, or supported database-relative and instance-relative paths, optionally wrapped as wikilinks. Aliases and IDs alone do not resolve lineage.
+
+Use `--root "/path/to/instance"` to select another existing instance containing `app/`. The default is the checkout containing the script. `shardbase new` remains an alias with the same options.
 
 ### Database and Template Selection
 
-Database-intended creation discovers direct children of `app/Knowledge/Databases/` and `app/Blueprints/` through their root `Database.md`. Select by the manifest's `database_id`, not the folder name. Live contracts take precedence over blueprints with the same ID. Duplicate identities within either group and malformed manifests are reported; directories without manifests are not selectable. Only active/draft version-1 manifests with declared, existing collections are accepted for preparation.
+Database creation discovers live databases through their root `Database.md` and selects by `database_id`, independent of folder name. The picker offers live databases only. A blueprint-only ID produces a message to create/materialize the live database first with `shardbase create new database`. Duplicate identities, missing live manifests, malformed identities, invalid selected manifests, and existing structural failures block creation. Only active/draft version-1 databases are writable targets.
 
-The CLI selects Markdown templates directly inside the chosen source's `Templates/` by their YAML `type`. One matching template is automatic; multiple matches require a choice. No matching template means a universal scaffold with an explicit Pool or selected parent. A live database never falls back to a blueprint's templates. Note preparation never creates or synchronizes a live database; use the separate database creation command deliberately to bootstrap one.
+The CLI selects Markdown templates directly inside the selected live database's `Templates/` by YAML `type`. One matching template is automatic; multiple matches require `--template "Filename.md"` or an interactive choice. No matching template uses universal defaults with a Pool supplied explicitly for a Core or inherited for a supporting note. Live canonical creation never falls back to blueprint templates.
 
-Template YAML supplies semantic defaults, aliases, and tags. Template bodies are ignored and no template code is executed. New note identity and lineage are generated from the user's selections, so template IDs, self-links, parent links, and lifecycle status are not copied. New database-intended notes start as `status: draft`; skipping the alias preserves the template's alias default. Optional facts absent from the template are not invented.
+Template YAML supplies semantic defaults, aliases, and tags. Template bodies are ignored and no code is executed. Template IDs, Core links, parent links, and status are replaced with the new note's resolved identity and lineage. Skipping the alias preserves a template alias default. Optional facts are not invented.
 
-The CLI does not interpret semantic schemas or Pool vocabularies from prose. Review template defaults and any manually entered Pool against the selected `Database.md`. Additional databases work without hard-coded Games field names, but custom display-title conventions and more complex template systems need their own tooling support.
+The CLI does not interpret semantic schemas or Pool vocabularies from prose. Review template defaults and manually entered Pool values against the selected `Database.md`. These checks do not prove semantic validity or that a separate note earns materialization.
 
-### Prepared Filenames and Metadata
+### Core and Parent Selection
 
-Core filenames remain title-based, for example `Example Game.md`. Shard and Pebble filenames use the local title and generated ID, for example `Example Topic - 2gmcy7r7dr.md`. Every database-intended note, including a Core, receives a fresh foundation-3 ID. The opening H1 retains the human-facing title. Titles whose trailing Markdown heading markers would change their parsed H1 are rejected for database preparation.
+For a new Core, select `--collection "Name"` when multiple collections are declared; a single collection is automatic. The Pool comes from a matching template or `--pool "Value"`/interactive input. New Cores default to workspaces:
 
-For example, after selecting an existing Core as parent:
-
-```markdown
----
-type: shard
-pool: Games
-core: '[[Example Game]]'
-parent_note: '[[Example Game]]'
-status: draft
-aliases:
-- Topic Reference
-id: 2gmcy7r7dr
-tags:
----
-# Example Topic
-
+```text
+Data/Game/Example Game/
+└── Example Game.md
 ```
 
-The ID above is illustrative; actual IDs are random. IDs are checked against the selected source's discovered notes and parseable YAML in existing Inbox Markdown files, including user-organized subfolders. A collision generates another token. Plain or unfinished Inbox YAML is allowed and does not participate in ID checking. Canonical filename collisions in the selected source and output filename collisions in Inbox are reported without overwrite or automatic numbering.
+The optional manifest preference is defined in [System Specification §4.1](../Docs/Shard%20System%20Specification.md#41-database-manifest). `creation_defaults.core_placement: flat` instead creates the Core directly at the collection root. Older manifests without the preference remain valid and use workspace creation by default. Workspace names use the same portable stem as the Core filename.
 
-For Shards and Pebbles, select an existing live Core or Shard through the picker or `--parent`. The CLI resolves its YAML lineage, inherits the root Core's Pool, and fills `core` and `parent_note`. Parent use requires the selected database to pass the existing structural validator. Pebbles cannot be parents. Collection and workspace placement follow the selected lineage, and conflicting explicit Pool/collection choices are refused.
+For Shards and Pebbles, choose a Core lineage, then an immediate Core/Shard parent. The parent picker shows only eligible members of that lineage; Pebbles cannot be parents. The selected Core determines Pool, collection, and physical location. Conflicting explicit `--pool` or `--collection` values fail. YAML records both root Core and immediate parent; a deeper Shard remains a filesystem sibling in the same workspace.
 
-If no parent exists yet, or you choose **Decide later**, `core` and `parent_note` remain blank. A filename and ID alone do not make such a draft ready for promotion. Move a prepared Core into its live database before selecting it as another note's parent. Inbox notes and blueprint sample notes are not parent candidates.
+Existing flat lineages stay flat when supporting notes are added, regardless of the new-Core preference. Existing workspaces stay bundled. There is no automatic migration, nesting of structural directories, or split across collections or locations. Folder placement follows resolved YAML lineage.
 
-For live targets, the CLI prints the suggested manual move path. Blueprint selection prints a reminder to materialize a live database first. Intent/target selection is not added as an undocumented semantic YAML field; selecting a target does not create database membership while the file is in Inbox.
+### Validation and Failure Behavior
+
+Canonical creation validates the selected manifest and existing database before writing. It checks IDs against canonical notes and parseable pending Inbox drafts, rejects normalized filename/workspace collisions, and uses exclusive file creation. It validates the resulting database and rolls back this operation's new file on validation/I/O failure or interruption. A newly created workspace is removed only if still empty; preexisting directories and competing content are preserved. Structural diagnostics explain failures. Full semantic validation remains future work.
+
+The stable-filesystem assumption and recovery limits are described under [File Safety](#file-safety). No existing note, historical Inbox draft, or live contract is moved, rewritten, or synchronized from a blueprint.
 
 ### Inbox Capture Compatibility
 
-`--intent inbox` retains the previous Games draft behavior: select the Core, Shard, or Pebble template from the single live `database_id: games` owner, or from the Games blueprint when no live owner exists. A missing live template is reported without blueprint fallback. Universal draft defaults fill missing fields; other template metadata remains provisional and may be invalid. Core placeholders become a provisional self-link; unresolved supporting placeholders become blank. No IDs are generated and existing canonical notes are not inspected for this capture path.
+`--intent inbox` retains the existing Games scaffold: use the single live `database_id: games` owner's template or the Games blueprint when no live owner exists. A missing live template fails without blueprint fallback. Template metadata stays provisional and may be incomplete or invalid. Core placeholders become a provisional self-link; supporting lineage can stay blank. No IDs are generated or canonical notes validated. Database-only flags, including `--core`, are rejected.
 
-This legacy scaffold does not limit plain editor-created Inbox notes to Games or require any Inbox note to have structural metadata. Use database intent to prepare notes for other selected databases.
+This scaffold does not limit editor-created Inbox notes to Games or require structural metadata. Temporary captures can remain ordinary Markdown. Configure the editor's default new-note location as `app/Knowledge/Inbox/` if desired; the CLI does not change editor settings.
 
 ## Manual Promotion
 
-There is currently **no automatic note promotion command, direct canonical note creation command, or filesystem watcher**. Database scaffolding is a separate blueprint-copy operation.
+There is no automated promotion command or filesystem watcher. Historical prepared Inbox notes remain available for deliberate review. Before manually moving an Inbox note, establish ownership, collection, Pool, role, complete lineage, semantic metadata, stable ID, canonical filename, and placement against the System Specification and destination `Database.md`. Preserve valid prepared IDs and recheck uniqueness/collisions at the time of the move. Then run the validator; manual moves do not trigger validation.
 
-Before moving a note, review ownership, collection, Pool, structural role, lineage, semantic metadata, and placement against the System Specification and destination `Database.md`. Database-intended creation has already prepared the filename and ID; preserve that ID. An ordinary Inbox capture may still need both. Complete unresolved lineage before moving supporting notes.
-
-Move the file into the appropriate declared collection or existing Core workspace using your editor or filesystem, then run the validator. A manual move does not trigger validation. Recheck ID uniqueness and collisions because the database or other pending notes may have changed since preparation. If you edit a title, update its filename and dependent links while retaining the ID.
-
-The current validator checks its implemented structural scope; database semantics still need separate review. Preparation does not claim to validate all manifest/body requirements or arbitrary semantic defaults. Fully validated canonical creation/promotion remains future work.
+Knowledgeable users can also create compliant canonical files manually. Direct CLI creation provides the automated path for new database-owned notes; promotion of existing drafts and arbitrary semantic validation remain separate work.
 
 ## Read-Only Validator
 
@@ -267,7 +246,7 @@ The validator currently checks:
 
 - discovery of direct database roots, including incomplete roots missing `Database.md`;
 - UTF-8 YAML frontmatter using a safe PyYAML loader, including duplicate-key/malformed/unsupported-tag diagnostics;
-- manifest field/value/shape requirements and required manifest body headings;
+- manifest field/value/shape requirements, optional creation preferences, and required manifest body headings;
 - declared data collections, root `Attachments/`, and `Views/`;
 - traversal, absolute-path, containment, and relevant symlink boundaries before scanning;
 - structural discovery at collection roots and one Core-workspace level;
@@ -275,7 +254,7 @@ The validator currently checks:
 - misplaced root Markdown files that declare structural metadata;
 - required structural fields and common fields `aliases`, `id`, and `tags`, including foundation-3 note-ID format and database-wide uniqueness;
 - same-database Core/parent resolution, Core self-reference, permitted parent types, Pool consistency, cycles, self-parenting, parent-chain root consistency, and active descendants beneath archived ancestors;
-- Core-workspace naming/membership and split-lineage placement;
+- Core-workspace naming/membership, same-collection lineage, and split-lineage placement;
 - portable Core filenames, supporting local-title + opaque-ID filenames, actual duplicate stems, expected-filename collisions, and duplicate note IDs;
 - opening H1, incremental top-level ATX heading depth, and exactly one blank line after headings outside fenced code blocks.
 
@@ -308,7 +287,7 @@ The validator does **not** currently determine or enforce:
 - complete Markdown linting;
 - historical System Specification version detection;
 - migrations;
-- canonical draft promotion or canonical note creation.
+- canonical draft promotion. Direct canonical creation is implemented separately by the creation command with these structural checks.
 
 A successful run therefore means the implemented structural checks passed. It is not proof of complete database-semantic validity or Foundation completion.
 
@@ -329,9 +308,9 @@ YAML errors report location without echoing source content.
 
 Note creation uses a non-empty single-line title, portable output filename, output-boundary/symlink checks, and exclusive creation. It never overwrites an existing output path or silently numbers collisions.
 
-Inbox capture retains its permissive draft behavior. Database preparation additionally reads declared collection roots and one workspace level for IDs and naming collisions, excluding attachments; it validates existing structural state when a parent is selected. Symlinks in inspected creation paths are rejected, and malformed canonical YAML blocks preparation rather than hiding unknown identities. These checks do not prove database-semantic validity or materialization judgment.
+Inbox capture retains its permissive draft behavior. Canonical creation reads declared collection roots and one workspace level for IDs and naming collisions, excluding attachments, and always validates existing and resulting structural state. Symlinks in inspected creation paths are rejected, and malformed canonical YAML blocks canonical creation rather than hiding unknown identities. These checks do not prove database-semantic validity or materialization judgment.
 
-The implementation assumes a stable local filesystem during an operation and is not transactional. An interrupted draft write may leave a partial new draft; a rerun will refuse to overwrite it. Error recovery never deletes existing user knowledge.
+The implementation assumes a stable local filesystem during an operation and is not transactional. An interrupted draft write may leave a partial new draft; a rerun will refuse to overwrite it. Canonical creation rolls back its own new file and, if empty, its own new workspace on caught failures, including Ctrl+C. It never removes preexisting or competing content. Abrupt process termination, power loss, or a cleanup I/O error can leave partial output requiring review; this is not a crash-safe transaction.
 
 Backup/restore use separate authenticated staging and publication rules described under [Encrypted Backup and Restore](#encrypted-backup-and-restore).
 
@@ -341,17 +320,17 @@ Tests use temporary instances outside the vault. Keep `TMPDIR` or its platform e
 
 The sanitized fixtures and tests prove the current structural validation behavior, including valid/invalid manifests, YAML shapes, common note metadata, lineage failures, workspace placement, filename normalization/collisions, boundary escapes, and Markdown heading checks.
 
-Database-preparation tests also prove database/template selection, ID generation and collision retries, parent-derived lineage, workspace placement, preservation, cancellation, and a subprocess-driven Core → Shard → Pebble workflow whose files pass the validator after manual movement without metadata or filename edits. These proofs use disposable instances and synthetic examples, never live user knowledge. Command and installer tests also cover grouped/legacy creation, dependency-free help, validation routing, external runtime boundaries, launcher quoting, and preservation of existing files. Database-bootstrap tests cover blueprint discovery, external staging and structural validation, resource/link preservation, existing-database refusal, unsafe source boundaries, and bootstrap-to-note-creation proof. Semantic-schema, attachment-reference, fragmentation/materialization, and complete lifecycle proof fixtures remain future work.
+Canonical creation tests prove live database/template selection, workspace/flat defaults, Core/parent selection and inheritance, ID retries, collision refusal, validation gates, rollback preservation, cancellation, and a subprocess-driven Core → Shard → deeper Shard → Pebble workflow with direct placement and correct YAML lineage. These proofs use disposable instances and synthetic examples, never live user knowledge. Command and installer tests also cover grouped/legacy creation, dependency-free help, validation routing, external runtime boundaries, launcher quoting, and preservation of existing files. Database-bootstrap tests cover blueprint discovery, external staging and structural validation, resource/link preservation, existing-database refusal, unsafe source boundaries, and bootstrap-to-note-creation proof. Semantic-schema, attachment-reference, fragmentation/materialization, and complete lifecycle proof fixtures remain future work.
 
 Backup/restore tests use only synthetic external instances. They cover a two-command subprocess round trip, binary attachments, empty directories, metadata, idempotence, Git exclusions, changed tracked data, independent AES-GCM decoding, wrong passphrases, tampering/truncation, authenticated malformed inventories, unsafe paths, collisions, source changes, interrupted publication, rollback, and dependency-free command help.
 
 ## Compatibility
 
-The preferred spelling for notes is `shardbase create new`; `shardbase new` remains an equivalent note-creation alias. Both prompt for intent. Existing unattended commands should add `--intent inbox` to retain their prior capture behavior, or use `--intent database --database <database_id>` for preparation. `--destination` remains unsupported because intent does not change the save location. Both paths save directly to Inbox. Existing files, including `Inbox/Staged/` captures and blank IDs in older drafts, remain untouched; no knowledge migration is performed. Canonical validity and the foundation-3 schema are unchanged.
+The preferred spelling is `shardbase create new`; `shardbase new` remains equivalent. Use `--intent inbox` to retain capture behavior. `--intent database --database <database_id>` now writes directly to a live canonical path and requires complete supporting lineage. `--core` selects a supporting note's lineage; parent-only scripts remain supported. Blueprint-only targets and `--parent ""` are no longer accepted for database intent. `--destination` remains unsupported. Existing Inbox files, blank IDs in drafts, and flat lineages stay untouched. The specification is now foundation-4; foundation-3 naming and `manifest_version: 1` are retained.
 
-The validator checks the current `foundation-3` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
+The validator checks the current `foundation-4` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
 
-The validator does not migrate older state. For the recorded `foundation-1`, `foundation-2`, and `foundation-3` compatibility boundaries and preservation-oriented transitions, use the System Specification.
+The validator does not migrate older state. For the recorded `foundation-1` through `foundation-4` compatibility boundaries and preservation-oriented transitions, use the System Specification.
 
 ## Blueprint Scaffolding
 

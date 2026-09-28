@@ -1,8 +1,4 @@
-"""Prepare database-intended Inbox notes without modifying a database.
-
-Templates supply semantic defaults; their contents are not a schema. Only the
-documented universal checks below are automated. Promotion remains user-owned.
-"""
+"""Resolve and render canonical database notes before any destination mutation."""
 
 from __future__ import annotations
 
@@ -13,10 +9,10 @@ from typing import Any
 
 import yaml
 
-from note_creation import CreationError, DraftDumper, checked_path, filename_key, read_document
+from note_creation import CreationError, DraftDumper, checked_path, filename_key, read_document, refuse_collision
 from validate_shardbase import (
     NOTE_ID, Note, expected_filename, nonempty_string, parse_frontmatter,
-    FrontmatterError, primary_title, validate_database, wikilink_target,
+    FrontmatterError, core_creation_placement, primary_title, validate_database, wikilink_target,
 )
 
 
@@ -27,10 +23,12 @@ class DatabaseSource:
     live: bool
 
 
-def database_sources(root: Path) -> list[DatabaseSource]:
+def database_sources(root: Path, *, live_only: bool = False) -> list[DatabaseSource]:
     """Discover identities, preferring live contracts over matching blueprints."""
     sources: dict[str, DatabaseSource] = {}
     for relative, live in (("app/Knowledge/Databases", True), ("app/Blueprints", False)):
+        if live_only and not live:
+            continue
         directory = checked_path(root, root / relative)
         if not directory.exists():
             continue
@@ -41,6 +39,8 @@ def database_sources(root: Path) -> list[DatabaseSource]:
                 continue
             manifest = checked_path(root, candidate / "Database.md")
             if not manifest.is_file():
+                if live:
+                    raise CreationError(f"Missing live database manifest: {manifest}")
                 continue
             metadata, _ = read_document(root, manifest)
             identity = metadata.get("database_id")
@@ -57,10 +57,12 @@ def database_sources(root: Path) -> list[DatabaseSource]:
 def select_database(root: Path, identity: str | None) -> DatabaseSource:
     if not identity:
         raise CreationError("Select a target with --database <database_id>.")
-    sources = database_sources(root)
+    sources = database_sources(root, live_only=True)
     matches = [source for source in sources if source.metadata["database_id"] == identity]
-    if len(matches) != 1:
-        raise CreationError(f"No database or blueprint declares database_id: {identity}.")
+    if not matches:
+        if any(item.metadata["database_id"] == identity for item in database_sources(root)):
+            raise CreationError(f"Database {identity} exists only as a blueprint; create/materialize the live database first.")
+        raise CreationError(f"No live database declares database_id: {identity}.")
     source = matches[0]
     metadata = source.metadata
     if type(metadata.get("manifest_version")) is not int or metadata["manifest_version"] != 1:
@@ -166,10 +168,46 @@ def resolve_note(source: DatabaseSource, notes: list[Note], value: str) -> Note:
     return matches[0]
 
 
+def validated_notes(root: Path, source: DatabaseSource) -> list[Note]:
+    """Reject unsafe scan paths and invalid existing canonical state before mutation."""
+    notes = source_notes(root, source)
+    issues = validate_database(source.path)
+    if issues:
+        details = "\n".join(issue.render(source.path) for issue in issues)
+        raise CreationError("Resolve the selected database's structural validation issues before creation:\n" + details)
+    return notes
+
+
+def select_core(source: DatabaseSource, notes: list[Note], value: str) -> Note:
+    core = resolve_note(source, notes, value)
+    if core.metadata["type"] != "core":
+        raise CreationError("--core must select a root Core.")
+    return core
+
+
+def eligible_parents(source: DatabaseSource, notes: list[Note], core: Note) -> list[Note]:
+    return [note for note in notes if note.metadata["type"] in ("core", "shard")
+            and resolve_note(source, notes, note.metadata["core"]).path == core.path]
+
+
+@dataclass(frozen=True)
+class PreparedNote:
+    document: str
+    path: Path
+    template: Path | None
+    database: Path
+    new_workspace: bool
+
+
 def prepare_note(root: Path, title: str, kind: str, alias: str | None,
                  database: str | None, template: str | None, pool: str | None,
-                 parent: str | None, collection: str | None) -> tuple[str, str, Path | None, Path | None]:
+                 parent: str | None, collection: str | None, core: str | None = None) -> PreparedNote:
     source = select_database(root, database)
+    try:
+        placement = core_creation_placement(source.metadata)
+    except ValueError as error:
+        raise CreationError(str(error)) from None
+    notes = validated_notes(root, source)
     templates = templates_for(root, source, kind)
     if template is not None:
         matches = [path for path in templates if path.name == template]
@@ -189,29 +227,29 @@ def prepare_note(root: Path, title: str, kind: str, alias: str | None,
     metadata.update(type=kind, core=None, parent_note=None, status="draft")
     if pool is not None:
         metadata["pool"] = pool.strip()
-    notes = source_notes(root, source)
     directory = None
-    if parent:
-        if kind == "core":
-            raise CreationError("A Core cannot have a parent.")
-        if not source.live:
-            raise CreationError("Move the parent into a live database before selecting it.")
-        issues = validate_database(source.path)
-        if issues:
-            raise CreationError("Resolve the selected database's structural validation issues before using a parent.")
+    if kind == "core":
+        if parent is not None or core is not None:
+            raise CreationError("A new Core cannot have a parent or select an existing Core.")
+    else:
+        if not parent:
+            raise CreationError("Canonical supporting notes require --parent; select a Core lineage and an immediate Core/Shard parent.")
         parent_note = resolve_note(source, notes, parent)
         if parent_note.metadata["type"] not in ("core", "shard"):
             raise CreationError("A Pebble cannot be a parent.")
-        core = resolve_note(source, notes, parent_note.metadata["core"])
-        if pool is not None and metadata["pool"] != core.metadata["pool"]:
-            raise CreationError("The selected Pool must match the parent's root Core.")
-        metadata.update(pool=core.metadata["pool"], core=f"[[{core.path.stem}]]",
+        root_core = select_core(source, notes, core if core is not None else parent_note.metadata["core"])
+        if parent_note not in eligible_parents(source, notes, root_core):
+            raise CreationError("The selected parent must belong to the selected Core lineage.")
+        if pool is not None and metadata["pool"] != root_core.metadata["pool"]:
+            raise CreationError("The selected Pool must match the root Core.")
+        metadata.update(pool=root_core.metadata["pool"], core=f"[[{root_core.path.stem}]]",
                         parent_note=f"[[{parent_note.path.stem}]]")
-        directory = parent_note.path.parent
-        parent_collection = parent_note.path.relative_to(source.path / "Data").parts[0]
-        if collection is not None and collection != parent_collection:
-            raise CreationError("The collection must match the selected parent's lineage.")
-        collection = parent_collection
+        # YAML resolved the Core; its already-validated placement determines locality.
+        directory = root_core.path.parent
+        core_collection = root_core.path.relative_to(source.path / "Data").parts[0]
+        if collection is not None and collection != core_collection:
+            raise CreationError("The collection must match the selected Core's lineage.")
+        collection = core_collection
     if not nonempty_string(metadata["pool"]):
         raise CreationError("Provide --pool using the selected Database.md vocabulary, or use a template/parent with a Pool.")
     for field in ("aliases", "tags"):
@@ -248,6 +286,13 @@ def prepare_note(root: Path, title: str, kind: str, alias: str | None,
             raise CreationError("A note already uses this canonical filename in the selected database; choose a distinct title.")
     if kind == "core":
         metadata["core"] = f"[[{filename[:-3]}]]"
-    suggested = (directory or source.path / "Data" / collection) / filename if source.live else None
+    new_workspace = kind == "core" and placement == "workspace"
+    if directory is None:
+        directory = source.path / "Data" / collection
+        if new_workspace:
+            refuse_collision(directory, filename[:-3])
+            directory = directory / filename[:-3]
+    refuse_collision(directory, filename)
+    destination = checked_path(root, directory / filename)
     document = "---\n" + yaml.dump(metadata, Dumper=DraftDumper, allow_unicode=True, sort_keys=False) + "---\n" + body
-    return document, filename, selected_template, suggested
+    return PreparedNote(document, destination, selected_template, source.path, new_workspace)

@@ -237,13 +237,12 @@ class DatabaseCreationTests(unittest.TestCase):
         note = self.run_cli("create", "new", "--root", str(self.root), "--title", "Example Game", "--type", "core",
                             "--alias", "", "--intent", "database", "--database", "games")
         self.assertEqual(note.returncode, 0, note.stderr)
-        draft = self.root / "app/Knowledge/Inbox/Example Game.md"
-        original = draft.read_bytes()
-        promoted = self.destination / "Data/Game/Example Game.md"
-        shutil.move(draft, promoted)
+        canonical = self.destination / "Data/Game/Example Game/Example Game.md"
+        original = canonical.read_bytes()
+        self.assertFalse((self.root / "app/Knowledge/Inbox/Example Game.md").exists())
         validation = self.run_cli("validate", "--root", str(self.root))
         self.assertEqual(validation.returncode, 0, validation.stdout + validation.stderr)
-        self.assertEqual(original, promoted.read_bytes())
+        self.assertEqual(original, canonical.read_bytes())
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
 
 

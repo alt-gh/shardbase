@@ -41,12 +41,12 @@ class Terminal:
 
 def new_note(args: argparse.Namespace) -> int:
     from note_creation import CreationError, create_note, read_document
-    from database_preparation import database_sources, select_database, source_notes, templates_for
+    from database_preparation import database_sources, eligible_parents, select_core, select_database, validated_notes, templates_for
 
     ui = Terminal(args.no_color)
     ui.section("SHARDBASE  /  New note")
     print("  A blank page, with its structure ready.")
-    print(ui.style("  YAML + title only  ·  Saved to Inbox  ·  Ctrl+C to cancel", "2"))
+    print(ui.style("  YAML + title only  ·  Choose capture or canonical creation  ·  Ctrl+C to cancel", "2"))
     if args.title is None:
         ui.section("Title")
         print("  Enter the note's human-readable local title.")
@@ -66,67 +66,64 @@ def new_note(args: argparse.Namespace) -> int:
         alias = args.alias
     intent = args.intent or ui.choose("Note intent", [
         ("inbox", "Inbox", "Temporary capture with editable Games draft metadata."),
-        ("database", "Database-intended", "Prepare a filename, ID, and metadata for a selected database."),
+        ("database", "Database note", "Create a canonical note directly in a selected live database."),
     ])
     database, template, pool = args.database, args.template, args.pool
-    parent, collection = args.parent, args.collection
+    parent, collection, core = args.parent, args.collection, args.core
     source = None
     if intent == "database":
         root = args.root.resolve(strict=True)
         if database is None:
-            sources = database_sources(root)
+            sources = database_sources(root, live_only=True)
             if not sources:
-                raise CreationError("No database contracts found. Add a live database or blueprint with Database.md.")
-            database = ui.choose("Intended database", [
+                raise CreationError("No live databases found. Create/materialize a live database first with shardbase create new database.")
+            database = ui.choose("Live database", [
                 (item.metadata["database_id"], str(item.metadata.get("database_name", item.metadata["database_id"])),
-                 f"{item.metadata['database_id']} · {'Live database' if item.live else 'Blueprint; create a live copy before moving'}")
+                 f"{item.metadata['database_id']} · Live database")
                 for item in sources
             ])
         source = select_database(root, database)
+        notes = validated_notes(root, source)
         templates = templates_for(root, source, kind)
         if template is None and len(templates) > 1:
             template = ui.choose("Template", [(path.name, path.stem, "Use this database's metadata defaults.") for path in templates])
         if kind != "core" and parent is None:
-            parents = [note for note in source_notes(root, source)
-                       if note.metadata.get("type") in ("core", "shard")] if source.live else []
-            if parents:
-                parent = ui.choose("Parent note", [
-                    (note.path.relative_to(source.path).as_posix(), note.path.stem, note.metadata["type"].title())
-                    for note in parents
-                ] + [("", "Decide later", "Leave Core and parent blank for manual review before moving.")])
-            else:
-                parent = ""
-                print("  No live parent available; Core and parent will remain blank for review.")
-        if pool is None and not parent:
+            if core is None:
+                cores = [note for note in notes if note.metadata["type"] == "core"]
+                if not cores:
+                    raise CreationError("No Core available. Create a Core in this database first.")
+                core = ui.choose("Core lineage", [
+                    (note.path.relative_to(source.path).as_posix(), note.path.stem, "Owns this note's lineage.")
+                    for note in cores
+                ])
+            root_core = select_core(source, notes, core)
+            parent = ui.choose("Parent note", [
+                (note.path.relative_to(source.path).as_posix(), note.path.stem, note.metadata["type"].title())
+                for note in eligible_parents(source, notes, root_core)
+            ])
+        if pool is None and kind == "core":
             selected = next((path for path in templates if path.name == template), None) if template else (templates[0] if len(templates) == 1 else None)
             defaults = read_document(root, selected)[0] if selected else {}
             if not isinstance(defaults.get("pool"), str) or not defaults["pool"].strip():
                 ui.section("Pool")
                 print(f"  Use the vocabulary in {ui.style(str(source.path / 'Database.md'))}.")
                 pool = input("\n  Pool: ")
-        if collection is None and not parent and len(source.metadata["data_collections"]) > 1:
+        if collection is None and kind == "core" and len(source.metadata["data_collections"]) > 1:
             collection = ui.choose("Collection", [(name, name, "Declared in the selected Database.md.") for name in source.metadata["data_collections"]])
     result = create_note(args.root, title, kind, alias, intent=intent, database=database,
-                         template=template, pool=pool, parent=parent, collection=collection)
+                         template=template, pool=pool, parent=parent, collection=collection, core=core)
     ui.section("Note created")
     print(f"  {ui.style(title.strip(), '1')}  ·  {kind.title()}  ·  Draft")
     print(f"  {ui.style(str(result.path.relative_to(args.root.resolve())), '32')}")
     print(f"  {ui.style('Instance: ' + str(args.root.resolve()), '2')}")
     if alias.strip():
         print(f"  Alias: {ui.style(alias.strip(), '0')}")
-    print("\n  Saved to Inbox. Open the file in your Markdown editor and move it when ready.")
     if source:
-        print(f"  Intended database: {ui.style(source.metadata['database_name'])}")
-        if result.suggested_path:
-            print(f"  Manual move target: {ui.style(str(result.suggested_path.relative_to(args.root.resolve())))}")
-        else:
-            print("  Blueprint selected: create a live database copy before moving this note.")
-        print("  Filename and ID prepared. Preserve the ID when moving or editing the note.")
-        if kind != "core" and not parent:
-            print("  Core and parent are unresolved: complete lineage before moving.")
-        print("  Review the database contract and validate after your manual move.")
+        print(f"\n  Created in database: {ui.style(source.metadata['database_name'])}")
+        print("  Structural checks passed. Preserve the stable ID when editing.")
+        print("  Review semantic content against Database.md; semantic validation is not automated.")
     else:
-        print("  Metadata remains provisional. Complete it before any database promotion.")
+        print("\n  Saved to Inbox. Metadata remains provisional; review before database promotion.")
     print()
     return 0
 
@@ -145,7 +142,7 @@ def new_database(args: argparse.Namespace) -> int:
     from note_creation import CreationError
 
     if any(getattr(args, name, None) is not None for name in
-           ("title", "kind", "alias", "intent", "database", "template", "pool", "parent", "collection")):
+           ("title", "kind", "alias", "intent", "database", "template", "pool", "parent", "collection", "core")):
         raise CreationError("Note options do not apply to database scaffolding; use --blueprint and --root.")
     ui = Terminal(args.no_color)
     ui.section("SHARDBASE  /  New database")
@@ -164,7 +161,7 @@ def new_database(args: argparse.Namespace) -> int:
     print("  The blueprint's scaffolding and resources are now your local database copy.")
     print("  Structural checks passed. Review Database.md for its domain conventions.")
     print("\n  Next: shardbase create new")
-    print("  Choose database intent, prepare a note in Inbox, and move it manually when ready.\n")
+    print("  Choose database intent to create a canonical note directly in the new database.\n")
     return 0
 
 
@@ -231,18 +228,19 @@ def build_parser() -> argparse.ArgumentParser:
     def add_new_command(parent, route, summary):
         new = register(
             parent, "new", route, summary,
-            description="Create YAML and a title H1 in app/Knowledge/Inbox/. Choose Inbox capture or prepare a database-intended note for a manual move. Omitted choices are prompted.",
+            description="Create YAML and a title H1: capture in app/Knowledge/Inbox/ or create directly in a selected live database. Omitted choices are prompted.",
             epilog='Example: shardbase create new --title "Example Game" --type core --alias "" --intent database --database games',
         )
         new.add_argument("--title", help="Note title; prompted when omitted")
         new.add_argument("--type", dest="kind", choices=("core", "shard", "pebble"), help="Structural note type; prompted when omitted")
         new.add_argument("--alias", help='Optional alternative name; prompted when omitted (use --alias "" to skip)')
-        new.add_argument("--intent", choices=("inbox", "database"), help="Inbox capture or database preparation; both save to Inbox; prompted when omitted")
+        new.add_argument("--intent", choices=("inbox", "database"), help="Inbox capture or direct canonical database creation; prompted when omitted")
         new.add_argument("--database", help="Target database_id from Database.md; requires --intent database")
         new.add_argument("--template", help="Matching-type filename inside the selected Templates/; prompted if ambiguous")
-        new.add_argument("--pool", help="Pool from Database.md; otherwise supplied by the template or selected parent")
-        new.add_argument("--parent", help='Existing Core/Shard stem or database-relative path; use --parent "" to decide later')
-        new.add_argument("--collection", help="Declared data collection; inferred from a parent or a single collection")
+        new.add_argument("--pool", help="Pool from Database.md; supplied by a template for Cores or inherited from the selected Core")
+        new.add_argument("--core", help="Root Core stem or database-relative path for a supporting note; inferred from --parent if omitted")
+        new.add_argument("--parent", help="Immediate Core/Shard stem or database-relative path; required for canonical supporting notes")
+        new.add_argument("--collection", help="Declared data collection; inherited from the selected Core or inferred from a single collection")
         new.add_argument("--no-color", action="store_true", help="Disable terminal colors (also respects NO_COLOR)")
         new.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: this checkout)")
         new.set_defaults(handler=new_note)

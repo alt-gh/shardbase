@@ -60,7 +60,7 @@ Example manifest, with a synthetic four-byte file containing `test`:
 }
 ```
 
-The writer records its source instance's declared System Specification version and currently accepts `foundation-3` only. This is provenance, not proof that individual notes conform to that specification. The reader currently supports unchanged `foundation-3` → `foundation-3` transfer only. A different framework checkout/release with the same specification is compatible. Historical schema conversion and unknown future specifications require explicit migration support; both commands reject them.
+The writer records its source instance's declared System Specification version and accepts `foundation-3` and `foundation-4`. This is provenance, not proof that individual notes conform to that specification. The reader supports unchanged `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4` transfer. Downgrades are refused. This compatibility extension does not change format v1. A different framework checkout/release with the same specification is compatible. Historical schema conversion and unknown future specifications require explicit migration support; both commands reject them.
 
 Required fields are exact: unknown fields and duplicate JSON keys are rejected. Top-level `version` is integer `1`; `format`, `scope`, and `git_policy` have the exact values above. `specification` has the form `foundation-N` with a positive integer N. `created_utc` is a string written as an ISO 8601 UTC timestamp and is informational.
 

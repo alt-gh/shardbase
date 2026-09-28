@@ -1,20 +1,20 @@
-"""Local draft creation, independent of CLI prompts; never promotes or overwrites.
-
-Inbox captures may have unresolved or invalid metadata. Database preparation
-adds IDs, canonical filenames, and selected lineage with bounded checks; full
-structural and semantic review still belongs to manual promotion.
-"""
+"""Local Inbox capture and validated, exclusive canonical note creation."""
 
 from __future__ import annotations
 
+import os
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from validate_shardbase import FrontmatterError, parse_frontmatter, portable_component
 
 import yaml
+
+
+if TYPE_CHECKING:
+    from database_preparation import PreparedNote
 
 
 class CreationError(ValueError):
@@ -25,7 +25,6 @@ class CreationError(ValueError):
 class CreatedNote:
     path: Path
     template: Path | None
-    suggested_path: Path | None = None
 
 
 TEMPLATES = {"core": "Game.md", "shard": "Game Shard.md", "pebble": "Game Pebble.md"}
@@ -118,7 +117,7 @@ def create_note(root: Path, title: str, kind: str = "core",
                 alias: str | None = None, *, intent: str = "inbox",
                 database: str | None = None, template: str | None = None,
                 pool: str | None = None, parent: str | None = None,
-                collection: str | None = None) -> CreatedNote:
+                collection: str | None = None, core: str | None = None) -> CreatedNote:
     root = root.resolve(strict=True)
     if not root.is_dir() or not checked_path(root, root / "app").is_dir():
         raise CreationError("--root must select an instance directory containing app/.")
@@ -126,7 +125,7 @@ def create_note(root: Path, title: str, kind: str = "core",
         raise CreationError("Note type must be core, shard, or pebble.")
     if intent not in {"inbox", "database"}:
         raise CreationError("Intent must be inbox or database.")
-    if intent == "inbox" and any(value is not None for value in (database, template, pool, parent, collection)):
+    if intent == "inbox" and any(value is not None for value in (database, template, pool, parent, collection, core)):
         raise CreationError("Database options require --intent database.")
     title = title.strip()
     if not title or any(unicodedata.category(char) in {"Cc", "Zl", "Zp"} for char in title):
@@ -134,23 +133,64 @@ def create_note(root: Path, title: str, kind: str = "core",
     stem = portable_component(title)
     if stem is None:
         raise CreationError("The title has no usable portable filename; choose a meaningful title.")
-    directory = checked_path(root, root / "app/Knowledge/Inbox")
-    suggested_path = None
     if intent == "database":
         from database_preparation import prepare_note
-        document, filename, selected_template, suggested_path = prepare_note(
-            root, title, kind, alias, database, template, pool, parent, collection)
-    else:
-        selected_template = game_source(root, kind)
-        metadata, _ = read_document(root, selected_template)
-        document = render_game(metadata, title, stem, kind, alias)
-        filename = stem + ".md"
+        prepared = prepare_note(root, title, kind, alias, database, template, pool, parent, collection, core)
+        return commit_canonical(root, prepared)
+    selected_template = game_source(root, kind)
+    metadata, _ = read_document(root, selected_template)
+    document = render_game(metadata, title, stem, kind, alias)
+    filename = stem + ".md"
+    directory = checked_path(root, root / "app/Knowledge/Inbox")
     refuse_collision(directory, filename)
     path = checked_path(root, directory / filename)
-    # Parse the template and prepare output before touching the destination.
     directory.mkdir(parents=True, exist_ok=True)
-    # Exclusive creation also protects against a competing creator of this path.
-    # Never truncate an existing file, including a dangling destination symlink.
     with path.open("x", encoding="utf-8", newline="\n") as stream:
         stream.write(document)
-    return CreatedNote(path, selected_template, suggested_path)
+    return CreatedNote(path, selected_template)
+
+
+def commit_canonical(root: Path, prepared: PreparedNote) -> CreatedNote:
+    """Roll back only owned artifacts; never remove a competing creator's output.
+
+    Like other creation tooling, this assumes a stable filesystem, not hostile
+    concurrent mutation. Inode checks additionally preserve replaced artifacts.
+    """
+    from validate_shardbase import validate_database
+
+    path = checked_path(root, prepared.path)
+    directory = path.parent
+    workspace_identity = file_identity = None
+
+    def identity(stat):
+        return stat.st_dev, stat.st_ino
+
+    try:
+        if prepared.new_workspace:
+            refuse_collision(directory.parent, directory.name)
+            directory.mkdir()  # Never adopt an existing workspace, even if empty.
+            workspace_identity = identity(directory.lstat())
+        refuse_collision(directory, path.name)
+        checked_path(root, path)
+        with path.open("x", encoding="utf-8", newline="\n") as stream:
+            file_identity = identity(os.fstat(stream.fileno()))
+            stream.write(prepared.document)
+        issues = validate_database(prepared.database)
+        if issues:
+            details = "\n".join(issue.render(prepared.database) for issue in issues)
+            raise CreationError("Post-write structural validation failed:\n" + details)
+    except BaseException:
+        if file_identity is not None:
+            try:
+                if identity(path.lstat()) == file_identity:
+                    path.unlink()
+            except FileNotFoundError:
+                pass
+        if workspace_identity is not None:
+            try:
+                if identity(directory.lstat()) == workspace_identity:
+                    directory.rmdir()  # Only succeeds if this command's directory is empty.
+            except OSError:
+                pass
+        raise
+    return CreatedNote(path, prepared.template)

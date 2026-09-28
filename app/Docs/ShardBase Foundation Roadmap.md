@@ -6,7 +6,7 @@ roadmap_status: active
 foundation_completion_status: incomplete
 architectural_source_of_truth: app/Docs/Shard System Specification.md
 database_local_authority: each live database's root Database.md
-last_reconciled: 2026-09-12
+last_reconciled: 2026-09-28
 
 This roadmap records **what remains to be done and what has been completed**. It intentionally does not restate the product thesis, universal architecture, lifecycle contract, schema rules, migration rules, or agent contract. Those belong in their authoritative documents.
 
@@ -31,13 +31,13 @@ The final Foundation sign-off remains a project-owner decision. Passing automate
 current_assessment: late Foundation / convergence and proof
 current_primary_goal: finish the vertical slice from intent to valid canonical knowledge and close remaining Foundation proof/governance gaps
 current_architecture_status: substantially settled
-current_implementation_status: substantial deterministic structural validation exists; database scaffolding and draft preparation exist; canonical semantic validation and canonical note promotion/creation remain incomplete
+current_implementation_status: substantial deterministic structural validation exists; database scaffolding and direct canonical creation with structural validation exist; canonical semantic validation and draft promotion remain incomplete
 current_proof_status: Games proving workflow partially complete
-current_documentation_status: authority roles consolidated; duplicated architecture removed from supporting documents; first accepted ADR records the foundation-3 naming decision
+current_documentation_status: authority roles consolidated; duplicated architecture removed from supporting documents; ADRs record foundation-3 naming and foundation-4 direct creation
 
 ### What Already Exists
 
-- Universal System Specification at `foundation-3`.
+- Universal System Specification at `foundation-4`, preserving foundation-3 naming and existing flat/workspace state.
 - Private `app/Knowledge/` boundary with `Inbox/` and `Databases/`.
 - Database manifest and ownership contracts.
 - Pool → Core → Shard → Pebble structural model.
@@ -49,7 +49,7 @@ current_documentation_status: authority roles consolidated; duplicated architect
 - Games draft templates: `Game.md`, `Game Shard.md`, and `Game Pebble.md`.
 - Games specialist Agent resource: `Agents/Vera.md`.
 - Runtime Registry discovery.
-- Local draft-creation CLI with Inbox/database intent, database selection, prepared IDs and filenames, and optional parent-derived lineage. Manual movement remains user-controlled.
+- Local creation CLI with Inbox capture or direct live database creation, Core/parent selection, inherited placement and Pool, workspace defaults, structural validation, and safe rollback.
 - Blueprint-based database scaffolding with dynamic selection, external preflight validation, and no overwrite/merge behavior.
 - Read-only structural validator, tests, and sanitized fixtures.
 
@@ -58,7 +58,7 @@ current_documentation_status: authority roles consolidated; duplicated architect
 1. Structural classification guidance is still more implicit than the desired Foundation standard; the planned Structural Decision Framework remains unfinished.
 2. The architecture is not yet demonstrated through a deliberate set of good, bad, and ambiguous canonical examples.
 3. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
-4. The CLI can bootstrap database scaffolding, but cannot yet promote a draft or directly create fully validated canonical notes.
+4. Direct canonical creation has structural validation; generic semantic validation and promotion of existing Inbox drafts remain unfinished.
 5. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
 6. Governance substance exists in the System Specification, but the roadmap/decision-record surfaces have not yet been closed out and formally signed off.
 7. A second independently designed domain has not yet tested generalization.
@@ -143,7 +143,7 @@ The System Specification already contains the normative change categories, `foun
 
 Current validator scope includes manifest discovery/shape, safe path boundaries, structural/common metadata, foundation-3 note-ID format/uniqueness, same-database lineage, Pool consistency, archive ancestry, Core workspaces, portable Core/supporting filenames and collisions, and supported Markdown heading checks.
 
-Not yet generic/deterministic: database semantic schema validation, Pool-vocabulary interpretation from database contracts, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical promotion/creation.
+Not yet generic/deterministic: database semantic schema validation, Pool-vocabulary interpretation from database contracts, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical draft promotion.
 
 Manual encrypted knowledge backup and restore are implemented, with a versioned format and synthetic round-trip, preservation, and failure tests. They support transfer between compatible checkouts; historical schema migration remains deferred. See the [tooling guide](../Scripts/README.md#encrypted-backup-and-restore) for the supported scope and limits.
 
@@ -163,7 +163,7 @@ Commit 30 already has evidence for initial Games ownership, Pool/Core classifica
 - query/navigation proof;
 - growth proof showing both retained-heading and materialized-note decisions;
 - archive/restore behavior;
-- canonical creation/promotion once tooling supports it;
+- direct canonical creation has synthetic CLI proof; promotion of existing Inbox drafts remains future work;
 - generic semantic validation evidence once implemented.
 
 ---
@@ -245,7 +245,7 @@ Movies is not required to block every remaining Foundation task, but it should o
 - deterministic universal structural validation: implemented within documented scope
 - representative structural fixtures: complete within implemented scope
 - deterministic database-semantic validation: incomplete
-- canonical validated creation/promotion: incomplete
+- direct canonical creation: implemented with structural validation and synthetic proof; semantic validation and draft promotion remain incomplete
 - attachment reference/orphan validation: incomplete
 - fragmentation/materialization diagnostics: incomplete
 

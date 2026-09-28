@@ -436,8 +436,8 @@ def backup(root: Path, output: Path, password: bytes, staging_dir: Path | None =
     if not output.parent.is_dir():
         raise BackupError("The backup output's parent directory must exist.")
     spec = specification(root)
-    if spec != "foundation-3":
-        raise BackupError("Backup v1 supports foundation-3 instances; this specification needs explicit compatibility support.")
+    if spec not in {"foundation-3", "foundation-4"}:
+        raise BackupError("Backup v1 supports foundation-3 and foundation-4 instances; this specification needs explicit compatibility support.")
     tracked = git_tracked(root)
     entries, snapshots = inventory(root, tracked)
     raw = encode_manifest(entries, spec)
@@ -544,8 +544,10 @@ def restore(root: Path, source: Path, password: bytes, staging_dir: Path | None 
     with scratch(root, staging_dir) as stage:
         decrypt(source, stage / "payload", password)
         manifest = unpack(stage / "payload", stage)
-        if manifest["specification"] != target_spec or target_spec != "foundation-3":
-            raise BackupError("Unsupported specification transition. Restore v1 transfers foundation-3 data unchanged into a foundation-3 checkout; it does not migrate schemas.")
+        if (manifest["specification"], target_spec) not in {
+            ("foundation-3", "foundation-3"), ("foundation-3", "foundation-4"), ("foundation-4", "foundation-4")
+        }:
+            raise BackupError("Unsupported specification transition. Restore v1 supports unchanged foundation-3 → foundation-3/4 and foundation-4 → foundation-4 transfers; it does not migrate schemas or downgrade specifications.")
         pending = check_target(root, manifest["entries"], tracked)
         result = {"files_added": len(pending), "files_unchanged": sum(item["kind"] == "file" for item in manifest["entries"]) - len(pending),
                   "git_files": sum(item["kind"] == "git" for item in manifest["entries"]), "dry_run": dry_run}

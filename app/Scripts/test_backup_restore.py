@@ -331,11 +331,28 @@ class TransferTests(unittest.TestCase):
 
     def test_specification_transition_requires_explicit_migration_support(self):
         self.create()
-        self.write(self.target, transfer.SPEC_PATH, b"Specification version: `foundation-4`\n")
+        self.write(self.target, transfer.SPEC_PATH, b"Specification version: `foundation-5`\n")
         before = self.tree(self.target)
         with self.assertRaisesRegex(BackupError, "specification transition"):
             restore(self.target, self.output, PASSWORD)
         self.assertEqual(self.tree(self.target), before)
+
+    def test_foundation_3_to_4_transfer_preserves_knowledge(self):
+        self.create()
+        self.write(self.target, transfer.SPEC_PATH, b"Specification version: `foundation-4`\n")
+        restore(self.target, self.output, PASSWORD)
+        self.assertEqual(self.tree(self.source / transfer.BOUNDARY), self.tree(self.target / transfer.BOUNDARY))
+
+    def test_foundation_4_round_trip_and_downgrade_refusal(self):
+        self.write(self.source, transfer.SPEC_PATH, b"Specification version: `foundation-4`\n")
+        self.create()
+        before = self.tree(self.target)
+        with self.assertRaisesRegex(BackupError, "specification transition"):
+            restore(self.target, self.output, PASSWORD)
+        self.assertEqual(before, self.tree(self.target))
+        self.write(self.target, transfer.SPEC_PATH, b"Specification version: `foundation-4`\n")
+        restore(self.target, self.output, PASSWORD)
+        self.assertEqual(self.tree(self.source / transfer.BOUNDARY), self.tree(self.target / transfer.BOUNDARY))
 
     def test_backup_refuses_a_specification_its_reader_cannot_restore(self):
         self.write(self.source, transfer.SPEC_PATH, b"Specification version: `foundation-2`\n")

@@ -1,4 +1,4 @@
-"""Local-only proof of preparation, manual movement, and preservation."""
+"""Local-only proof of direct canonical creation and preservation."""
 
 import contextlib
 import io
@@ -40,17 +40,16 @@ class DatabasePreparationTests(unittest.TestCase):
         metadata.update(fields)
         path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False) + "---\n" + body)
 
-    def move(self, result):
-        destination = result.suggested_path
-        self.assertIsNotNone(destination)
-        shutil.move(result.path, destination)
+    def created_path(self, result):
+        self.assertTrue(result.path.is_relative_to(self.database))
         self.assertEqual(validate_database(self.database), [])
-        return destination
+        self.assertFalse((self.root / "app/Knowledge/Inbox").exists())
+        return result.path
 
     def snapshot(self, directory):
         return {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()}
 
-    def test_core_is_ready_for_manual_move_with_id_preserved(self):
+    def test_core_is_created_directly_with_stable_id(self):
         before = self.snapshot(self.database)
         result = self.create("Example Game")
         metadata, body = parse_frontmatter(result.path.read_text())
@@ -58,49 +57,44 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(metadata["core"], "[[Example Game]]")
         self.assertRegex(metadata["id"], NOTE_ID)
         self.assertEqual(body, "# Example Game\n\n")
-        self.assertEqual(before, self.snapshot(self.database))
+        self.assertEqual(before, {p: data for p, data in self.snapshot(self.database).items() if p != result.path.relative_to(self.database)})
         contents = result.path.read_bytes()
-        destination = self.move(result)
+        destination = self.created_path(result)
         self.assertEqual(destination.read_bytes(), contents)
 
-    def test_full_lineage_moves_without_metadata_or_filename_edits(self):
-        core = self.move(self.create("Example: Game #1"))
+    def test_full_lineage_is_created_without_metadata_or_filename_edits(self):
+        core = self.created_path(self.create("Example: Game #1"))
         shard = self.create("Weapons", "shard", parent=core.stem)
         metadata, _ = parse_frontmatter(shard.path.read_text())
         self.assertEqual(shard.path.name, f"Weapons - {metadata['id']}.md")
         self.assertEqual(metadata["parent_note"], f"[[{core.stem}]]")
-        shard_path = self.move(shard)
+        shard_path = self.created_path(shard)
         pebble = self.create("Blade", "pebble", parent=f"[[{shard_path.stem}]]")
         metadata, _ = parse_frontmatter(pebble.path.read_text())
         self.assertEqual(metadata["core"], f"[[{core.stem}]]")
         self.assertEqual(metadata["parent_note"], f"[[{shard_path.stem}]]")
-        self.move(pebble)
+        self.created_path(pebble)
 
     def test_workspace_parent_preserves_placement_and_yaml_lineage(self):
-        core = self.move(self.create())
-        workspace = core.parent / core.stem
-        workspace.mkdir()
-        core = core.rename(workspace / core.name)
+        core = self.created_path(self.create())
+        workspace = core.parent
         result = self.create("Weapons", "shard", parent="Data/Game/Example/Example.md")
-        self.assertEqual(result.suggested_path.parent, workspace)
-        self.move(result)
+        self.assertEqual(result.path.parent, workspace)
+        self.created_path(result)
 
-    def test_supporting_notes_can_defer_lineage_but_have_canonical_ids_and_names(self):
+    def test_supporting_notes_require_complete_lineage(self):
+        before = self.snapshot(self.root)
         for kind in ("shard", "pebble"):
-            result = self.create("Shared title", kind)
-            metadata, _ = parse_frontmatter(result.path.read_text())
-            self.assertRegex(metadata["id"], NOTE_ID)
-            self.assertEqual(result.path.name, f"Shared title - {metadata['id']}.md")
-            self.assertIsNone(metadata["core"])
-            self.assertIsNone(metadata["parent_note"])
-        self.assertEqual(len(list(result.path.parent.glob("*.md"))), 2)
+            for parent in (None, ""):
+                with self.subTest(kind=kind, parent=parent), self.assertRaisesRegex(CreationError, "require --parent"):
+                    self.create("Shared title", kind, parent=parent)
+        self.assertEqual(before, self.snapshot(self.root))
 
     def test_existing_canonical_or_pending_id_collision_is_regenerated(self):
-        core = self.move(self.create())
+        core = self.created_path(self.create())
         self.edit_metadata(core, id="0000000000")
-        draft = self.create("Pending")
+        draft = create_note(self.root, "Pending")
         self.edit_metadata(draft.path, id="1111111111")
-        # Move the pending note into a user-owned subfolder of Inbox.
         staged = draft.path.parent / "Staged"
         staged.mkdir()
         draft.path.rename(staged / draft.path.name)
@@ -129,7 +123,7 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(metadata["tags"], ["games"])
         self.assertEqual(metadata["developers"], ["Example Studio"])
         self.assertEqual(metadata["aliases"], ["001"])
-        self.assertEqual(before, self.snapshot(self.database))
+        self.assertEqual(before, {p: data for p, data in self.snapshot(self.database).items() if p != result.path.relative_to(self.database)})
 
     def test_other_database_identity_and_template_are_selected(self):
         movies = self.root / "app/Knowledge/Databases/Personal Film Library"
@@ -144,16 +138,16 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(metadata["pool"], "Cinema")
         self.assertEqual(metadata["tags"], ["film"])
         self.assertEqual(result.template, templates / "Film.md")
-        self.assertEqual(before, self.snapshot(movies))
-        shutil.move(result.path, result.suggested_path)
+        self.assertEqual(before, {p: data for p, data in self.snapshot(movies).items() if p != result.path.relative_to(movies)})
         self.assertEqual(validate_database(movies), [])
 
     def test_blueprint_fallback_never_materializes_live_database(self):
         # Move only this test's disposable live copy out of discovery.
         self.database.rename(self.root / "unused-test-copy")
-        result = self.create()
-        self.assertEqual(result.template, self.blueprint / "Templates/Game.md")
-        self.assertIsNone(result.suggested_path)
+        before = self.snapshot(self.root)
+        with self.assertRaisesRegex(CreationError, "create/materialize"):
+            self.create()
+        self.assertEqual(before, self.snapshot(self.root))
         self.assertFalse(self.database.exists())
 
     def test_live_contract_without_templates_uses_explicit_pool(self):
@@ -162,7 +156,7 @@ class DatabasePreparationTests(unittest.TestCase):
             self.create()
         result = self.create(pool="Games")
         self.assertIsNone(result.template)
-        self.move(result)
+        self.created_path(result)
 
     def test_multiple_templates_require_selection(self):
         template = self.database / "Templates/Game.md"
@@ -178,8 +172,8 @@ class DatabasePreparationTests(unittest.TestCase):
         with self.assertRaisesRegex(CreationError, "--collection"):
             self.create()
         result = self.create(collection="Other")
-        self.assertEqual(result.suggested_path.parent, self.database / "Data/Other")
-        self.move(result)
+        self.assertEqual(result.path.parent, self.database / "Data/Other/Example")
+        self.created_path(result)
 
     def test_live_identity_wins_and_duplicate_live_owners_fail(self):
         sources = database_sources(self.root)
@@ -190,8 +184,8 @@ class DatabasePreparationTests(unittest.TestCase):
             self.create()
 
     def test_parent_errors_do_not_create_or_modify_files(self):
-        core = self.move(self.create())
-        pebble = self.move(self.create("Leaf", "pebble", parent=core.stem))
+        core = self.created_path(self.create())
+        pebble = self.created_path(self.create("Leaf", "pebble", parent=core.stem))
         before = self.snapshot(self.root)
         for options in (
             dict(kind="core", parent=core.stem),
@@ -206,18 +200,15 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot(self.root))
 
     def test_target_collisions_are_checked_across_workspaces(self):
-        core = self.move(self.create("Café"))
-        workspace = core.parent / core.stem
-        workspace.mkdir()
-        core.rename(workspace / core.name)
+        core = self.created_path(self.create("Café"))
         for title in ("Café", "Cafe\u0301", "CAFÉ"):
             with self.subTest(title=title), self.assertRaisesRegex(CreationError, "canonical filename"):
                 self.create(title)
 
-    def test_inbox_collision_preserves_existing_content(self):
+    def test_invalid_existing_database_preserves_content(self):
         result = self.create()
         result.path.write_text("User content")
-        with self.assertRaisesRegex(CreationError, "already uses"):
+        with self.assertRaisesRegex(CreationError, "frontmatter"):
             self.create()
         self.assertEqual(result.path.read_text(), "User content")
 
@@ -272,13 +263,14 @@ class DatabasePreparationTests(unittest.TestCase):
             self.create("Example ###")
 
     def test_interactive_database_selection_and_parent_selection(self):
-        core = self.move(self.create())
-        with patch("builtins.input", side_effect=["Weapons", "shard", "", "database", "games", "1"]), contextlib.redirect_stdout(io.StringIO()) as output:
+        core = self.created_path(self.create())
+        with patch("builtins.input", side_effect=["Weapons", "shard", "", "database", "games", "1", "1"]), contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        path = next((self.root / "app/Knowledge/Inbox").glob("Weapons - *.md"))
+        path = next(core.parent.glob("Weapons - *.md"))
         metadata, _ = parse_frontmatter(path.read_text())
         self.assertEqual(metadata["parent_note"], f"[[{core.stem}]]")
-        self.assertIn("Manual move target:", output.getvalue())
+        self.assertNotIn("Manual move target:", output.getvalue())
+        self.assertIn(str(path.relative_to(self.root)), output.getvalue())
 
     def test_cancel_database_selection_writes_nothing(self):
         before = self.snapshot(self.root)
@@ -294,10 +286,10 @@ class DatabasePreparationTests(unittest.TestCase):
         (movies / "Data/Film/Attachments").mkdir(parents=True)
         with patch("builtins.input", side_effect=["Example Film", "core", "", "database", "movies", "Cinema", "Film"]), contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        path = self.root / "app/Knowledge/Inbox/Example Film.md"
+        path = movies / "Data/Film/Example Film/Example Film.md"
         metadata, _ = parse_frontmatter(path.read_text())
         self.assertEqual(metadata["pool"], "Cinema")
-        self.assertIn("Movies/Data/Film/Example Film.md", output.getvalue())
+        self.assertIn("Movies/Data/Film/Example Film/Example Film.md", output.getvalue())
 
     def test_malformed_canonical_yaml_blocks_identity_scan_without_writes(self):
         (self.database / "Data/Game/Broken.md").write_text("---\nid: [unfinished\n")
@@ -307,7 +299,7 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot(self.root))
 
     def test_invalid_parent_database_is_reported_before_writing(self):
-        core = self.move(self.create())
+        core = self.created_path(self.create())
         self.edit_metadata(core, parent_note="[[Missing]]")
         before = self.snapshot(self.root)
         with self.assertRaisesRegex(CreationError, "structural validation"):
@@ -323,26 +315,305 @@ class DatabasePreparationTests(unittest.TestCase):
                 self.create()
             self.assertEqual(list(Path(outside).iterdir()), [])
 
-    def test_subprocess_proof_for_all_types_and_manual_moves(self):
+    def test_subprocess_proof_for_all_types_and_deeper_shard(self):
         command = [sys.executable, "-B", str(SCRIPTS / "shardbase.py"), "new", "--root", str(self.root),
                    "--intent", "database", "--database", "games", "--alias", "", "--no-color"]
         parent = None
-        for kind, title in (("core", "Example Game"), ("shard", "Example Topic"), ("pebble", "Example Detail")):
+        for kind, title in (("core", "Example Game"), ("shard", "Example Topic"), ("shard", "Example Subtopic"), ("pebble", "Example Detail")):
             args = command + ["--title", title, "--type", kind]
             if parent:
                 args += ["--parent", parent]
             run = subprocess.run(args, input="", text=True, capture_output=True)
             self.assertEqual(run.returncode, 0, run.stderr)
-            paths = list((self.root / "app/Knowledge/Inbox").glob("*.md"))
+            workspace = self.database / "Data/Game/Example Game"
+            paths = list(workspace.glob(f"{title}*.md"))
             self.assertEqual(len(paths), 1)
-            draft = paths[0]
-            contents = draft.read_bytes()
-            destination = self.database / "Data/Game" / draft.name
-            shutil.move(draft, destination)
-            self.assertEqual(destination.read_bytes(), contents)
+            destination = paths[0]
+            metadata, _ = parse_frontmatter(destination.read_text())
+            self.assertEqual(metadata["core"], "[[Example Game]]")
+            self.assertEqual(metadata["parent_note"], f"[[{parent}]]" if parent else None)
+            self.assertIn(str(destination.relative_to(self.root)), run.stdout)
+            self.assertNotIn("Manual move", run.stdout)
             self.assertEqual(validate_database(self.database), [])
+            self.assertFalse((self.root / "app/Knowledge/Inbox").exists())
             parent = destination.stem
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
+
+
+    def test_core_placement_preferences_and_portable_stem(self):
+        manifest = self.database / "Database.md"
+        for index, preference in enumerate((None, {}, {"core_placement": "workspace"}, {"core_placement": "flat"})):
+            metadata, body = parse_frontmatter(manifest.read_text())
+            metadata.pop("creation_defaults", None)
+            if preference is not None:
+                metadata["creation_defaults"] = preference
+            manifest.write_text("---\n" + yaml.safe_dump(metadata) + "---\n" + body)
+            result = self.create(f"Example: Game #{index}")
+            expected_parent = self.database / "Data/Game"
+            if preference != {"core_placement": "flat"}:
+                expected_parent /= f"Example Game {index}"
+            self.assertEqual(result.path.parent, expected_parent)
+            self.assertEqual(result.path.name, f"Example Game {index}.md")
+            metadata, _ = parse_frontmatter(result.path.read_text())
+            self.assertRegex(metadata["id"], NOTE_ID)
+            self.assertEqual(metadata["status"], "draft")
+            self.assertEqual(metadata["core"], f"[[Example Game {index}]]")
+            self.assertEqual(validate_database(self.database), [])
+
+    def test_invalid_creation_defaults_block_validator_and_creator(self):
+        for value in (None, "workspace", [], False, {1: "workspace"}, {"core_placement": None},
+                      {"core_placement": []}, {"core_placement": {}}, {"core_placement": "other"}):
+            with self.subTest(value=value):
+                self.edit_metadata(self.database / "Database.md", creation_defaults=value)
+                self.assertIn("manifest-creation-defaults", {issue.code for issue in validate_database(self.database)})
+                before = self.snapshot(self.root)
+                with self.assertRaisesRegex(CreationError, "creation_defaults"):
+                    self.create()
+                self.assertEqual(before, self.snapshot(self.root))
+
+    def test_extra_manifest_fields_remain_supported(self):
+        self.edit_metadata(self.database / "Database.md", custom={"database": "setting"},
+                           creation_defaults={"custom": True, "core_placement": "workspace"})
+        self.created_path(self.create())
+
+    def test_existing_flat_lineage_stays_flat_after_preference_changes(self):
+        manifest = self.database / "Database.md"
+        self.edit_metadata(manifest, creation_defaults={"core_placement": "flat"})
+        core = self.created_path(self.create())
+        self.edit_metadata(manifest, creation_defaults={"core_placement": "workspace"})
+        for kind in ("shard", "pebble"):
+            note = self.created_path(self.create(kind, kind, core=core.stem, parent=core.stem))
+            self.assertEqual(note.parent, core.parent)
+            self.assertFalse((core.parent / core.stem).exists())
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_core_and_parent_must_agree_and_be_correct_types(self):
+        first = self.created_path(self.create("First"))
+        second = self.created_path(self.create("Second"))
+        shard = self.created_path(self.create("Topic", "shard", parent=first.stem))
+        before = self.snapshot(self.root)
+        for core, parent in ((first.stem, second.stem), (second.stem, shard.stem), (shard.stem, first.stem),
+                             ("Missing", first.stem), (first.stem, ""), ("", first.stem)):
+            with self.subTest(core=core, parent=parent), self.assertRaises(CreationError):
+                self.create("Child", "pebble", core=core, parent=parent)
+        self.assertEqual(before, self.snapshot(self.root))
+
+    def test_supporting_inheritance_overrides_template_defaults(self):
+        self.edit_metadata(self.database / "Database.md", data_collections=["Game", "Other"])
+        (self.database / "Data/Other/Attachments").mkdir(parents=True)
+        core = self.created_path(self.create("Root", collection="Other", pool="Selected Pool"))
+        for kind in ("shard", "pebble"):
+            note = self.created_path(self.create(kind, kind, core=core.stem, parent=core.stem))
+            metadata, _ = parse_frontmatter(note.read_text())
+            self.assertEqual(note.parent, core.parent)
+            self.assertEqual(metadata["pool"], "Selected Pool")
+            self.assertEqual(metadata["core"], "[[Root]]")
+            self.assertEqual(metadata["parent_note"], "[[Root]]")
+            self.assertEqual(note.name, f"{kind} - {metadata['id']}.md")
+
+    def test_parent_picker_filters_other_lineages_and_pebbles(self):
+        from database_preparation import eligible_parents, select_database, validated_notes
+        first = self.created_path(self.create("First"))
+        second = self.created_path(self.create("Second"))
+        topic = self.created_path(self.create("Topic", "shard", parent=first.stem))
+        self.created_path(self.create("Leaf", "pebble", parent=first.stem))
+        self.created_path(self.create("Unrelated", "shard", parent=second.stem))
+        source = select_database(self.root, "games")
+        notes = validated_notes(self.root, source)
+        root = next(note for note in notes if note.path == first)
+        self.assertEqual({note.path for note in eligible_parents(source, notes, root)}, {first, topic})
+        with patch("builtins.input", return_value="2") as prompt, contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main(["new", "--root", str(self.root), "--intent", "database", "--database", "games",
+                                   "--title", "Child", "--type", "shard", "--alias", "", "--core", "First"]), 0)
+        self.assertEqual(prompt.call_count, 1)
+        self.assertNotIn("Second", output.getvalue())
+        self.assertNotIn("Unrelated", output.getvalue())
+        self.assertNotIn("Leaf", output.getvalue())
+        child = next(first.parent.glob("Child - *.md"))
+        self.assertEqual(parse_frontmatter(child.read_text())[0]["parent_note"], f"[[{topic.stem}]]")
+
+    def test_split_lineages_fail_preflight(self):
+        core = self.created_path(self.create())
+        shard = self.created_path(self.create("Topic", "shard", parent=core.stem))
+        shard.rename(core.parent.parent / shard.name)
+        before = self.snapshot(self.root)
+        self.assertIn("workspace-split", {issue.code for issue in validate_database(self.database)})
+        with self.assertRaisesRegex(CreationError, "structural validation"):
+            self.create("Child", "shard", parent=core.stem)
+        self.assertEqual(before, self.snapshot(self.root))
+
+    def test_flat_lineage_cannot_cross_collections(self):
+        self.edit_metadata(self.database / "Database.md", data_collections=["Game", "Other"],
+                           creation_defaults={"core_placement": "flat"})
+        (self.database / "Data/Other/Attachments").mkdir(parents=True)
+        core = self.created_path(self.create(collection="Game"))
+        shard = self.created_path(self.create("Topic", "shard", parent=core.stem))
+        shard.rename(self.database / "Data/Other" / shard.name)
+        self.assertIn("lineage-collection", {issue.code for issue in validate_database(self.database)})
+        with self.assertRaisesRegex(CreationError, "structural validation"):
+            self.create("New", collection="Game")
+
+    def test_workspace_collisions_preserve_existing_entries(self):
+        for name in ("Example", "example", "Attachments"):
+            with self.subTest(name=name):
+                entry = self.database / "Data/Game" / name
+                if name != "Attachments":
+                    entry.write_text("Existing resource")
+                before = self.snapshot(self.root)
+                with self.assertRaisesRegex(CreationError, "already uses"):
+                    self.create("Attachments" if name == "Attachments" else "Example")
+                self.assertEqual(before, self.snapshot(self.root))
+                if name != "Attachments":
+                    entry.unlink()
+
+    def test_post_validation_failure_rolls_back_new_workspace_and_file(self):
+        from validate_shardbase import Issue
+        before = self.snapshot(self.root)
+        with patch("validate_shardbase.validate_database", return_value=[Issue(self.database, "test", "forced failure")]):
+            with self.assertRaisesRegex(CreationError, "Post-write"):
+                self.create()
+        self.assertEqual(before, self.snapshot(self.root))
+        self.assertFalse((self.database / "Data/Game/Example").exists())
+
+    def test_rollback_keeps_existing_workspace_and_unrelated_contents(self):
+        core = self.created_path(self.create())
+        before = self.snapshot(self.root)
+        with patch("validate_shardbase.validate_database", side_effect=OSError("verification failure")):
+            with self.assertRaisesRegex(OSError, "verification failure"):
+                self.create("Topic", "shard", parent=core.stem)
+        self.assertTrue(core.parent.is_dir())
+        self.assertEqual(before, self.snapshot(self.root))
+
+    def test_rollback_preserves_new_unrelated_workspace_file(self):
+        workspace = self.database / "Data/Game/Example"
+        def fail(_):
+            (workspace / "Other.txt").write_text("Concurrent content")
+            raise OSError("verification failure")
+        with patch("validate_shardbase.validate_database", side_effect=fail), self.assertRaises(OSError):
+            self.create()
+        self.assertEqual(list(workspace.iterdir()), [workspace / "Other.txt"])
+        self.assertEqual((workspace / "Other.txt").read_text(), "Concurrent content")
+
+    def test_competing_file_is_never_removed_or_truncated(self):
+        original_open = Path.open
+        def competing_open(path, mode="r", *args, **kwargs):
+            if mode == "x":
+                path.write_text("Competing content")
+            return original_open(path, mode, *args, **kwargs)
+        with patch.object(Path, "open", competing_open), self.assertRaises(FileExistsError):
+            self.create()
+        self.assertEqual((self.database / "Data/Game/Example/Example.md").read_text(), "Competing content")
+
+    def test_competing_workspace_is_preserved(self):
+        original_mkdir = Path.mkdir
+        workspace = self.database / "Data/Game/Example"
+        def competing_mkdir(path, *args, **kwargs):
+            if path == workspace:
+                original_mkdir(path)
+                (path / "Other.txt").write_text("Competing content")
+            return original_mkdir(path, *args, **kwargs)
+        with patch.object(Path, "mkdir", competing_mkdir), self.assertRaises(FileExistsError):
+            self.create()
+        self.assertEqual(list(workspace.iterdir()), [workspace / "Other.txt"])
+
+    def test_interrupted_partial_write_rolls_back(self):
+        original_open = Path.open
+        class InterruptedWriter:
+            def __init__(self, stream):
+                self.stream = stream
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                self.stream.close()
+            def fileno(self):
+                return self.stream.fileno()
+            def write(self, document):
+                self.stream.write(document[:10])
+                raise KeyboardInterrupt()
+        def interrupted_open(path, mode="r", *args, **kwargs):
+            stream = original_open(path, mode, *args, **kwargs)
+            return InterruptedWriter(stream) if mode == "x" else stream
+        before = self.snapshot(self.root)
+        with patch.object(Path, "open", interrupted_open), self.assertRaises(KeyboardInterrupt):
+            self.create()
+        self.assertEqual(before, self.snapshot(self.root))
+        self.assertFalse((self.database / "Data/Game/Example").exists())
+
+    def test_missing_or_malformed_live_identity_blocks_creation(self):
+        other = self.database.with_name("Unfinished")
+        other.mkdir()
+        before = self.snapshot(self.root)
+        with self.assertRaisesRegex(CreationError, "Missing live database manifest"):
+            self.create()
+        self.assertEqual(before, self.snapshot(self.root))
+        (other / "Database.md").write_text("---\ndatabase_id: []\n---\n")
+        before = self.snapshot(self.root)
+        with self.assertRaisesRegex(CreationError, "database_id"):
+            self.create()
+        self.assertEqual(before, self.snapshot(self.root))
+
+    def test_database_only_core_flag_rejected_for_inbox(self):
+        with self.assertRaisesRegex(CreationError, "require --intent"):
+            create_note(self.root, "Capture", core="Example")
+
+    def test_noninteractive_unresolved_lineage_never_writes(self):
+        core = self.created_path(self.create())
+        before = self.snapshot(self.root)
+        command = [sys.executable, "-B", str(SCRIPTS / "shardbase.py"), "new", "--root", str(self.root),
+                   "--intent", "database", "--database", "games", "--title", "Child", "--type", "shard", "--alias", ""]
+        for flags in ([], ["--core", core.stem], ["--parent", ""]):
+            result = subprocess.run(command + flags, input="", capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertNotIn("Traceback", result.stderr)
+            self.assertEqual(before, self.snapshot(self.root))
+
+    def test_cancelling_core_or_parent_selection_preserves_database(self):
+        core = self.created_path(self.create())
+        before = self.snapshot(self.root)
+        for answers in ([KeyboardInterrupt()], ["1", KeyboardInterrupt()]):
+            with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(main(["new", "--root", str(self.root), "--intent", "database", "--database", "games",
+                                       "--title", "Child", "--type", "shard", "--alias", ""]), 130)
+            self.assertEqual(before, self.snapshot(self.root))
+            self.assertTrue(core.exists())
+
+    def test_rollback_preserves_replacement_of_new_file(self):
+        path = self.database / "Data/Game/Example/Example.md"
+        def replace_and_fail(_):
+            # Keep the original inode allocated so the replacement is distinct.
+            path.rename(self.root / "original-test-note.md")
+            path.write_text("Replacement content")
+            raise OSError("verification failure")
+        with patch("validate_shardbase.validate_database", side_effect=replace_and_fail), self.assertRaises(OSError):
+            self.create()
+        self.assertEqual(path.read_text(), "Replacement content")
+
+    def test_normalized_workspace_resource_collision_writes_nothing(self):
+        entry = self.database / "Data/Game/Café"
+        entry.write_text("Existing resource")
+        before = self.snapshot(self.root)
+        for title in ("Cafe\u0301", "CAFÉ"):
+            with self.subTest(title=title), self.assertRaisesRegex(CreationError, "already uses"):
+                self.create(title)
+        self.assertEqual(before, self.snapshot(self.root))
+
+    def test_blueprints_are_not_offered_as_writable_targets(self):
+        other = self.blueprint.with_name("Other")
+        shutil.copytree(self.blueprint, other)
+        self.edit_metadata(other / "Database.md", database_id="other", database_name="Blueprint Only")
+        with patch("builtins.input", return_value="games"), contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main(["new", "--root", str(self.root), "--intent", "database",
+                                   "--title", "Example", "--type", "core", "--alias", ""]), 0)
+        self.assertNotIn("Blueprint Only", output.getvalue())
+        self.assertEqual(list((other / "Data/Game").glob("*.md")), [])
+
+    def test_help_describes_direct_creation(self):
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main(["help", "create", "new"]), 0)
+        self.assertIn("--core", output.getvalue())
+        self.assertIn("directly", output.getvalue())
+        self.assertNotIn("both save to Inbox", output.getvalue())
+        self.assertNotIn("manual move", output.getvalue())
 
 
 if __name__ == "__main__":

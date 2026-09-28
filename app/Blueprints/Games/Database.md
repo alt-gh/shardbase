@@ -5,6 +5,8 @@ database_name: Games
 data_collections:
   - Game
 database_status: active
+creation_defaults:
+  core_placement: workspace
 ---
 
 # Games Database
@@ -187,7 +189,7 @@ A reference explains a game. A completionist checklist records the user's progre
 - Do not materialize every rule, component, scenario, quest, character, location, mechanic, item, build, achievement, chapter, or lore topic.
 - Domain relationships remain semantic rather than structural ancestry.
 - Supporting structural notes stay inside the same Game lineage and inherit its `pool: Games` under the universal contract.
-- Keep a lineage flat unless a specific Game Core earns a workspace for concrete organizational reasons.
+- New Game Cores created by the CLI prefer workspaces for game-local navigation. Preserve existing flat lineages unless an explicit workspace refactor is requested.
 
 ### Semantic Data
 
@@ -275,9 +277,9 @@ The blueprint supplies:
 - [`Templates/Game Shard.md`](Templates/Game%20Shard.md)
 - [`Templates/Game Pebble.md`](Templates/Game%20Pebble.md)
 
-These are optional Inbox draft resources. They provide starting YAML and a title H1 but do not define canonical validity. Supporting templates intentionally leave unresolved lineage blank for later classification/promotion.
+These optional templates provide starting YAML and a title H1 for capture or canonical creation; they do not define validity. Supporting placeholders stay blank in Inbox captures and are resolved from selected canonical lineage during database creation.
 
-The current CLI may use a live Games database's matching template or fall back to the blueprint according to the behavior documented in [`../../Scripts/README.md`](../../Scripts/README.md). Template selection never synchronizes or modifies a live database.
+Inbox capture may fall back to blueprint templates; canonical creation uses only the selected live database's resources, according to the behavior documented in [`../../Scripts/README.md`](../../Scripts/README.md). Template selection never synchronizes or modifies a live database.
 
 ### Agents
 

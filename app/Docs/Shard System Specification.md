@@ -1,10 +1,10 @@
 # Shard — System Specification
 
-Specification version: `foundation-3` (2026-09-19)
+Specification version: `foundation-4` (2026-09-28)
 
-Editorial revision: 2026-09-19
+Editorial revision: 2026-09-28
 
-Foundation-3 change note: this edition replaces ancestry-derived supporting filenames with human-readable local titles plus stable opaque note IDs, and makes canonical structural IDs required and database-unique. Universal rules remain here; database-local semantics belong in each `Database.md`; operational and planning documents must reference these authorities rather than duplicate them.
+Foundation-4 change note: this edition adds direct canonical database creation and optional Core placement preferences. Existing foundation-3 IDs, filenames, metadata, and both legal placement modes remain unchanged; no existing knowledge migration is required. Universal rules remain here; database-local semantics belong in each `Database.md`; operational and planning documents must reference these authorities rather than duplicate them.
 
 ## 1. Purpose and Authority
 
@@ -146,6 +146,17 @@ database_status: active
 - `database_name` is a non-empty canonical human-readable string.
 - `data_collections` is a non-empty list of unique direct-child directory names beneath `Data/`.
 - `database_status` is one of `active`, `draft`, or `archived`.
+
+Optional creation preference (compatible with `manifest_version: 1`):
+
+```yaml
+creation_defaults:
+  core_placement: workspace
+```
+
+When present, `creation_defaults` must be a mapping with string keys. Its optional `core_placement` must be `workspace` or `flat`; omission of either setting defaults CLI creation of new Cores to `workspace`. Invalid shapes or values must block canonical creation. Other database-specific manifest fields remain permitted.
+
+This preference affects new CLI-created Cores only. It does not redefine canonical validity, alter YAML lineage authority, or migrate existing lineages. Manifest version 1 remains readable without this optional setting.
 
 Each declared collection requires its root `Attachments/` directory. `Views/` is required and may be empty.
 
@@ -298,9 +309,9 @@ Canonical structural notes may use one of two placement modes within a declared 
 1. **Flat placement** — the Core and descendants live directly at the collection root.
 2. **Core workspace placement** — exactly one Core lineage is bundled into one direct-child directory named for the Core's portable canonical filename stem.
 
-Flat placement is the default and remains valid indefinitely. A workspace should be introduced only when filesystem locality provides concrete organizational value.
+Both representations remain valid indefinitely. New Cores created through the CLI default to workspaces for navigation and locality unless the manifest explicitly prefers `flat`. Supporting notes inherit the resolved Core’s collection and existing physical location. Existing flat lineages are not bundled automatically, and existing workspaces are not unbundled automatically.
 
-A Core may have at most one workspace. A lineage must not be split between the collection root and its workspace. Structural notes inside a workspace remain direct Markdown children; nested Core → Shard → Pebble folder ancestry is invalid. YAML remains authoritative for lineage.
+A Core may have at most one workspace. A lineage stays within one collection and must not be split between the collection root and its workspace. Structural notes inside a workspace remain direct Markdown children; nested Core → Shard → Pebble folder ancestry is invalid. Filesystem placement provides organization; YAML remains authoritative for lineage. Resolve ownership, Core, and parent from user selection and canonical metadata before deriving the destination; never infer ancestry from folders.
 
 Structural discovery therefore inspects collection roots and one valid Core-workspace level only.
 
@@ -434,8 +445,8 @@ The lifecycle is a state-and-decision model rather than a mandatory linear pipel
 
 ShardBase recommends two primary creation paths:
 
-- notes intended to become canonical under `app/Knowledge/Databases/` should normally use the CLI to prepare their filename and metadata, then be reviewed and moved manually into the owning database;
-- temporary or ad-hoc notes created through a Markdown editor (preferably Obsidian) or filesystem should normally enter `app/Knowledge/Inbox/`.
+- deliberately database-owned notes should normally use the CLI to select a live database and create canonical state directly after resolving identity, collection, Pool, Core/parent lineage, naming, and placement and passing applicable deterministic validation;
+- temporary, unresolved, or pre-structural captures created through the CLI, a Markdown editor (preferably Obsidian), or filesystem should normally enter `app/Knowledge/Inbox/`.
 
 Knowledgeable users may create canonical files manually if they intentionally satisfy the complete contract.
 
@@ -443,7 +454,7 @@ Knowledgeable users may create canonical files manually if they intentionally sa
 
 Inbox items are pre-structural. They do not require a database, Pool, Core, structural `type`, lineage, canonical filename, or database semantic schema.
 
-A database-intended note may already carry a prepared canonical filename, metadata, and ID while it waits in Inbox. Preparation does not make it canonical or prove conformance. Preserve its valid prepared ID during manual promotion and check uniqueness against the destination at that time.
+Historical prepared notes may remain in Inbox with canonical-looking filenames, metadata, and IDs. They are not invalid merely because the creation workflow changed, and must not be automatically moved or rewritten. Inbox placement does not establish database ownership or prove conformance. Preserve valid prepared IDs during deliberate promotion and recheck destination uniqueness and lineage.
 
 Review may incorporate an item into an existing note, promote it into new canonical structure, retain it unresolved, leave only a Ghost Shard, or result in deliberate user discard. Successful review does not imply a new file.
 
@@ -522,7 +533,13 @@ Automation should:
 - treat blueprint upgrades and compatibility transformations as migrations when applicable;
 - keep rules visible in documented contracts.
 
-Canonical creation should eventually validate universal and database-semantic constraints before writing. Templates may provide starting shape or defaults but do not define validity.
+Database-intended creation writes only to a selected live database, never a blueprint. Duplicate or malformed live identities must fail visibly. A blueprint-only selection requires explicit live database materialization first.
+
+Canonical supporting creation requires a resolved Core and an immediate Core/Shard parent in that same lineage and database. A parent alone may determine the Core; explicit Core and parent selections must agree. Parent pickers must filter to eligible members of the selected lineage. Supporting Pool, collection, and location inherit from the Core; conflicting explicit values must be rejected. Unresolved lineage belongs in Inbox. New canonical notes may remain `status: draft`.
+
+Direct creation must validate the selected manifest and existing database structure before mutation, allocate an unused stable ID, render complete authoritative metadata, derive the canonical filename and destination, and reject file, workspace, ID, and normalized Unicode/case collisions without inventing alternate names. Workspace names use the existing Core filename stem algorithm. Reject symlink boundary escapes and exclusively create the new file without overwriting existing content. Validate the resulting database; on failure or interruption, roll back only this operation’s new file and its newly created workspace if still empty. Preexisting or competing content must be preserved.
+
+Templates provide defaults but do not define validity. Applicable database-semantic constraints still require review until generic semantic validation exists. Tooling must disclose validation limits and its filesystem/concurrency assumptions; structural validation is not complete semantic or Foundation certification.
 
 Current implementation details and limitations are documented in [`../Scripts/README.md`](../Scripts/README.md).
 
@@ -643,7 +660,15 @@ The bounded transition is:
 
 IDs assigned by this migration become stable thereafter. Reparenting does not change the filename because ancestry is no longer encoded in it.
 
-The current validator targets current `foundation-3` conformance within its documented scope. It does not infer historical specification versions or automatically migrate live state.
+The current validator retains these foundation-3 naming and identity checks within its documented scope. It does not infer historical specification versions or automatically migrate live state.
+
+### 15.4 `foundation-4`
+
+`foundation-4` adds the optional version-1 manifest creation preference, direct canonical CLI creation, and its validation/rollback boundary. It preserves the foundation-3 structural identity and filename contract and all compliant flat/workspace state. The specification increments under Section 14.2 because this is a universal extension; `manifest_version` stays `1` because the optional preference does not require a manifest-schema transition.
+
+No automatic live-data migration is authorized or required. Existing Inbox drafts and flat lineages remain unchanged. CLI consumers must account for database intent now returning a live canonical path, requiring a live database and complete supporting lineage, and rejecting unresolved parents. Inbox intent remains pre-structural.
+
+Backup transfer can preserve foundation-3 knowledge unchanged into foundation-4; no archive-format change or schema conversion is required. Same-version foundation-3 and foundation-4 transfers remain supported. Downgrades and unknown specification transitions require separate explicit compatibility support.
 
 ## 16. Validation Protocol
 

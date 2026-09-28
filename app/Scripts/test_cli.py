@@ -60,6 +60,8 @@ class CommandTests(unittest.TestCase):
             self.assertNotIn("Traceback", result.stderr)
 
     def test_grouped_creation_and_legacy_alias_preserve_intents(self):
+        database = self.root / "app/Knowledge/Databases/Games"
+        shutil.copytree(self.root / "app/Blueprints/Games", database)
         for route, title, intent in ((("create", "new"), "Example Game", "database"),
                                      (("new",), "Temporary idea", "inbox")):
             args = [*route, "--root", str(self.root), "--title", title, "--type", "core",
@@ -68,8 +70,8 @@ class CommandTests(unittest.TestCase):
                 args += ["--database", "games"]
             result = self.cli(*args)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((self.root / "app/Knowledge/Inbox" / f"{title}.md").is_file())
-        self.assertFalse((self.root / "app/Knowledge/Databases").exists())
+            expected = database / "Data/Game" / title / f"{title}.md" if intent == "database" else self.root / "app/Knowledge/Inbox" / f"{title}.md"
+            self.assertTrue(expected.is_file())
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
 
     def test_validate_command_checks_selected_instance_and_returns_failures(self):
