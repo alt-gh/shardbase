@@ -36,7 +36,7 @@ Launchers run the selected instance's source by absolute path with `-B`, preserv
 
 Ownership is checked before installation and immediately before publication. New launchers use no-clobber publication; replacing an existing managed launcher is atomic but assumes no concurrent edits in the final check-to-replace interval. Avoid simultaneous installers or edits of the same launcher. Filesystems must support hard links for first publication; failures leave competing files intact.
 
-Bootstrap invokes the external interpreter directly to check `shardbase.py commands`, independently of PATH. A failed check fails setup. No database, Inbox, or note is created or inspected. After success, run `shardbase commands`, then `shardbase create new database` when ready. `shardbase init` and `shardbase doctor` remain deferred.
+Bootstrap invokes the external interpreter directly to check `shardbase.py commands`, independently of PATH. A failed check fails setup. No database, Inbox, or note is created or inspected. After success, run `shardbase doctor` to check instance health, then `shardbase create new database` when ready. `shardbase init` remains deferred.
 
 PATH is never changed automatically. If needed, bootstrap prints the exact launcher directory and a current-session POSIX shell or PowerShell command. Persistent PATH/profile configuration remains your choice. The launcher selects the instance used for installation even from another working directory; creation/validation commands also support `--root "/path/to/instance"`.
 
@@ -97,6 +97,7 @@ Run `shardbase commands` to see every available command in the terminal. Running
 | `shardbase validate` | Read-only structural checks on all live databases in the installed instance |
 | `shardbase validate "/path/to/database"` | Check one database root |
 | `shardbase validate --root "/path/to/instance"` | Check all live databases in another instance |
+| `shardbase doctor [--root PATH] [--no-color]` | Read-only instance and local tooling health diagnostics |
 | `shardbase backup [archive]` | Choose an output file/folder, then encrypt and verify local knowledge |
 | `shardbase restore [archive]` | Authenticate and import a backup; prompt for the file when omitted |
 | `shardbase restore archive --dry-run` | Verify a backup and check destination conflicts without writing knowledge |
@@ -107,6 +108,23 @@ Run `shardbase commands` to see every available command in the terminal. Running
 | `shardbase help validate` or `shardbase validate --help` | Show validation options |
 
 `shardbase help <command>` and `<command> --help` use the same parser and stay aligned with the implemented options. The standalone validator script remains available for existing workflows; it accepts the same optional database path and `--root` selection.
+
+## Instance Health Diagnostics
+
+Run `shardbase doctor` to inspect the instance bound to the CLI. Use `--root "/path/to/instance"` to diagnose another instance and `--no-color` for plain text; `NO_COLOR` is also respected. `shardbase doctor --help` and `shardbase help doctor` share the actual command parser.
+
+Results appear in four groups with stable check codes:
+
+- **Framework** checks required functional directories/files, safely reads the declared System Specification version, and reuses blueprint discovery. Development checkout assets and Obsidian configuration are not required. Missing root `bootstrap.py` is a warning.
+- **Privacy** reports root Git state, enclosing Git boundaries, and tracked knowledge using hardened local Git inspection. Root Git is informational. Parent Git, tracked knowledge, changed tracked knowledge, and unavailable/failed Git inspection are warnings that call for owner review. No remotes are contacted or Git state changed.
+- **Runtime** checks the active Python version, external interpreter/prefix boundaries, required imports, and versions against the selected instance's `requirements.txt`. Missing/broken dependencies are blocking; usable dependency pin drift is a warning. Doctor can report dependency failures without those dependencies installed.
+- **Knowledge** accepts absent or unused knowledge directories and automatically discovers and structurally validates live databases using the existing validator. Findings retain validator codes and path context. This does not certify database-semantic conformance or infer historical per-database specification versions; see [validator scope](#read-only-validator).
+
+Launcher discovery is limited to PATH and the platform default from bootstrap. No discovered launcher is informational because direct-script use may be intentional. Each discovered launcher must have a supported managed format, target the selected instance, and use a usable external Python 3.10+ interpreter. A launcher targeting another instance fails even when `--root` deliberately selects that instance. Doctor never scans arbitrary folders or retargets launchers.
+
+The four severities are `OK` (passed), `INFO` (context or a check that could not run because a prerequisite failed), `WARN` (review advised), and `FAIL` (blocking issue). Exit status is `0` with no failures, `1` with any failure, `2` for invalid syntax, and `130` for cancellation. **Warnings do not fail the command.** The final summary counts warnings and blocking issues separately.
+
+Doctor is observational: it performs no repair, initialization, installation, migration, backup, network access, or persistent diagnostic writes. Knowledge, launchers, runtimes, PATH, and shell profiles are never changed. Output is human-readable; there is no public JSON contract or repair mode.
 
 ## Encrypted Backup and Restore
 

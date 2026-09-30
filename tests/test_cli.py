@@ -29,18 +29,19 @@ class CommandTests(unittest.TestCase):
         for arguments in ((), ("commands",), ("--help",), ("help",), ("help", "create", "new"),
                           ("create",), ("create", "new", "--help"), ("validate", "--help"),
                           ("help", "create", "new", "database"), ("create", "new", "database", "--help"),
-                          ("backup", "--help"), ("restore", "--help"), ("help", "backup"), ("help", "restore")):
+                          ("backup", "--help"), ("restore", "--help"), ("help", "backup"), ("help", "restore"),
+                          ("doctor", "--help"), ("help", "doctor")):
             with self.subTest(arguments=arguments):
                 result = self.cli(*arguments, without_dependencies=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("shardbase", result.stdout)
         result = self.cli("commands", without_dependencies=True)
-        for command in ("create", "create new", "create new database", "new", "validate", "backup", "restore", "commands", "help"):
+        for command in ("create", "create new", "create new database", "new", "validate", "doctor", "backup", "restore", "commands", "help"):
             self.assertIn(f"shardbase {command}", result.stdout)
         self.assertIn("Alias for create new", result.stdout)
 
     def test_help_topics_share_the_actual_command_parser(self):
-        for route in (("create", "new"), ("create", "new", "database"), ("new",), ("validate",), ("backup",), ("restore",), ("commands",)):
+        for route in (("create", "new"), ("create", "new", "database"), ("new",), ("validate",), ("doctor",), ("backup",), ("restore",), ("commands",)):
             with self.subTest(route=route):
                 direct = self.cli(*route, "--help")
                 topic = self.cli("help", *route)
@@ -48,7 +49,7 @@ class CommandTests(unittest.TestCase):
                 self.assertEqual(topic.returncode, 0)
 
     def test_invalid_command_or_help_topic_exits_cleanly(self):
-        for route in (("missing",), ("create", "missing"), ("help", "missing")):
+        for route in (("missing",), ("create", "missing"), ("help", "missing"), ("doctor", "--fix"), ("doctor", "--json")):
             result = self.cli(*route)
             self.assertEqual(result.returncode, 2)
             self.assertNotIn("Traceback", result.stderr)

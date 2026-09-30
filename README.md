@@ -101,6 +101,8 @@ Canonical creation checks structural validity before and after writing and rolls
 
 Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
 
+Use `shardbase doctor` for read-only framework, privacy, runtime, and structural database health checks. It distinguishes warnings from blocking issues and performs no repairs; see [instance health diagnostics](app/Scripts/README.md#instance-health-diagnostics).
+
 Use `shardbase backup` and `shardbase restore` to preserve local knowledge or transfer it to a compatible newer checkout. These offline commands exclude framework files and Obsidian settings. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, Git exclusions, and compatibility limits.
 
 ## Get Started

@@ -144,6 +144,33 @@ def run_validation(args: argparse.Namespace) -> int:
     return validate(arguments)
 
 
+def run_doctor(args: argparse.Namespace) -> int:
+    from doctor import CATEGORIES, diagnose
+
+    ui = Terminal(args.no_color)
+    results = diagnose(args.root)
+    print("ShardBase doctor")
+    colors = {"OK": "32", "INFO": "2", "WARN": "33", "FAIL": "31"}
+    for category in CATEGORIES:
+        ui.section(category)
+        for result in results:
+            if result.category == category:
+                print(ui.style(f"  {result.severity:<4}  {result.code:<30} {result.summary}", colors[result.severity]))
+                if result.detail:
+                    print(ui.style("        " + result.detail, "2"))
+    failures = sum(result.severity == "FAIL" for result in results)
+    warnings = sum(result.severity == "WARN" for result in results)
+    warning_text = f"{warnings} warning{'s' if warnings != 1 else ''}"
+    if failures:
+        summary = f"{failures} blocking issue{'s' if failures != 1 else ''}; {warning_text}."
+    elif warnings:
+        summary = f"{warning_text}; no blocking issues found."
+    else:
+        summary = "No blocking issues found."
+    print(f"\n{summary}")
+    return 1 if failures else 0
+
+
 def new_database(args: argparse.Namespace) -> int:
     from database_creation import available_blueprints, create_database
     from note_creation import CreationError
@@ -271,6 +298,12 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("path", nargs="?", type=Path, help="Database root; omit to check all live databases in the instance")
     validate.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: this checkout)")
     validate.set_defaults(handler=run_validation)
+
+    doctor = register(commands, "doctor", ("doctor",), "Diagnose instance and tooling health without modifying files",
+                      description="Read-only framework, privacy, runtime, launcher, dependency, and structural database diagnostics. Warnings do not fail the command; no repairs are performed.")
+    doctor.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: instance bound to this CLI)")
+    doctor.add_argument("--no-color", action="store_true", help="Disable terminal colors (also respects NO_COLOR)")
+    doctor.set_defaults(handler=run_doctor)
 
     for command, summary in (("backup", "Create and verify an encrypted local-knowledge backup"),
                              ("restore", "Import an encrypted backup without replacing existing content")):

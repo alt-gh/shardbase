@@ -107,7 +107,7 @@ def render_launcher(python, script, platform: str) -> str:
     return POSIX_HEADER + f'exec {shlex.quote(python)} -B {shlex.quote(script)} "$@"\n'
 
 
-def managed_launcher(contents: str, platform: str) -> bool:
+def launcher_targets(contents: str, platform: str) -> tuple[str, str] | None:
     """Recognize the complete canonical format, never just a marker/filename.
 
     The exact pre-marker POSIX format is supported for existing installations.
@@ -117,25 +117,31 @@ def managed_launcher(contents: str, platform: str) -> bool:
         if platform == "nt":
             match = re.fullmatch(re.escape(WINDOWS_HEADER) + r'"([^"\n]+)" -B "([^"\n]+)" %\*\nexit /b %errorlevel%\n', contents)
             if not match:
-                return False
+                return None
             python, script = (part.replace("%%", "%") for part in match.groups())
             path_type, interpreter_tail = PureWindowsPath, ("Scripts", "python.exe")
             expected = render_launcher(python, script, platform)
         else:
             header = LEGACY_HEADER if contents.startswith(LEGACY_HEADER) else POSIX_HEADER
             if not contents.startswith(header):
-                return False
+                return None
             tokens = shlex.split(contents[len(header):])
             if len(tokens) != 5 or tokens[0] != "exec" or tokens[2] != "-B" or tokens[4] != "$@":
-                return False
+                return None
             python, script = tokens[1], tokens[3]
             path_type, interpreter_tail = PurePosixPath, ("bin", "python")
             expected = render_launcher(python, script, platform).replace(POSIX_HEADER, header, 1)
-        return (contents == expected and path_type(python).is_absolute() and path_type(script).is_absolute()
+        recognized = (contents == expected and path_type(python).is_absolute() and path_type(script).is_absolute()
                 and path_type(python).parts[-2:] == interpreter_tail
                 and path_type(script).parts[-3:] == ("app", "Scripts", "shardbase.py"))
+        return (python, script) if recognized else None
     except ValueError:
-        return False
+        return None
+
+
+def managed_launcher(contents: str, platform: str) -> bool:
+    """Recognize only the complete supported managed launcher formats."""
+    return launcher_targets(contents, platform) is not None
 
 
 def inspect_launcher(launcher: Path, platform: str):

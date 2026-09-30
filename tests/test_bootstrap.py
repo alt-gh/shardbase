@@ -415,11 +415,14 @@ class LauncherFormatTests(unittest.TestCase):
         python = "/external/quotes' $money & stuff/bin/python"
         script = "/instance/quotes' $money & stuff/app/Scripts/shardbase.py"
         contents = support.render_launcher(python, script, "posix")
+        self.assertEqual(support.launcher_targets(contents, "posix"), (python, script))
+        self.assertEqual(support.launcher_targets(contents.replace(support.POSIX_HEADER, support.LEGACY_HEADER), "posix"), (python, script))
         self.assertTrue(support.managed_launcher(contents, "posix"))
         self.assertTrue(support.managed_launcher(contents.replace(support.POSIX_HEADER, support.LEGACY_HEADER), "posix"))
         for altered in (contents + "echo changed\n", contents.replace(": 1", ": 2"),
                         contents.replace('"$@"', "$@"), contents.replace(" -B ", " ")):
             self.assertFalse(support.managed_launcher(altered, "posix"))
+            self.assertIsNone(support.launcher_targets(altered, "posix"))
 
     def test_windows_escaping_and_full_format_recognition(self):
         contents = support.render_launcher(r"C:\Runtime %PATH% ! ^ & (test)\Scripts\python.exe",
@@ -428,9 +431,13 @@ class LauncherFormatTests(unittest.TestCase):
         self.assertIn("DisableDelayedExpansion", contents)
         self.assertIn(" %*\nexit /b %errorlevel%", contents)
         self.assertTrue(support.managed_launcher(contents, "nt"))
+        self.assertEqual(support.launcher_targets(contents, "nt"),
+                         (r"C:\Runtime %PATH% ! ^ & (test)\Scripts\python.exe",
+                          r"C:\Instance %HOME% ! ^ & (test)\app\Scripts\shardbase.py"))
         for altered in (contents + "echo changed\n", contents.replace(": 1", ": 2"),
                         contents.replace("%%PATH%%", "%PATH%"), contents.replace(" %*", "")):
             self.assertFalse(support.managed_launcher(altered, "nt"))
+            self.assertIsNone(support.launcher_targets(altered, "nt"))
 
     def test_unsafe_embedded_paths_fail(self):
         for platform in ("posix", "nt"):
