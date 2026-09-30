@@ -12,6 +12,20 @@ from pathlib import Path
 # Suppress bytecode before importing any project modules, even without -B.
 sys.dont_write_bytecode = True
 
+
+class ShardbaseArgumentParser(argparse.ArgumentParser):
+    """Report removed note flags consistently before subparser values consume them."""
+
+    removed_note_options = {"--intent", "--database", "--template", "--pool", "--core", "--parent", "--collection"}
+
+    def parse_known_args(self, args=None, namespace=None):
+        tokens = sys.argv[1:] if args is None else args
+        for token in tokens:
+            if token in self.removed_note_options:
+                self.error(f"unrecognized arguments: {token}")
+        return super().parse_known_args(args, namespace)
+
+
 class Terminal:
     """Small text UI with optional ANSI styling and a readable plain-text mode."""
 
@@ -40,20 +54,12 @@ class Terminal:
 
 
 def new_note(args: argparse.Namespace) -> int:
-    from database_preparation import (
-        database_sources,
-        eligible_parents,
-        select_core,
-        select_database,
-        templates_for,
-        validated_notes,
-    )
-    from note_creation import CreationError, create_note, read_document
+    from note_creation import create_note
 
     ui = Terminal(args.no_color)
     ui.section("SHARDBASE  /  New note")
-    print("  A blank page, with its structure ready.")
-    print(ui.style("  YAML + title only  ·  Choose capture or canonical creation  ·  Ctrl+C to cancel", "2"))
+    print("  A blank page, ready for Inbox review.")
+    print(ui.style("  Universal YAML + title only  ·  Structure stays provisional  ·  Ctrl+C to cancel", "2"))
     if args.title is None:
         ui.section("Title")
         print("  Enter the note's human-readable local title.")
@@ -71,66 +77,15 @@ def new_note(args: argparse.Namespace) -> int:
         alias = input("\n  Alias: ")
     else:
         alias = args.alias
-    intent = args.intent or ui.choose("Note intent", [
-        ("inbox", "Inbox", "Temporary capture with editable Games draft metadata."),
-        ("database", "Database note", "Create a canonical note directly in a selected live database."),
-    ])
-    database, template, pool = args.database, args.template, args.pool
-    parent, collection, core = args.parent, args.collection, args.core
-    source = None
-    if intent == "database":
-        root = args.root.resolve(strict=True)
-        if database is None:
-            sources = database_sources(root, live_only=True)
-            if not sources:
-                raise CreationError("No live databases found. Create/materialize a live database first with shardbase create new database.")
-            database = ui.choose("Live database", [
-                (item.metadata["database_id"], str(item.metadata.get("database_name", item.metadata["database_id"])),
-                 f"{item.metadata['database_id']} · Live database")
-                for item in sources
-            ])
-        source = select_database(root, database)
-        notes = validated_notes(root, source)
-        templates = templates_for(root, source, kind)
-        if template is None and len(templates) > 1:
-            template = ui.choose("Template", [(path.name, path.stem, "Use this database's metadata defaults.") for path in templates])
-        if kind != "core" and parent is None:
-            if core is None:
-                cores = [note for note in notes if note.metadata["type"] == "core"]
-                if not cores:
-                    raise CreationError("No Core available. Create a Core in this database first.")
-                core = ui.choose("Core lineage", [
-                    (note.path.relative_to(source.path).as_posix(), note.path.stem, "Owns this note's lineage.")
-                    for note in cores
-                ])
-            root_core = select_core(source, notes, core)
-            parent = ui.choose("Parent note", [
-                (note.path.relative_to(source.path).as_posix(), note.path.stem, note.metadata["type"].title())
-                for note in eligible_parents(source, notes, root_core)
-            ])
-        if pool is None and kind == "core":
-            selected = next((path for path in templates if path.name == template), None) if template else (templates[0] if len(templates) == 1 else None)
-            defaults = read_document(root, selected)[0] if selected else {}
-            if not isinstance(defaults.get("pool"), str) or not defaults["pool"].strip():
-                ui.section("Pool")
-                print(f"  Use the vocabulary in {ui.style(str(source.path / 'Database.md'))}.")
-                pool = input("\n  Pool: ")
-        if collection is None and kind == "core" and len(source.metadata["data_collections"]) > 1:
-            collection = ui.choose("Collection", [(name, name, "Declared in the selected Database.md.") for name in source.metadata["data_collections"]])
-    result = create_note(args.root, title, kind, alias, intent=intent, database=database,
-                         template=template, pool=pool, parent=parent, collection=collection, core=core)
+    result = create_note(args.root, title, kind, alias)
     ui.section("Note created")
     print(f"  {ui.style(title.strip(), '1')}  ·  {kind.title()}  ·  Draft")
     print(f"  {ui.style(str(result.path.relative_to(args.root.resolve())), '32')}")
     print(f"  {ui.style('Instance: ' + str(args.root.resolve()), '2')}")
     if alias.strip():
         print(f"  Alias: {ui.style(alias.strip(), '0')}")
-    if source:
-        print(f"\n  Created in database: {ui.style(source.metadata['database_name'])}")
-        print("  Structural checks passed. Preserve the stable ID when editing.")
-        print("  Review semantic content against Database.md; semantic validation is not automated.")
-    else:
-        print("\n  Saved to Inbox. Metadata remains provisional; review before database promotion.")
+    print("\n  Saved to Inbox. Structure remains provisional until promotion.")
+    print("  Preserve the stable ID when promoting this note.")
     print()
     return 0
 
@@ -181,8 +136,7 @@ def new_database(args: argparse.Namespace) -> int:
     from database_creation import available_blueprints, create_database
     from note_creation import CreationError
 
-    if any(getattr(args, name, None) is not None for name in
-           ("title", "kind", "alias", "intent", "database", "template", "pool", "parent", "collection", "core")):
+    if any(getattr(args, name, None) is not None for name in ("title", "kind", "alias")):
         raise CreationError("Note options do not apply to database scaffolding; use --blueprint and --root.")
     ui = Terminal(args.no_color)
     ui.section("SHARDBASE  /  New database")
@@ -201,7 +155,7 @@ def new_database(args: argparse.Namespace) -> int:
     print("  The current managed package is installed; Data and Views are your durable user state.")
     print("  Structural checks passed. Review Database.md for its domain conventions.")
     print("\n  Next: shardbase create new")
-    print("  Choose database intent to create a canonical note directly in the new database.\n")
+    print("  Capture a new note in Inbox, then promote it deliberately when its structure is resolved.\n")
     return 0
 
 
@@ -252,7 +206,7 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="shardbase", description="Shardbase — local notes, structured simply.")
+    parser = ShardbaseArgumentParser(prog="shardbase", description="Shardbase — local notes, structured simply.")
     commands = parser.add_subparsers(dest="command")
     pages = {(): parser}
     catalog: list[tuple[str, str]] = []
@@ -266,19 +220,12 @@ def build_parser() -> argparse.ArgumentParser:
     def add_new_command(parent, route, summary):
         new = register(
             parent, "new", route, summary,
-            description="Create YAML and a title H1: capture in app/Knowledge/Inbox/ or create directly in a selected live database. Omitted choices are prompted.",
-            epilog='Example: shardbase create new --title "Example Game" --type core --alias "" --intent database --database games',
+            description="Create a pre-structural note with universal YAML and a title H1 in app/Knowledge/Inbox/. Omitted choices are prompted.",
+            epilog='Example: shardbase create new --title "Example Detail" --type shard --alias "Alternate Detail"',
         )
         new.add_argument("--title", help="Note title; prompted when omitted")
-        new.add_argument("--type", dest="kind", choices=("core", "shard", "pebble"), help="Structural note type; prompted when omitted")
+        new.add_argument("--type", dest="kind", choices=("core", "shard", "pebble"), help="Provisional structural intention; prompted when omitted")
         new.add_argument("--alias", help='Optional alternative name; prompted when omitted (use --alias "" to skip)')
-        new.add_argument("--intent", choices=("inbox", "database"), help="Inbox capture or direct canonical database creation; prompted when omitted")
-        new.add_argument("--database", help="Target database_id from Database.md; requires --intent database")
-        new.add_argument("--template", help="Matching-type filename inside the selected Templates/; prompted if ambiguous")
-        new.add_argument("--pool", help="Pool from Database.md; supplied by a template for Cores or inherited from the selected Core")
-        new.add_argument("--core", help="Root Core stem or database-relative path for a supporting note; inferred from --parent if omitted")
-        new.add_argument("--parent", help="Immediate Core/Shard stem or database-relative path; required for canonical supporting notes")
-        new.add_argument("--collection", help="Declared data collection; inherited from the selected Core or inferred from a single collection")
         new.add_argument("--no-color", action="store_true", help="Disable terminal colors (also respects NO_COLOR)")
         new.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: this checkout)")
         new.set_defaults(handler=new_note)

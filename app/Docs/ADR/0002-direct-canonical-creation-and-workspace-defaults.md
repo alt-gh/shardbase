@@ -6,6 +6,8 @@ Date: 2026-09-28
 
 Specification boundary: `foundation-4`; foundation-3 naming retained
 
+Supersession: ADR 0004 removes direct canonical note creation from the public CLI at `foundation-6`. The workspace/flat placement model, manifest preference, inheritance rules, and canonical preparation/commit safety recorded here remain applicable to future promotion and deliberate materialization.
+
 ## Context
 
 Mandatory Inbox staging made deliberate database creation produce a provisional file and a manual move target. Users had already selected ownership but still needed to complete a filesystem operation outside the CLI's validation boundary. Supporting creation could also leave lineage unresolved.

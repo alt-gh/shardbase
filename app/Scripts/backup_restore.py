@@ -584,8 +584,8 @@ def backup(root: Path, output: Path, password: bytes, staging_dir: Path | None =
     if not output.parent.is_dir():
         raise BackupError("The backup output's parent directory must exist.")
     spec = specification(root)
-    if spec not in {"foundation-4", "foundation-5"}:
-        raise BackupError("Backup format v2 supports foundation-4 and foundation-5 sources; this specification needs explicit compatibility support.")
+    if spec not in {"foundation-4", "foundation-5", "foundation-6"}:
+        raise BackupError("Backup format v2 supports foundation-4, foundation-5, and foundation-6 sources; this specification needs explicit compatibility support.")
     check_obsidian_untracked(root)
     entries, snapshots, databases = inventory_v2(root)
     validate_reconstructable_packages(root, databases, staging_dir)
@@ -897,10 +897,13 @@ def _publish(stage: Path, directories: list[Path], files: list[tuple[Path, Path]
 
 def _restore_v2(root: Path, manifest: dict, stage: Path, target_spec: str, dry_run: bool) -> dict:
     if (manifest["specification"], target_spec) not in {
-        ("foundation-4", "foundation-5"), ("foundation-5", "foundation-5")
+        ("foundation-4", "foundation-5"), ("foundation-5", "foundation-5"),
+        ("foundation-4", "foundation-6"), ("foundation-5", "foundation-6"),
+        ("foundation-6", "foundation-6"),
     }:
         raise BackupError(
-            "Unsupported specification transition. Format v2 supports foundation-4/5 user state into foundation-5; "
+            "Unsupported specification transition. Format v2 supports foundation-4/5 user state into foundation-5 "
+            "and foundation-4/5/6 user state into foundation-6; "
             "it does not downgrade or infer other migrations."
         )
     check_obsidian_untracked(root)

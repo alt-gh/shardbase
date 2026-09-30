@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -13,17 +12,16 @@ from note_creation import (
     DraftDumper,
     checked_path,
     filename_key,
+    inbox_ids,
+    new_id,
     read_document,
     refuse_collision,
 )
 from validate_shardbase import (
-    NOTE_ID,
-    FrontmatterError,
     Note,
     core_creation_placement,
     expected_filename,
     nonempty_string,
-    parse_frontmatter,
     primary_title,
     validate_database,
     wikilink_target,
@@ -133,39 +131,6 @@ def source_notes(root: Path, source: DatabaseSource) -> list[Note]:
     for name in source.metadata["data_collections"]:
         scan(checked_path(root, source.path / "Data" / name))
     return notes
-
-
-def inbox_ids(root: Path) -> set[str]:
-    """Reserve IDs in parseable Inbox drafts, including user-organized folders."""
-    result: set[str] = set()
-
-    def scan(directory: Path) -> None:
-        if not directory.exists():
-            return
-        for path in sorted(directory.iterdir()):
-            checked_path(root, path)
-            if path.is_dir():
-                scan(path)
-            elif path.suffix == ".md":
-                try:
-                    metadata, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
-                except FrontmatterError:
-                    # Plain or unfinished Inbox captures need not have valid YAML.
-                    continue
-                token = metadata.get("id")
-                if isinstance(token, str) and NOTE_ID.fullmatch(token):
-                    result.add(token)
-
-    scan(checked_path(root, root / "app/Knowledge/Inbox"))
-    return result
-
-
-def new_id(used: set[str]) -> str:
-    for _ in range(100):
-        token = "".join(secrets.choice("0123456789abcdefghjkmnpqrstvwxyz") for _ in range(10))
-        if token not in used:
-            return token
-    raise CreationError("Could not allocate an unused note ID; retry creation.")
 
 
 def resolve_note(source: DatabaseSource, notes: list[Note], value: str) -> Note:

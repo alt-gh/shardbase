@@ -1,20 +1,15 @@
-"""Local-only proof of direct canonical creation and preservation."""
+"""Local-only proof of retained canonical preparation and safe commit primitives."""
 
-import contextlib
-import io
 import shutil
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 import yaml
-from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
-from database_preparation import database_sources, new_id
-from note_creation import CreationError, create_note
-from shardbase import main
+from _support import FIXTURES, GAMES_BLUEPRINT
+from database_preparation import database_sources, prepare_note
+from note_creation import CreationError, commit_canonical, create_note, new_id
 from validate_shardbase import NOTE_ID, parse_frontmatter, validate_database
 
 
@@ -29,7 +24,13 @@ class DatabasePreparationTests(unittest.TestCase):
         shutil.copytree(self.blueprint, self.database)
 
     def create(self, title="Example", kind="core", **kwargs):
-        return create_note(self.root, title, kind, intent="database", database="games", **kwargs)
+        prepared = prepare_note(
+            self.root, title, kind, kwargs.pop("alias", None), kwargs.pop("database", "games"),
+            kwargs.pop("template", None), kwargs.pop("pool", None), kwargs.pop("parent", None),
+            kwargs.pop("collection", None), kwargs.pop("core", None),
+        )
+        self.assertEqual(kwargs, {})
+        return commit_canonical(self.root, prepared)
 
     def edit_metadata(self, path, **fields):
         metadata, body = parse_frontmatter(path.read_text())
@@ -94,13 +95,13 @@ class DatabasePreparationTests(unittest.TestCase):
         staged = draft.path.parent / "Staged"
         staged.mkdir()
         draft.path.rename(staged / draft.path.name)
-        with patch("database_preparation.secrets.choice", side_effect=list("000000000011111111112222222222")):
+        with patch("note_creation.secrets.choice", side_effect=list("000000000011111111112222222222")):
             result = self.create("New")
         metadata, _ = parse_frontmatter(result.path.read_text())
         self.assertEqual(metadata["id"], "2222222222")
 
     def test_id_collision_retry_is_bounded(self):
-        with patch("database_preparation.secrets.choice", return_value="0"):
+        with patch("note_creation.secrets.choice", return_value="0"):
             with self.assertRaisesRegex(CreationError, "unused note ID"):
                 new_id({"0000000000"})
 
@@ -109,7 +110,7 @@ class DatabasePreparationTests(unittest.TestCase):
         self.edit_metadata(template, id="0000000000", core="[[Other]]", parent_note="[[Other]]",
                            status="archived", tags=["games"], developers=["Example Studio"])
         before = self.snapshot(self.database)
-        with patch("database_preparation.secrets.choice", side_effect=list("00000000001111111111")):
+        with patch("note_creation.secrets.choice", side_effect=list("00000000001111111111")):
             result = self.create(alias="001")
         metadata, _ = parse_frontmatter(result.path.read_text())
         self.assertNotEqual(metadata["id"], "0000000000")
@@ -129,7 +130,7 @@ class DatabasePreparationTests(unittest.TestCase):
         templates.mkdir()
         (templates / "Film.md").write_text("---\ntype: core\npool: Cinema\ntags: [film]\n---\n# Ignored\n")
         before = self.snapshot(movies)
-        result = create_note(self.root, "Example Film", intent="database", database="movies")
+        result = self.create("Example Film", database="movies")
         metadata, _ = parse_frontmatter(result.path.read_text())
         self.assertEqual(metadata["pool"], "Cinema")
         self.assertEqual(metadata["tags"], ["film"])
@@ -239,7 +240,7 @@ class DatabasePreparationTests(unittest.TestCase):
         for options in (dict(database="missing"), dict(database="games", template="../Game.md"),
                         dict(database="games", collection="../Other"), dict(database="games", pool="")):
             with self.subTest(options=options), self.assertRaises(CreationError):
-                create_note(self.root, "Example", intent="database", **options)
+                self.create("Example", **options)
         self.edit_metadata(self.database / "Templates/Game.md", aliases=[False])
         with self.assertRaisesRegex(CreationError, "aliases"):
             self.create()
@@ -250,42 +251,9 @@ class DatabasePreparationTests(unittest.TestCase):
         with self.assertRaisesRegex(CreationError, "manifest_version"):
             self.create()
 
-    def test_inbox_intent_rejects_database_options(self):
-        with self.assertRaisesRegex(CreationError, "require --intent"):
-            create_note(self.root, "Example", database="games")
-
     def test_trailing_heading_marker_is_reported_instead_of_wrong_filename(self):
         with self.assertRaisesRegex(CreationError, "heading markers"):
             self.create("Example ###")
-
-    def test_interactive_database_selection_and_parent_selection(self):
-        core = self.created_path(self.create())
-        with patch("builtins.input", side_effect=["Weapons", "shard", "", "database", "games", "1", "1"]), contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        path = next(core.parent.glob("Weapons - *.md"))
-        metadata, _ = parse_frontmatter(path.read_text())
-        self.assertEqual(metadata["parent_note"], f"[[{core.stem}]]")
-        self.assertNotIn("Manual move target:", output.getvalue())
-        self.assertIn(str(path.relative_to(self.root)), output.getvalue())
-
-    def test_cancel_database_selection_writes_nothing(self):
-        before = self.snapshot(self.root)
-        with patch("builtins.input", side_effect=["Example", "core", "", "database", KeyboardInterrupt()]), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-            self.assertEqual(main(["new", "--root", str(self.root)]), 130)
-        self.assertEqual(before, self.snapshot(self.root))
-
-    def test_interactive_selection_for_another_database_without_templates(self):
-        movies = self.root / "app/Knowledge/Databases/Movies"
-        shutil.copytree(FIXTURES / "valid-database", movies)
-        self.edit_metadata(movies / "Database.md", database_id="movies", database_name="Movies",
-                           data_collections=["Game", "Film"])
-        (movies / "Data/Film/Attachments").mkdir(parents=True)
-        with patch("builtins.input", side_effect=["Example Film", "core", "", "database", "movies", "Cinema", "Film"]), contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        path = movies / "Data/Film/Example Film/Example Film.md"
-        metadata, _ = parse_frontmatter(path.read_text())
-        self.assertEqual(metadata["pool"], "Cinema")
-        self.assertIn(str(path.relative_to(self.root)), output.getvalue())
 
     def test_malformed_canonical_yaml_blocks_identity_scan_without_writes(self):
         (self.database / "Data/Game/Broken.md").write_text("---\nid: [unfinished\n")
@@ -310,31 +278,6 @@ class DatabasePreparationTests(unittest.TestCase):
             with self.assertRaisesRegex(CreationError, "Symlink"):
                 self.create()
             self.assertEqual(list(Path(outside).iterdir()), [])
-
-    def test_subprocess_proof_for_all_types_and_deeper_shard(self):
-        command = [sys.executable, "-B", str(SCRIPTS / "shardbase.py"), "new", "--root", str(self.root),
-                   "--intent", "database", "--database", "games", "--alias", "", "--no-color"]
-        parent = None
-        for kind, title in (("core", "Example Game"), ("shard", "Example Topic"), ("shard", "Example Subtopic"), ("pebble", "Example Detail")):
-            args = command + ["--title", title, "--type", kind]
-            if parent:
-                args += ["--parent", parent]
-            run = subprocess.run(args, input="", text=True, capture_output=True)
-            self.assertEqual(run.returncode, 0, run.stderr)
-            workspace = self.database / "Data/Game/Example Game"
-            paths = list(workspace.glob(f"{title}*.md"))
-            self.assertEqual(len(paths), 1)
-            destination = paths[0]
-            metadata, _ = parse_frontmatter(destination.read_text())
-            self.assertEqual(metadata["core"], "[[Example Game]]")
-            self.assertEqual(metadata["parent_note"], f"[[{parent}]]" if parent else None)
-            self.assertIn(str(destination.relative_to(self.root)), run.stdout)
-            self.assertNotIn("Manual move", run.stdout)
-            self.assertEqual(validate_database(self.database), [])
-            self.assertFalse((self.root / "app/Knowledge/Inbox").exists())
-            parent = destination.stem
-        self.assertEqual(list(self.root.rglob("__pycache__")), [])
-
 
     def test_core_placement_preferences_and_portable_stem(self):
         manifest = self.database / "Database.md"
@@ -407,7 +350,7 @@ class DatabasePreparationTests(unittest.TestCase):
             self.assertEqual(metadata["parent_note"], "[[Root]]")
             self.assertEqual(note.name, f"{kind} - {metadata['id']}.md")
 
-    def test_parent_picker_filters_other_lineages_and_pebbles(self):
+    def test_eligible_parents_filter_other_lineages_and_pebbles(self):
         from database_preparation import (
             eligible_parents,
             select_database,
@@ -422,15 +365,6 @@ class DatabasePreparationTests(unittest.TestCase):
         notes = validated_notes(self.root, source)
         root = next(note for note in notes if note.path == first)
         self.assertEqual({note.path for note in eligible_parents(source, notes, root)}, {first, topic})
-        with patch("builtins.input", return_value="2") as prompt, contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(main(["new", "--root", str(self.root), "--intent", "database", "--database", "games",
-                                   "--title", "Child", "--type", "shard", "--alias", "", "--core", "First"]), 0)
-        self.assertEqual(prompt.call_count, 1)
-        self.assertNotIn("Second", output.getvalue())
-        self.assertNotIn("Unrelated", output.getvalue())
-        self.assertNotIn("Leaf", output.getvalue())
-        child = next(first.parent.glob("Child - *.md"))
-        self.assertEqual(parse_frontmatter(child.read_text())[0]["parent_note"], f"[[{topic.stem}]]")
 
     def test_split_lineages_fail_preflight(self):
         core = self.created_path(self.create())
@@ -552,31 +486,6 @@ class DatabasePreparationTests(unittest.TestCase):
             self.create()
         self.assertEqual(before, self.snapshot(self.root))
 
-    def test_database_only_core_flag_rejected_for_inbox(self):
-        with self.assertRaisesRegex(CreationError, "require --intent"):
-            create_note(self.root, "Capture", core="Example")
-
-    def test_noninteractive_unresolved_lineage_never_writes(self):
-        core = self.created_path(self.create())
-        before = self.snapshot(self.root)
-        command = [sys.executable, "-B", str(SCRIPTS / "shardbase.py"), "new", "--root", str(self.root),
-                   "--intent", "database", "--database", "games", "--title", "Child", "--type", "shard", "--alias", ""]
-        for flags in ([], ["--core", core.stem], ["--parent", ""]):
-            result = subprocess.run(command + flags, input="", capture_output=True, text=True)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertNotIn("Traceback", result.stderr)
-            self.assertEqual(before, self.snapshot(self.root))
-
-    def test_cancelling_core_or_parent_selection_preserves_database(self):
-        core = self.created_path(self.create())
-        before = self.snapshot(self.root)
-        for answers in ([KeyboardInterrupt()], ["1", KeyboardInterrupt()]):
-            with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(main(["new", "--root", str(self.root), "--intent", "database", "--database", "games",
-                                       "--title", "Child", "--type", "shard", "--alias", ""]), 130)
-            self.assertEqual(before, self.snapshot(self.root))
-            self.assertTrue(core.exists())
-
     def test_rollback_preserves_replacement_of_new_file(self):
         path = self.database / "Data/Game/Example/Example.md"
         def replace_and_fail(_):
@@ -596,24 +505,6 @@ class DatabasePreparationTests(unittest.TestCase):
             with self.subTest(title=title), self.assertRaisesRegex(CreationError, "already uses"):
                 self.create(title)
         self.assertEqual(before, self.snapshot(self.root))
-
-    def test_blueprints_are_not_offered_as_writable_targets(self):
-        other = self.blueprint.with_name("Other")
-        shutil.copytree(self.blueprint, other)
-        self.edit_metadata(other / "Database.md", database_id="other", database_name="Blueprint Only")
-        with patch("builtins.input", return_value="games"), contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(main(["new", "--root", str(self.root), "--intent", "database",
-                                   "--title", "Example", "--type", "core", "--alias", ""]), 0)
-        self.assertNotIn("Blueprint Only", output.getvalue())
-        self.assertEqual(list((other / "Data/Game").glob("*.md")), [])
-
-    def test_help_describes_direct_creation(self):
-        with contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(main(["help", "create", "new"]), 0)
-        self.assertIn("--core", output.getvalue())
-        self.assertIn("directly", output.getvalue())
-        self.assertNotIn("both save to Inbox", output.getvalue())
-        self.assertNotIn("manual move", output.getvalue())
 
 
 if __name__ == "__main__":

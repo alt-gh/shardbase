@@ -87,24 +87,24 @@ For exact manifest requirements, note metadata, naming, placement, lifecycle, at
 Shardbase currently includes:
 
 - guided initialization for new, restored, or tooling-only private instances;
-- a local CLI for blueprint-based database scaffolding and direct canonical note creation;
+- a local CLI for blueprint-based database scaffolding and Inbox-first note capture;
 - a read-only structural validator;
 - manual encrypted user-state backup and restore commands;
 - regression tests and sanitized fixtures;
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
 
-Use `shardbase create new` to choose **Inbox capture** or **database creation**. Database creation selects a live database, resolves canonical identity and lineage, and writes directly after structural validation. New Cores normally receive a workspace; supporting notes inherit the selected Core’s Pool, collection, and existing workspace or flat location. Each canonical note receives a stable ID and the required filename. Inbox captures remain provisional in `app/Knowledge/Inbox/`.
+Use `shardbase create new` for local Inbox-first capture. Choose a title, provisional Core/Shard/Pebble type, and optional alias; the CLI writes universal YAML plus a title H1 to `app/Knowledge/Inbox/`. Every CLI capture receives a stable ID, while Pool, Core lineage, parent, database ownership, semantic metadata, and canonical placement remain unresolved until deliberate promotion.
 
 For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. Shardbase does not change your editor settings automatically.
 
-Canonical creation checks structural validity before and after writing and rolls back its own new artifacts on failure. Database-specific semantics still require review. Existing flat lineages and historical Inbox notes remain unchanged; release upgrades reconstruct managed packages during restore into a fresh checkout and never synchronize them into an existing live database in place.
+There is no automated promotion command yet. Manual promotion must preserve the capture ID, resolve the complete destination contract, recheck collisions, and run structural validation; database-specific semantics still require review. Retained canonical preparation and rollback machinery remains available for future promotion work. Existing canonical state and historical Inbox notes remain unchanged; release upgrades reconstruct managed packages during restore into a fresh checkout and never synchronize them into an existing live database in place.
 
 Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
 
 Use `shardbase doctor` for read-only framework, privacy, runtime, and structural database health checks. It distinguishes warnings from blocking issues and performs no repairs; see [instance health diagnostics](app/Scripts/README.md#instance-health-diagnostics).
 
-Use `shardbase backup` and `shardbase restore` to preserve user state or transfer it into a fresh compatible checkout. Format v2 supports foundation-4/5 sources into foundation-5, encrypts Inbox, every database's Data and Views, and the entire `.obsidian/` tree; the destination release supplies current managed database packages by stable `database_id`. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, conflict safety, and compatibility limits.
+Use `shardbase backup` and `shardbase restore` to preserve user state or transfer it into a fresh compatible checkout. Format v2 supports foundation-4/5/6 sources into foundation-6, encrypts Inbox, every database's Data and Views, and the entire `.obsidian/` tree; the destination release supplies current managed database packages by stable `database_id`. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, conflict safety, and compatibility limits.
 
 ## Get Started
 
@@ -126,7 +126,7 @@ Guided setup offers three choices: start a new private instance from one availab
 
 The new-instance path lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are recognized and never merged or overwritten.
 
-After a new database is ready, run `shardbase create new` to create your first note. Choose database intent and your new database; the CLI prints its actual canonical path after structural checks pass. Use `shardbase validate` for later edits and `shardbase commands` to explore the CLI.
+After a new database is ready, run `shardbase create new` to capture your first note in Inbox. Review the database contract before manually promoting it into canonical structure, then run `shardbase validate`. Use `shardbase commands` to explore the CLI.
 
 The Python environment and launcher stay outside the project. For platform defaults, persistent PATH configuration, custom locations, and safe reruns, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
 
@@ -154,6 +154,6 @@ Shardbase may manage, validate, package, convert, or export AI-related files und
 
 Shardbase is in the **Foundation** stage. The universal architecture and substantial deterministic validation are already implemented, but Foundation is not complete.
 
-The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, extend creation with semantic validation and add deliberate draft promotion, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
+The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, add deliberate draft promotion with semantic validation, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
 
 See [`app/Docs/Shardbase Foundation Roadmap.md`](app/Docs/Shardbase%20Foundation%20Roadmap.md) for current status only. Architectural requirements belong in the System Specification, not the roadmap.

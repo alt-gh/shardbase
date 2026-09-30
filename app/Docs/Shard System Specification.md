@@ -1,10 +1,10 @@
 # Shard — System Specification
 
-Specification version: `foundation-5` (2026-09-30)
+Specification version: `foundation-6` (2026-09-30)
 
 Editorial revision: 2026-09-30
 
-Foundation-5 change note: this edition separates Shardbase-managed live database packages from durable user-owned state and defines user-state-only upgrade transfer. `Database.md`, supplied Agents, supplied Templates, and other package resources are reconstructed from the destination release; Inbox, database Data and Views, and `.obsidian/` are preserved as user state. Existing foundation-4 live packages are not rewritten automatically, and `manifest_version: 1` remains unchanged.
+Foundation-6 change note: CLI note creation is Inbox-first and database-independent. Every CLI-created capture receives the complete universal YAML key set and a stable ID, while database ownership, Pool, lineage, semantic metadata, and canonical placement remain unresolved until deliberate promotion. Direct canonical CLI note creation is removed; existing Inbox and canonical data remain unchanged, retained canonical preparation rules still govern future materialization, and `manifest_version: 1` remains unchanged.
 
 ## 1. Purpose and Authority
 
@@ -162,9 +162,9 @@ creation_defaults:
   core_placement: workspace
 ```
 
-When present, `creation_defaults` must be a mapping with string keys. Its optional `core_placement` must be `workspace` or `flat`; omission of either setting defaults CLI creation of new Cores to `workspace`. Invalid shapes or values must block canonical creation. Other database-specific manifest fields remain permitted.
+When present, `creation_defaults` must be a mapping with string keys. Its optional `core_placement` must be `workspace` or `flat`; omission of either setting defaults canonical preparation of new Cores to `workspace`. Invalid shapes or values must block canonical preparation. Other database-specific manifest fields remain permitted.
 
-This preference affects new CLI-created Cores only. It does not redefine canonical validity, alter YAML lineage authority, or migrate existing lineages. Manifest version 1 remains readable without this optional setting.
+This preference affects newly materialized Cores only. It does not redefine canonical validity, alter YAML lineage authority, or migrate existing lineages. Manifest version 1 remains readable without this optional setting.
 
 Each declared collection requires its root `Attachments/` directory. `Views/` is required and may be empty.
 
@@ -266,7 +266,7 @@ tags:
 ---
 ```
 
-This requirement does not apply to documentation, `Database.md`, Agent resources, Views, attachments, or pre-structural Inbox captures.
+This requirement does not apply to documentation, `Database.md`, Agent resources, Views, attachments, or arbitrary pre-structural Inbox captures. CLI-created Inbox captures include all eight keys as an organizational scaffold, but blank unresolved structural values do not make them canonical.
 
 ### 6.1 Structural Fields
 
@@ -295,10 +295,10 @@ Database-specific workflow or domain state must use separately named semantic fi
 `aliases`, `id`, and `tags` are universal common note fields but are not lineage fields.
 
 - `aliases` defaults to blank YAML. When populated, it is a YAML list of non-empty strings; `[]` is valid.
-- `id` is required on every canonical Core, Shard, and Pebble. It is a stable opaque 10-character lowercase Crockford Base32 token matching `[0-9a-hjkmnp-tv-z]{10}` and must be unique among canonical structural notes in the same database. The token is assigned once when canonical state is materialized, or prepared earlier for that purpose, and must not encode note type, ancestry, date, sequence, database identity, or other semantic meaning. If a generated token collides, generate another before writing canonical state.
+- `id` is required on every canonical Core, Shard, and Pebble. It is a stable opaque 10-character lowercase Crockford Base32 token matching `[0-9a-hjkmnp-tv-z]{10}` and must be unique among canonical structural notes in the same database. The token is assigned once when canonical state is materialized, or prepared earlier for that purpose; CLI capture assigns it in Inbox. It must not encode note type, ancestry, date, sequence, database identity, or other semantic meaning. If a generated token collides, generate another before writing canonical state.
 - `tags` defaults to blank YAML. When populated, it is a YAML list of non-empty strings; `[]` is valid.
 
-A note's `id` remains unchanged when its title, filename, placement, structural type, or parent changes. Existing valid populated IDs must be preserved during updates. `aliases`, `id`, and `tags` never replace `pool`, `core`, `parent_note`, or structural lineage. Pre-structural Inbox captures may leave `id` blank because they are not canonical structural notes.
+A note's `id` remains unchanged when its title, filename, placement, structural type, or parent changes. Existing valid populated IDs must be preserved during updates and promotion. `aliases`, `id`, and `tags` never replace `pool`, `core`, `parent_note`, or structural lineage. Editor-created, historical, and other arbitrary pre-structural Inbox captures may leave `id` blank because they are not canonical structural notes; every CLI-created Inbox capture receives an ID immediately.
 
 ### 6.3 Semantic Metadata
 
@@ -317,7 +317,7 @@ Canonical structural notes may use one of two placement modes within a declared 
 1. **Flat placement** — the Core and descendants live directly at the collection root.
 2. **Core workspace placement** — exactly one Core lineage is bundled into one direct-child directory named for the Core's portable canonical filename stem.
 
-Both representations remain valid indefinitely. New Cores created through the CLI default to workspaces for navigation and locality unless the manifest explicitly prefers `flat`. Supporting notes inherit the resolved Core’s collection and existing physical location. Existing flat lineages are not bundled automatically, and existing workspaces are not unbundled automatically.
+Both representations remain valid indefinitely. Newly materialized Cores default to workspaces for navigation and locality unless the manifest explicitly prefers `flat`. Supporting notes inherit the resolved Core’s collection and existing physical location. Existing flat lineages are not bundled automatically, and existing workspaces are not unbundled automatically.
 
 A Core may have at most one workspace. A lineage stays within one collection and must not be split between the collection root and its workspace. Structural notes inside a workspace remain direct Markdown children; nested Core → Shard → Pebble folder ancestry is invalid. Filesystem placement provides organization; YAML remains authoritative for lineage. Resolve ownership, Core, and parent from user selection and canonical metadata before deriving the destination; never infer ancestry from folders.
 
@@ -451,16 +451,15 @@ The lifecycle is a state-and-decision model rather than a mandatory linear pipel
 
 ### 11.1 Entry
 
-Shardbase recommends two primary creation paths:
+CLI-created notes always enter `app/Knowledge/Inbox/` as pre-structural captures. Markdown editors (preferably Obsidian) and direct filesystem workflows should also normally use Inbox when ownership or structure remains unresolved. Knowledgeable users may still create canonical files manually if they intentionally satisfy the complete contract.
 
-- deliberately database-owned notes should normally use the CLI to select a live database and create canonical state directly after resolving identity, collection, Pool, Core/parent lineage, naming, and placement and passing applicable deterministic validation;
-- temporary, unresolved, or pre-structural captures created through the CLI, a Markdown editor (preferably Obsidian), or filesystem should normally enter `app/Knowledge/Inbox/`.
-
-Knowledgeable users may create canonical files manually if they intentionally satisfy the complete contract.
+Promotion is the deliberate operation that resolves database ownership, semantic metadata, collection, Pool, structural role and lineage, canonical filename, and placement, then validates the resulting canonical state. Foundation does not yet provide an automated promotion command.
 
 ### 11.2 Inbox
 
-Inbox items are pre-structural. They do not require a database, Pool, Core, structural `type`, lineage, canonical filename, or database semantic schema.
+Inbox items are pre-structural. They do not require a database, Pool, Core, structural `type`, lineage, canonical filename, or database semantic schema. Pre-structural means those ownership and structural facts are unresolved, not that metadata is forbidden.
+
+Every CLI-created Inbox capture contains `type`, `pool`, `core`, `parent_note`, `status`, `aliases`, `id`, and `tags` in the universal order. Its selected `type` is provisional, `status` is `draft`, and it receives a stable ID at capture. `pool`, `core`, and `parent_note` remain blank, including for a provisional Core. Collection, canonical placement, and database-specific semantic metadata are also unresolved. This scaffold supports organization and future promotion but does not establish database ownership or canonical conformance. Arbitrary editor-created and historical Inbox files remain permitted as ordinary Markdown and are not retroactively required to use this scaffold.
 
 Historical prepared notes may remain in Inbox with canonical-looking filenames, metadata, and IDs. They are not invalid merely because the creation workflow changed, and must not be automatically moved or rewritten. Inbox placement does not establish database ownership or prove conformance. Preserve valid prepared IDs during deliberate promotion and recheck destination uniqueness and lineage.
 
@@ -543,11 +542,11 @@ Automation should:
 - treat blueprint upgrades and compatibility transformations as migrations when applicable;
 - keep rules visible in documented contracts.
 
-Database-intended creation writes only to a selected live database, never a blueprint. Duplicate or malformed live identities must fail visibly. A blueprint-only selection requires explicit live database materialization first.
+CLI note creation writes only to Inbox and must not inspect a live database or blueprint merely to capture a note. It generates a stable ID while reserving valid IDs already present in parseable Inbox drafts, including nested Inbox folders; malformed or plain Markdown Inbox files do not block capture. Database templates and semantic defaults do not participate in capture.
 
-Canonical supporting creation requires a resolved Core and an immediate Core/Shard parent in that same lineage and database. A parent alone may determine the Core; explicit Core and parent selections must agree. Parent pickers must filter to eligible members of the selected lineage. Supporting Pool, collection, and location inherit from the Core; conflicting explicit values must be rejected. Unresolved lineage belongs in Inbox. New canonical notes may remain `status: draft`.
+Retained canonical preparation and future promotion tooling must operate only on a selected live database, never a blueprint. Canonical supporting preparation requires a resolved Core and an immediate Core/Shard parent in that same lineage and database. A parent alone may determine the Core; explicit Core and parent selections must agree. Supporting Pool, collection, and location inherit from the Core; conflicting explicit values must be rejected. Unresolved lineage belongs in Inbox. Newly promoted canonical notes may remain `status: draft`.
 
-Direct creation must validate the selected manifest and existing database structure before mutation, allocate an unused stable ID, render complete authoritative metadata, derive the canonical filename and destination, and reject file, workspace, ID, and normalized Unicode/case collisions without inventing alternate names. Workspace names use the existing Core filename stem algorithm. Reject symlink boundary escapes and exclusively create the new file without overwriting existing content. Validate the resulting database; on failure or interruption, roll back only this operation’s new file and its newly created workspace if still empty. Preexisting or competing content must be preserved.
+Canonical materialization must validate the selected manifest and existing database structure before mutation, preserve the capture's valid stable ID, recheck destination-wide uniqueness, render complete authoritative metadata, derive the canonical filename and destination, and reject file, workspace, ID, and normalized Unicode/case collisions without inventing alternate names or silently changing the ID. Workspace names use the existing Core filename stem algorithm. Reject symlink boundary escapes and exclusively create the new file without overwriting existing content. Validate the resulting database; on failure or interruption, roll back only this operation’s new file and its newly created workspace if still empty. Preexisting or competing content must be preserved.
 
 Templates provide defaults but do not define validity. Applicable database-semantic constraints still require review until generic semantic validation exists. Tooling must disclose validation limits and its filesystem/concurrency assumptions; structural validation is not complete semantic or Foundation certification.
 
@@ -689,6 +688,14 @@ This is a breaking ownership boundary for existing foundation-4 installations wh
 Backup format v2 is the foundation-5 user-state transfer contract. It accepts foundation-4 or foundation-5 sources and restores them into foundation-5, leaving the source untouched and excluding managed-file customizations. It embeds all in-scope user bytes regardless of Git status, includes the complete ignored `.obsidian/` tree, and reconstructs every represented database from exactly one installed destination package. Unreconstructable database identities fail visibly. Restore is additive and conflict-safe: identical files may remain, differing files are never overwritten, destination-only files remain, and dry-run authenticates and completes preflight without durable writes.
 
 Format v1 retains its historical full-`app/Knowledge/` and Git-reference meaning. It is not reinterpreted as user-state-only and does not cross the foundation-5 ownership boundary automatically.
+
+### 15.6 `foundation-6`
+
+`foundation-6` makes CLI note creation Inbox-first and assigns a stable ID at capture. CLI-created drafts carry all eight universal keys, but their structural role remains provisional and their database-dependent `pool`, `core`, and `parent_note` values remain blank until deliberate promotion. Direct canonical note creation is removed from the public CLI; the canonical preparation, placement, validation, and rollback rules introduced at foundation-4 remain applicable to future promotion and deliberate materialization.
+
+No existing Inbox or canonical files are migrated or rewritten. Historical and editor-created Inbox files may remain plain Markdown or retain blank IDs and other earlier draft shapes. A valid populated draft ID must survive promotion, where target-database uniqueness and the complete canonical contract are rechecked. `manifest_version: 1`, canonical naming, placement validity, the user-state layout, and backup format v2 remain unchanged.
+
+Format v2 accepts foundation-4, foundation-5, and foundation-6 sources for restore into foundation-6, and retains the recorded foundation-4/foundation-5 transitions into foundation-5. It does not add downgrade support or reinterpret the format-v1 ownership boundary.
 
 ## 16. Validation Protocol
 

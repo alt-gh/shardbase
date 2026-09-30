@@ -32,6 +32,8 @@ The note ID is assigned for canonical materialization, including preparation bef
 
 Ordinary pre-structural Inbox captures may keep a blank `id`. Database-intended preparation may assign it earlier; final canonical validity still depends on promotion review. See the System Specification's lifecycle rules and the [current CLI workflow](../../Scripts/README.md#note-creation).
 
+ADR 0004 supersedes the CLI timing detail for new captures: every CLI-created Inbox note now receives its stable ID at capture. Historical, editor-created, and other arbitrary Inbox files may still have a blank ID.
+
 The System Specification is the normative authority for the exact ID format, portable normalization algorithm, filename construction, migration requirements, and validation contract. This ADR records rationale and tradeoffs only.
 
 ## Consequences

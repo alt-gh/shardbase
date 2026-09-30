@@ -230,19 +230,19 @@ class DatabaseCreationTests(unittest.TestCase):
         self.assertIn("Note options", result.stderr)
         self.assertFalse(self.destination.exists())
 
-    def test_subprocess_bootstrap_to_note_creation_and_validation(self):
+    def test_subprocess_bootstrap_to_inbox_capture_and_validation(self):
         result = self.run_cli("create", "new", "--root", str(self.root), "database", "--blueprint", "games", "--no-color")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.destination / "Agents/Vera.md").is_file())
         note = self.run_cli("create", "new", "--root", str(self.root), "--title", "Example Game", "--type", "core",
-                            "--alias", "", "--intent", "database", "--database", "games")
+                            "--alias", "")
         self.assertEqual(note.returncode, 0, note.stderr)
-        canonical = self.destination / "Data/Game/Example Game/Example Game.md"
-        original = canonical.read_bytes()
-        self.assertFalse((self.root / "app/Knowledge/Inbox/Example Game.md").exists())
+        capture = self.root / "app/Knowledge/Inbox/Example Game.md"
+        self.assertTrue(capture.is_file())
+        before = {path: path.read_bytes() for path in self.destination.rglob("*") if path.is_file()}
         validation = self.run_cli("validate", "--root", str(self.root))
         self.assertEqual(validation.returncode, 0, validation.stdout + validation.stderr)
-        self.assertEqual(original, canonical.read_bytes())
+        self.assertEqual(before, {path: path.read_bytes() for path in self.destination.rglob("*") if path.is_file()})
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
 
 

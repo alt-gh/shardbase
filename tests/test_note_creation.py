@@ -8,11 +8,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import yaml
 from _support import GAMES_BLUEPRINT, SCRIPTS
-from note_creation import CreationError, create_note
+from note_creation import CreationError, create_note, new_id
 from shardbase import Terminal, main
-from validate_shardbase import parse_frontmatter, validate_database
+from validate_shardbase import NOTE_ID, parse_frontmatter, validate_database
 
 
 class NoteCreationTests(unittest.TestCase):
@@ -23,15 +22,6 @@ class NoteCreationTests(unittest.TestCase):
         self.blueprint = self.root / "app/Blueprints/Games"
         shutil.copytree(GAMES_BLUEPRINT, self.blueprint)
 
-    def template_field(self, field, value, source=None, remove=False):
-        path = (source or self.blueprint) / "Templates/Game.md"
-        metadata, body = parse_frontmatter(path.read_text(encoding="utf-8"))
-        if remove:
-            metadata.pop(field)
-        else:
-            metadata[field] = value
-        path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False) + "---\n" + body, encoding="utf-8")
-
     def live_database(self, name="My Games"):
         database = self.root / "app/Knowledge/Databases" / name
         shutil.copytree(self.blueprint, database)
@@ -40,123 +30,120 @@ class NoteCreationTests(unittest.TestCase):
     def assert_no_capture(self):
         self.assertFalse((self.root / "app/Knowledge/Inbox").exists())
 
-    def test_inbox_draft_has_required_yaml_and_only_h1(self):
-        result = create_note(self.root, "Example Game")
-        self.assertEqual(result.path, self.root / "app/Knowledge/Inbox/Example Game.md")
-        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-        self.assertEqual(metadata, dict(type="core", pool="Games", core="[[Example Game]]", parent_note=None, status="draft", aliases=None, id=None, tags=None))
-        self.assertEqual(body, "# Example Game\n\n")
-        self.assertIn("aliases:\nid:\ntags:\n", result.path.read_text(encoding="utf-8"))
+    def metadata(self, result):
+        return parse_frontmatter(result.path.read_text(encoding="utf-8"))
+
+    def test_all_types_create_universal_inbox_drafts(self):
+        for kind in ("core", "shard", "pebble"):
+            with self.subTest(kind=kind):
+                result = create_note(self.root, f"Example {kind}", kind)
+                metadata, body = self.metadata(result)
+                self.assertEqual(list(metadata), [
+                    "type", "pool", "core", "parent_note", "status", "aliases", "id", "tags"
+                ])
+                self.assertEqual(metadata["type"], kind)
+                self.assertIsNone(metadata["pool"])
+                self.assertIsNone(metadata["core"])
+                self.assertIsNone(metadata["parent_note"])
+                self.assertEqual(metadata["status"], "draft")
+                self.assertIsNone(metadata["aliases"])
+                self.assertRegex(metadata["id"], NOTE_ID)
+                self.assertIsNone(metadata["tags"])
+                self.assertEqual(body, f"# Example {kind}\n\n")
+                self.assertEqual(result.path, self.root / "app/Knowledge/Inbox" / f"Example {kind}.md")
+                self.assertIsNone(result.template)
         self.assertFalse((self.root / "app/Knowledge/Inbox/Staged").exists())
         self.assertFalse((self.root / "app/Knowledge/Databases").exists())
 
-    def test_existing_staged_capture_is_preserved(self):
-        staged = self.root / "app/Knowledge/Inbox/Staged"
-        staged.mkdir(parents=True)
-        capture = staged / "Example.md"
-        capture.write_text("User-authored staged content\n", encoding="utf-8")
-        result = create_note(self.root, "Example")
-        self.assertEqual(result.path, staged.parent / "Example.md")
-        self.assertEqual(capture.read_text(encoding="utf-8"), "User-authored staged content\n")
-        self.assertEqual(list(staged.iterdir()), [capture])
+    def test_successive_captures_receive_distinct_ids(self):
+        with patch("note_creation.secrets.choice", side_effect=list("00000000001111111111")):
+            first, _ = self.metadata(create_note(self.root, "First"))
+            second, _ = self.metadata(create_note(self.root, "Second"))
+        self.assertEqual(first["id"], "0000000000")
+        self.assertEqual(second["id"], "1111111111")
 
-    def test_rendered_note_conforms_after_deliberate_test_promotion(self):
-        database = self.live_database()
-        result = create_note(self.root, "Example: Game #1")
-        self.assertEqual(result.template, database / "Templates/Game.md")
-        self.assertEqual(list((database / "Data/Game").glob("*.md")), [])
-        promoted = database / "Data/Game" / result.path.name
-        shutil.copyfile(result.path, promoted)
-        metadata, body = parse_frontmatter(promoted.read_text(encoding="utf-8"))
-        metadata["id"] = "0a1b2c3d4e"
-        promoted.write_text("---\n" + yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False) + "---\n" + body, encoding="utf-8")
-        self.assertEqual(validate_database(database), [])
+    def test_id_generation_retries_for_nested_parseable_inbox_ids(self):
+        nested = self.root / "app/Knowledge/Inbox/Organized"
+        nested.mkdir(parents=True)
+        (nested / "Existing.md").write_text("---\nid: '0000000000'\n---\n# Existing\n", encoding="utf-8")
+        with patch("note_creation.secrets.choice", side_effect=list("00000000001111111111")):
+            metadata, _ = self.metadata(create_note(self.root, "New"))
+        self.assertEqual(metadata["id"], "1111111111")
 
-    def test_live_template_defaults_preserved_and_body_ignored(self):
-        database = self.live_database()
-        for field, value in (("tags", ["games"]), ("aliases", ["Alternate"]), ("id", "001"), ("developers", ["Example Studio"]), ("play_state", "not_started"), ("release_date", "2026-01-02")):
-            self.template_field(field, value, database)
-        path = database / "Templates/Game.md"
-        path.write_text(path.read_text(encoding="utf-8") + "## User template section\n\nSome prose.\n", encoding="utf-8")
-        before = {p: p.read_bytes() for p in database.rglob("*") if p.is_file()}
-        result = create_note(self.root, "Example")
-        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-        self.assertEqual(metadata["id"], "001")
-        self.assertEqual(metadata["tags"], ["games"])
-        self.assertEqual(metadata["developers"], ["Example Studio"])
-        self.assertEqual(body, "# Example\n\n")
-        self.assertEqual(before, {p: p.read_bytes() for p in database.rglob("*") if p.is_file()})
+    def test_plain_and_malformed_inbox_notes_do_not_block_capture(self):
+        inbox = self.root / "app/Knowledge/Inbox"
+        inbox.mkdir(parents=True)
+        (inbox / "Plain.md").write_text("# Scratch\n", encoding="utf-8")
+        (inbox / "Malformed.md").write_text("---\nx: [unfinished\n", encoding="utf-8")
+        self.assertTrue(create_note(self.root, "Example").path.exists())
 
-    def test_missing_live_template_does_not_fall_back_or_sync(self):
+    def test_id_collision_retry_is_bounded(self):
+        with patch("note_creation.secrets.choice", return_value="0"):
+            with self.assertRaisesRegex(CreationError, "unused note ID"):
+                new_id({"0000000000"})
+
+    def test_games_templates_and_live_database_state_are_ignored(self):
         database = self.live_database()
+        (self.blueprint / "Templates/Game.md").write_text("---\nsecret: [broken\n", encoding="utf-8")
         (database / "Templates/Game.md").unlink()
-        with self.assertRaisesRegex(CreationError, "Missing"):
-            create_note(self.root, "Example")
-        self.assertFalse((database / "Templates/Game.md").exists())
-        self.assert_no_capture()
+        canonical = database / "Data/Game/Broken.md"
+        canonical.write_text("Malformed canonical data\n", encoding="utf-8")
+        before = {path: path.read_bytes() for path in database.rglob("*") if path.is_file()}
+        with patch("validate_shardbase.validate_database", side_effect=AssertionError("unexpected validation")):
+            result = create_note(self.root, "Example")
+        metadata, _ = self.metadata(result)
+        self.assertEqual(set(metadata), {"type", "pool", "core", "parent_note", "status", "aliases", "id", "tags"})
+        self.assertIsNone(metadata["pool"])
+        self.assertEqual(before, {path: path.read_bytes() for path in database.rglob("*") if path.is_file()})
 
-    def test_incomplete_databases_do_not_block_capture(self):
-        database = self.live_database()
-        other = self.root / "app/Knowledge/Databases/Unfinished"
-        other.mkdir()
-        result = create_note(self.root, "Example", "shard")
-        self.assertEqual(result.template, database / "Templates/Game Shard.md")
-        self.assertTrue(result.path.exists())
+    def test_missing_malformed_or_symlinked_games_templates_do_not_block_capture(self):
+        template = self.blueprint / "Templates/Game.md"
+        template.unlink()
+        with tempfile.TemporaryDirectory() as outside:
+            target = Path(outside) / "private.md"
+            target.write_text("private content", encoding="utf-8")
+            template.symlink_to(target)
+            self.assertTrue(create_note(self.root, "Example").path.exists())
 
-    def test_manifest_conformance_is_not_a_creation_gate(self):
-        database = self.live_database()
-        path = database / "Database.md"
-        path.write_text("---\ndatabase_id: games\nmanifest_version: future\ndata_collections: [Missing]\ndatabase_status: archived\n---\nIncomplete contract\n", encoding="utf-8")
-        result = create_note(self.root, "Example", "pebble")
-        self.assertEqual(result.template, database / "Templates/Game Pebble.md")
-        self.assertTrue(result.path.exists())
-
-    def test_unverified_template_metadata_is_preserved_for_review(self):
-        fields = dict(pool="Unreviewed", core="[[Missing Core]]", parent_note="[[Missing Parent]]",
-                      status="unreviewed", tags=[False], id=123, play_state="unknown",
-                      developers=None, release_date="2026-02-30", custom_field={"value": True})
-        for field, value in fields.items():
-            self.template_field(field, value)
+    def test_existing_nested_capture_is_preserved(self):
+        nested = self.root / "app/Knowledge/Inbox/Organized"
+        nested.mkdir(parents=True)
+        capture = nested / "Example.md"
+        capture.write_text("User-authored content\n", encoding="utf-8")
         result = create_note(self.root, "Example")
-        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-        for field, value in fields.items():
-            self.assertEqual(metadata[field], value)
-        self.assertEqual(body, "# Example\n\n")
-
-    def test_missing_template_fields_receive_editable_defaults(self):
-        path = self.blueprint / "Templates/Game Shard.md"
-        path.write_text("---\ncustom_field: unreviewed\n---\n", encoding="utf-8")
-        result = create_note(self.root, "Example", "shard")
-        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-        self.assertEqual(metadata, dict(type="shard", pool="Games", core=None, parent_note=None,
-                                       status="draft", aliases=None, id=None, tags=None,
-                                       custom_field="unreviewed"))
-        self.assertEqual(body, "# Example\n\n")
-
-    def test_yaml_errors_do_not_write_or_echo_template_content(self):
-        path = self.blueprint / "Templates/Game.md"
-        for text in ("---\nsecret: [sensitive-example-value\n---\n", "---\nsecret: sensitive-example-value\nsecret: sensitive-example-value\n---\n"):
-            path.write_text(text, encoding="utf-8")
-            with self.assertRaises(CreationError) as caught:
-                create_note(self.root, "Example")
-            self.assertNotIn("sensitive-example-value", str(caught.exception))
-            self.assert_no_capture()
+        self.assertEqual(result.path, nested.parent / "Example.md")
+        self.assertEqual(capture.read_text(encoding="utf-8"), "User-authored content\n")
 
     def test_portable_names_preserve_display_title_and_yaml_safety(self):
-        for title, filename in (("Example: Game #1", "Example Game 1.md"), ('Game [Remastered] "Edition"', "Game Remastered Edition.md"), ("CON", "_CON.md"), ("Game. .", "Game.md"), ("Café 🎮", "Café 🎮.md"), ("on", "on.md"), ("../Outside", ".. Outside.md")):
+        cases = (("Example: Game #1", "Example Game 1.md"), ('Game [Remastered] "Edition"', "Game Remastered Edition.md"),
+                 ("CON", "_CON.md"), ("Game. .", "Game.md"), ("Café 🎮", "Café 🎮.md"),
+                 ("on", "on.md"), ("../Outside", ".. Outside.md"))
+        for index, (title, filename) in enumerate(cases):
             with self.subTest(title=title):
-                result = create_note(self.root, title)
+                result = create_note(self.root, title, alias='A: "B", C' if index == 0 else None)
+                metadata, body = self.metadata(result)
                 self.assertEqual(result.path.name, filename)
-                metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
                 self.assertEqual(body, f"# {title}\n\n")
-                self.assertEqual(metadata["core"], f"[[{filename[:-3]}]]")
+                if index == 0:
+                    self.assertEqual(metadata["aliases"], ['A: "B", C'])
 
-    def test_empty_and_multiline_titles_refused(self):
+    def test_optional_alias_is_a_yaml_string_list_or_blank(self):
+        for index, alias in enumerate((None, "", "   ", "Example Alias", "001", "yes", "日本語")):
+            with self.subTest(alias=alias):
+                result = create_note(self.root, f"Note {index}", "pebble", alias)
+                metadata, body = self.metadata(result)
+                self.assertEqual(metadata["aliases"], [alias.strip()] if alias and alias.strip() else None)
+                self.assertEqual(body, f"# Note {index}\n\n")
+                if alias and alias.strip():
+                    self.assertIn("aliases:\n  - ", result.path.read_text(encoding="utf-8"))
+
+    def test_empty_multiline_and_invalid_types_are_refused(self):
         for title in ("", "   ", "...", "[]/#", "Title\nInjected", "Title\x00Injected", "Title\u2028Injected"):
-            with self.subTest(title=title):
-                with self.assertRaises(CreationError):
-                    create_note(self.root, title)
-                self.assert_no_capture()
+            with self.subTest(title=title), self.assertRaises(CreationError):
+                create_note(self.root, title)
+        with self.assertRaisesRegex(CreationError, "core, shard, or pebble"):
+            create_note(self.root, "Example", "other")
+        self.assert_no_capture()
 
     def test_existing_file_and_normalized_collisions_never_overwritten(self):
         first = create_note(self.root, "Game: One")
@@ -167,13 +154,13 @@ class NoteCreationTests(unittest.TestCase):
             self.assertEqual(first.path.read_text(encoding="utf-8"), "User-edited content")
         self.assertEqual(list(first.path.parent.iterdir()), [first.path])
 
-    def test_unicode_equivalent_collisions_refused(self):
+    def test_unicode_equivalent_collisions_are_refused(self):
         create_note(self.root, "Café")
         with self.assertRaises(CreationError):
             create_note(self.root, "Cafe\u0301")
 
-    def test_symlink_boundaries_refused(self):
-        for relative in ("app/Knowledge", "app/Knowledge/Inbox", "app/Knowledge/Databases"):
+    def test_symlink_boundaries_are_refused(self):
+        for relative in ("app/Knowledge", "app/Knowledge/Inbox"):
             with self.subTest(relative=relative), tempfile.TemporaryDirectory() as outside:
                 path = self.root / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -183,18 +170,7 @@ class NoteCreationTests(unittest.TestCase):
                 self.assertEqual(list(Path(outside).iterdir()), [])
                 path.unlink()
 
-    def test_symlink_template_refused_before_reading(self):
-        path = self.blueprint / "Templates/Game.md"
-        path.unlink()
-        with tempfile.TemporaryDirectory() as outside:
-            target = Path(outside) / "private.md"
-            target.write_text("private content", encoding="utf-8")
-            path.symlink_to(target)
-            with self.assertRaisesRegex(CreationError, "Symlink"):
-                create_note(self.root, "Example")
-        self.assert_no_capture()
-
-    def test_dangling_destination_symlink_never_followed(self):
+    def test_dangling_destination_symlink_is_never_followed(self):
         directory = self.root / "app/Knowledge/Inbox"
         directory.mkdir(parents=True)
         target = self.root / "absent.md"
@@ -205,24 +181,25 @@ class NoteCreationTests(unittest.TestCase):
 
     def test_exclusive_open_preserves_competing_file(self):
         original_open = Path.open
+
         def competing_open(path, mode="r", *args, **kwargs):
             if mode == "x":
                 path.write_text("Competing content", encoding="utf-8")
             return original_open(path, mode, *args, **kwargs)
-        with patch.object(Path, "open", competing_open):
-            with self.assertRaises(FileExistsError):
-                create_note(self.root, "Example")
+
+        with patch.object(Path, "open", competing_open), self.assertRaises(FileExistsError):
+            create_note(self.root, "Example")
         self.assertEqual((self.root / "app/Knowledge/Inbox/Example.md").read_text(encoding="utf-8"), "Competing content")
 
-    def test_prompts_reprompt_and_create(self):
-        with patch("builtins.input", side_effect=["Example", "invalid", "1", "", "inbox"]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
+    def test_prompts_ask_only_for_title_type_and_alias(self):
+        with patch("builtins.input", side_effect=["Example", "invalid", "1", ""]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        self.assertEqual(prompts.call_count, 5)
-        self.assertIn("Choose 1", output.getvalue())
-        self.assertIn("Saved to Inbox", output.getvalue())
-        self.assertNotIn("Destination", output.getvalue())
-        self.assertTrue((self.root / "app/Knowledge/Inbox/Example.md").is_file())
-        self.assertFalse((self.root / "app/Knowledge/Inbox/Staged").exists())
+        self.assertEqual(prompts.call_count, 4)
+        rendered = output.getvalue()
+        self.assertIn("Choose 1", rendered)
+        self.assertIn("Saved to Inbox", rendered)
+        for absent in ("Note intent", "Live database", "Parent note", "Pool", "Collection", "Template"):
+            self.assertNotIn(absent, rendered)
 
     def test_cancelled_prompts_write_nothing(self):
         for error in (EOFError(), KeyboardInterrupt()):
@@ -230,29 +207,30 @@ class NoteCreationTests(unittest.TestCase):
                 self.assertEqual(main(["new", "--root", str(self.root)]), 130)
             self.assert_no_capture()
 
-    def test_subprocess_flags_help_and_errors(self):
+    def test_subprocess_help_routes_and_removed_flags(self):
         command = [sys.executable, "-B", str(SCRIPTS / "shardbase.py")]
-        help_result = subprocess.run(command + ["--help"], capture_output=True, text=True, cwd=self.root)
-        self.assertEqual(help_result.returncode, 0)
-        self.assertIn("new", help_result.stdout)
-        new_help = subprocess.run(command + ["new", "--help"], capture_output=True, text=True)
-        self.assertEqual(new_help.returncode, 0)
-        self.assertIn("app/Knowledge/Inbox/", new_help.stdout)
-        self.assertNotIn("--destination", new_help.stdout)
-        args = ["new", "--root", str(self.root), "--title", "Example", "--type", "core", "--alias", "", "--intent", "inbox"]
-        created = subprocess.run(command + args, input="", capture_output=True, text=True, cwd=self.root)
-        self.assertEqual(created.returncode, 0, created.stderr)
-        self.assertTrue((self.root / "app/Knowledge/Inbox/Example.md").is_file())
-        self.assertFalse((self.root / "app/Knowledge/Inbox/Staged").exists())
-        collision = subprocess.run(command + args, capture_output=True, text=True)
-        self.assertEqual(collision.returncode, 1)
-        self.assertNotIn("Traceback", collision.stderr)
-        for destination in ("inbox", "databases"):
-            with self.subTest(destination=destination):
-                invalid = subprocess.run(command + args + ["--destination", destination], input="", capture_output=True, text=True)
-                self.assertEqual(invalid.returncode, 2)
-                self.assertIn("unrecognized arguments: --destination", invalid.stderr)
+        for route, title in ((["create", "new"], "Grouped"), (["new"], "Alias")):
+            help_result = subprocess.run(command + route + ["--help"], capture_output=True, text=True)
+            self.assertEqual(help_result.returncode, 0)
+            self.assertIn("app/Knowledge/Inbox/", help_result.stdout)
+            for option in ("--intent", "--database", "--template", "--pool", "--core", "--parent", "--collection"):
+                self.assertNotIn(option, help_result.stdout)
+            args = route + ["--root", str(self.root), "--title", title, "--type", "core", "--alias", ""]
+            created = subprocess.run(command + args, capture_output=True, text=True)
+            self.assertEqual(created.returncode, 0, created.stderr)
+            self.assertTrue((self.root / "app/Knowledge/Inbox" / f"{title}.md").is_file())
+        for route in (["create", "new"], ["new"]):
+            for option, value in (("--intent", "database"), ("--database", "games"), ("--template", "Game.md"),
+                                  ("--pool", "Games"), ("--core", "Example"), ("--parent", "Example"),
+                                  ("--collection", "Game")):
+                result = subprocess.run(command + route + ["--root", str(self.root), "--title", "Rejected",
+                                                           "--type", "core", "--alias", "", option, value],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(f"unrecognized arguments: {option}", result.stderr)
+                self.assertFalse((self.root / "app/Knowledge/Inbox/Rejected.md").exists())
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
+
     def test_terminal_color_is_optional_and_control_characters_are_inert(self):
         with patch("sys.stdout.isatty", return_value=True), patch.dict("os.environ", {"TERM": "xterm"}, clear=True):
             self.assertIn("\033[", Terminal().style("Title"))
@@ -262,81 +240,14 @@ class NoteCreationTests(unittest.TestCase):
         with patch("sys.stdout.isatty", return_value=False):
             self.assertEqual(Terminal().style("Title\033[2J"), "Title [2J")
 
-    def test_all_types_create_in_inbox_without_ancestors(self):
-        for kind in ("core", "shard", "pebble"):
-            with self.subTest(kind=kind):
-                result = create_note(self.root, f"Example {kind}", kind)
-                metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-                self.assertEqual(metadata, dict(type=kind, pool="Games",
-                    core=f"[[Example {kind}]]" if kind == "core" else None,
-                    parent_note=None, status="draft", aliases=None, id=None, tags=None))
-                self.assertEqual(body, f"# Example {kind}\n\n")
-                self.assertEqual(result.path, self.root / "app/Knowledge/Inbox" / f"Example {kind}.md")
-        self.assertFalse((self.root / "app/Knowledge/Inbox/Staged").exists())
-        self.assertFalse((self.root / "app/Knowledge/Databases").exists())
-
-    def test_inbox_intent_finishes_capture_without_parent_or_destination_prompt(self):
-        with patch("builtins.input", side_effect=["Example Detail", "2", "Alternate Detail", "inbox"]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(main(["new", "--root", str(self.root)]), 0)
-        self.assertEqual(prompts.call_count, 4)
-        self.assertIn("Alias", prompts.call_args_list[2].args[0])
-        self.assertNotIn("Parent note", output.getvalue())
-        self.assertNotIn("Destination", output.getvalue())
-        path = self.root / "app/Knowledge/Inbox/Example Detail.md"
-        metadata, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
-        self.assertEqual(metadata["type"], "shard")
-        self.assertEqual(metadata["aliases"], ["Alternate Detail"])
-        self.assertIsNone(metadata["core"])
-        self.assertIsNone(metadata["parent_note"])
-
-    def test_optional_alias_is_a_yaml_string_list_or_blank(self):
-        for index, alias in enumerate((None, "", "   ", "Example Detail Alias", "001", "yes", 'A: "B", C', "日本語")):
-            with self.subTest(alias=alias):
-                result = create_note(self.root, f"Note {index}", "pebble", alias=alias)
-                metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-                self.assertEqual(metadata["aliases"], [alias.strip()] if alias and alias.strip() else None)
-                self.assertEqual(body, f"# Note {index}\n\n")
-
-    def test_skipping_alias_preserves_template_default(self):
-        self.template_field("aliases", ["Template Alias"])
-        result = create_note(self.root, "Example", alias="")
-        metadata, _ = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-        self.assertEqual(metadata["aliases"], ["Template Alias"])
-
-    def test_legacy_unresolved_template_tokens_become_blank(self):
-        path = self.blueprint / "Templates/Game Shard.md"
-        path.write_text(path.read_text(encoding="utf-8").replace("core:\n", 'core: "[[{{core}}]]"\n').replace("parent_note:\n", 'parent_note: "[[{{parent}}]]"\n'), encoding="utf-8")
-        result = create_note(self.root, "Subject", "shard")
-        metadata, _ = parse_frontmatter(result.path.read_text(encoding="utf-8"))
-        self.assertIsNone(metadata["core"])
-        self.assertIsNone(metadata["parent_note"])
-
-    def test_existing_notes_are_neither_read_nor_validated(self):
-        database = self.live_database()
-        canonical = database / "Data/Game/Example Detail.md"
-        canonical.write_text("Malformed canonical data\n", encoding="utf-8")
-        inbox = self.root / "app/Knowledge/Inbox"
-        inbox.mkdir()
-        capture = inbox / "Broken.md"
-        capture.write_text("---\ntype: [broken\n", encoding="utf-8")
-        original_read = Path.read_text
-        def guard_read(path, *args, **kwargs):
-            if path in (canonical, capture):
-                raise AssertionError("Draft creation must not inspect existing notes")
-            return original_read(path, *args, **kwargs)
-        with patch.object(Path, "read_text", guard_read), patch("validate_shardbase.validate_database", side_effect=AssertionError("Unexpected validation")):
-            result = create_note(self.root, "Example Detail", "shard")
-        self.assertEqual(result.path.name, "Example Detail.md")
-        self.assertEqual(canonical.read_text(encoding="utf-8"), "Malformed canonical data\n")
-        self.assertEqual(capture.read_text(encoding="utf-8"), "---\ntype: [broken\n")
-
-    def test_canonical_validation_still_reports_unresolved_promoted_draft(self):
+    def test_canonical_validation_reports_unresolved_manually_promoted_capture(self):
         database = self.live_database()
         result = create_note(self.root, "Example Detail", "pebble")
         self.assertEqual(validate_database(database), [])
         shutil.copyfile(result.path, database / "Data/Game" / result.path.name)
         codes = {issue.code for issue in validate_database(database)}
         self.assertTrue({"core-reference", "parent-reference"} <= codes)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -31,13 +31,13 @@ The final Foundation sign-off remains a project-owner decision. Passing automate
 current_assessment: late Foundation / convergence and proof
 current_primary_goal: finish the vertical slice from intent to valid canonical knowledge and close remaining Foundation proof/governance gaps
 current_architecture_status: substantially settled
-current_implementation_status: substantial deterministic structural validation exists; database scaffolding and direct canonical creation with structural validation exist; canonical semantic validation and draft promotion remain incomplete
+current_implementation_status: substantial deterministic structural validation, database scaffolding, and universal Inbox-first CLI capture with stable IDs exist; canonical preparation machinery remains tested; canonical semantic validation and draft promotion remain incomplete
 current_proof_status: Games proving workflow partially complete
-current_documentation_status: authority roles consolidated; ADRs record foundation-3 naming, foundation-4 direct creation, and foundation-5 user-state ownership/transfer
+current_documentation_status: authority roles consolidated; ADRs record foundation-3 naming, foundation-4 canonical preparation/placement, foundation-5 user-state ownership/transfer, and foundation-6 Inbox-first capture
 
 ### What Already Exists
 
-- Universal System Specification at `foundation-5`, preserving foundation-3 naming, existing flat/workspace state, and manifest version 1.
+- Universal System Specification at `foundation-6`, preserving foundation-3 naming, existing flat/workspace state, and manifest version 1.
 - Private `app/Knowledge/` boundary with user-owned Inbox/Data/Views and managed live database packages.
 - Database manifest and ownership contracts.
 - Pool → Core → Shard → Pebble structural model.
@@ -49,7 +49,8 @@ current_documentation_status: authority roles consolidated; ADRs record foundati
 - Games draft templates: `Game.md`, `Game Shard.md`, and `Game Pebble.md`.
 - Games specialist Agent resource: `Agents/Vera.md`.
 - Runtime Registry discovery.
-- Local creation CLI with Inbox capture or direct live database creation, Core/parent selection, inherited placement and Pool, workspace defaults, structural validation, and safe rollback.
+- Local Inbox-first creation CLI with database-independent universal metadata, provisional structural fields, capture-time stable IDs, and preservation-oriented collision handling.
+- Retained canonical preparation and commit primitives with live database/template selection, lineage inheritance, workspace defaults, structural validation, and safe rollback as the basis for future promotion.
 - Blueprint-based database scaffolding with dynamic selection, external preflight validation, and no overwrite/merge behavior.
 - Read-only structural validator, tests, and sanitized fixtures.
 - Format-v2 encrypted user-state backup/restore with destination-package reconstruction and legacy-v1 reading.
@@ -59,7 +60,7 @@ current_documentation_status: authority roles consolidated; ADRs record foundati
 1. Structural classification guidance is still more implicit than the desired Foundation standard; the planned Structural Decision Framework remains unfinished.
 2. The architecture is not yet demonstrated through a deliberate set of good, bad, and ambiguous canonical examples.
 3. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
-4. Direct canonical creation has structural validation; generic semantic validation and promotion of existing Inbox drafts remain unfinished.
+4. Canonical preparation has structural validation, but a user-facing promotion workflow and generic semantic validation remain unfinished.
 5. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
 6. Governance substance exists in the System Specification, but the roadmap/decision-record surfaces have not yet been closed out and formally signed off.
 7. A second independently designed domain has not yet tested generalization.
@@ -164,7 +165,7 @@ Commit 30 already has evidence for initial Games ownership, Pool/Core classifica
 - query/navigation proof;
 - growth proof showing both retained-heading and materialized-note decisions;
 - archive/restore behavior;
-- direct canonical creation has synthetic CLI proof; promotion of existing Inbox drafts remains future work;
+- Inbox-first capture has synthetic CLI proof, including stable IDs and template-independent metadata; canonical preparation retains direct primitive-level proof, while promotion of Inbox drafts remains future work;
 - generic semantic validation evidence once implemented.
 
 ---
@@ -246,7 +247,8 @@ Movies is not required to block every remaining Foundation task, but it should o
 - deterministic universal structural validation: implemented within documented scope
 - representative structural fixtures: complete within implemented scope
 - deterministic database-semantic validation: incomplete
-- direct canonical creation: implemented with structural validation and synthetic proof; semantic validation and draft promotion remain incomplete
+- Inbox-first CLI capture: implemented with stable-ID and safety proof
+- canonical preparation/commit primitives: retained with structural validation and synthetic proof; user-facing promotion and semantic validation remain incomplete
 - attachment reference/orphan validation: incomplete
 - fragmentation/materialization diagnostics: incomplete
 

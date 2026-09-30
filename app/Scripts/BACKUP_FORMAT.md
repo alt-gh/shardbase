@@ -2,7 +2,7 @@
 
 Current write format: `2`
 
-This is the interoperable wire contract implemented by `backup_restore.py`. The conventional extension is `.sbbackup`; readers identify the authenticated header version, not the filename. Format v2 is an offline user-state transfer format for Foundation-4/5 sources into a `foundation-5` destination. The reader also retains the historical format-v1 contract described below.
+This is the interoperable wire contract implemented by `backup_restore.py`. The conventional extension is `.sbbackup`; readers identify the authenticated header version, not the filename. Format v2 is an offline user-state transfer format for Foundation-4/5 sources into a `foundation-5` destination and Foundation-4/5/6 sources into a `foundation-6` destination. The reader also retains the historical format-v1 contract described below.
 
 ## Encryption Envelope
 
@@ -43,7 +43,7 @@ A representative manifest is:
 {
   "format": "shardbase-user-state-backup",
   "version": 2,
-  "specification": "foundation-5",
+  "specification": "foundation-6",
   "created_utc": "2026-09-30T20:00:00+00:00",
   "git_policy": "all-user-state-embedded",
   "databases": [
@@ -59,7 +59,7 @@ A representative manifest is:
 }
 ```
 
-Top-level fields are exact. `specification` records the source and matches `foundation-N`; the v2 writer accepts `foundation-4` and `foundation-5`, while restore supports `foundation-4` → `foundation-5` and `foundation-5` → `foundation-5`. `created_utc` is an informational ISO 8601 string. `databases` contains unique objects with one non-empty stable `database_id`. Source and destination folder names are intentionally absent.
+Top-level fields are exact. `specification` records the source and matches `foundation-N`; the v2 writer accepts `foundation-4`, `foundation-5`, and `foundation-6`. Restore supports `foundation-4`/`foundation-5` → `foundation-5` and `foundation-4`/`foundation-5`/`foundation-6` → `foundation-6`; downgrade transitions remain unsupported. `created_utc` is an informational ISO 8601 string. `databases` contains unique objects with one non-empty stable `database_id`. Source and destination folder names are intentionally absent.
 
 Entry roots are:
 

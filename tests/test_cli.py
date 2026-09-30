@@ -54,19 +54,19 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertNotIn("Traceback", result.stderr)
 
-    def test_grouped_creation_and_legacy_alias_preserve_intents(self):
+    def test_grouped_creation_and_legacy_alias_both_capture_inbox_notes(self):
         database = self.root / "app/Knowledge/Databases/Games"
         shutil.copytree(self.root / "app/Blueprints/Games", database)
-        for route, title, intent in ((("create", "new"), "Example Game", "database"),
-                                     (("new",), "Temporary idea", "inbox")):
+        before = {path: path.read_bytes() for path in database.rglob("*") if path.is_file()}
+        for route, title in ((("create", "new"), "Example Game"),
+                             (("new",), "Temporary idea")):
             args = [*route, "--root", str(self.root), "--title", title, "--type", "core",
-                    "--alias", "", "--intent", intent]
-            if intent == "database":
-                args += ["--database", "games"]
+                    "--alias", ""]
             result = self.cli(*args)
             self.assertEqual(result.returncode, 0, result.stderr)
-            expected = database / "Data/Game" / title / f"{title}.md" if intent == "database" else self.root / "app/Knowledge/Inbox" / f"{title}.md"
+            expected = self.root / "app/Knowledge/Inbox" / f"{title}.md"
             self.assertTrue(expected.is_file())
+        self.assertEqual(before, {path: path.read_bytes() for path in database.rglob("*") if path.is_file()})
         self.assertEqual(list(self.root.rglob("__pycache__")), [])
 
     def test_validate_command_checks_selected_instance_and_returns_failures(self):

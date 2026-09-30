@@ -189,7 +189,7 @@ A reference explains a game. A completionist checklist records the user's progre
 - Do not materialize every rule, component, scenario, quest, character, location, mechanic, item, build, achievement, chapter, or lore topic.
 - Domain relationships remain semantic rather than structural ancestry.
 - Supporting structural notes stay inside the same Game lineage and inherit its `pool: Games` under the universal contract.
-- New Game Cores created by the CLI prefer workspaces for game-local navigation. Preserve existing flat lineages unless an explicit workspace refactor is requested.
+- Newly materialized Game Cores prefer workspaces for game-local navigation. Preserve existing flat lineages unless an explicit workspace refactor is requested.
 
 ### Semantic Data
 
@@ -277,9 +277,9 @@ The blueprint supplies:
 - [`Templates/Game Shard.md`](Templates/Game%20Shard.md)
 - [`Templates/Game Pebble.md`](Templates/Game%20Pebble.md)
 
-These optional templates provide starting YAML and a title H1 for capture or canonical creation; they do not define validity. Supporting placeholders stay blank in Inbox captures and are resolved from selected canonical lineage during database creation.
+These optional templates provide Games-specific starting YAML for canonical preparation or future promotion; they do not define validity. Supporting placeholders must be resolved from the selected canonical lineage during materialization.
 
-Inbox capture may fall back to blueprint templates; canonical creation uses only the selected live database's resources, according to the behavior documented in [`../../Scripts/README.md`](../../Scripts/README.md). Template selection never synchronizes or modifies a live database.
+Initial CLI Inbox capture is universal and does not read Games templates or defaults. Canonical preparation and future promotion use only the selected live database's resources, according to the behavior documented in [`../../Scripts/README.md`](../../Scripts/README.md). Template selection never synchronizes or modifies a live database.
 
 ### Agents
 

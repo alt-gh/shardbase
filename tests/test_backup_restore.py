@@ -62,7 +62,7 @@ class TransferTests(unittest.TestCase):
         self.write(self.source, "app/Docs/framework.md", b"Excluded framework")
         self.write(self.source, "root-local.txt", b"Excluded root file")
 
-    def make_instance(self, name: str, blueprint_name: str | None = None, spec: str = "foundation-5") -> Path:
+    def make_instance(self, name: str, blueprint_name: str | None = None, spec: str = "foundation-6") -> Path:
         root = self.base / name
         self.write(root, transfer.SPEC_PATH, f"Specification version: `{spec}`\n".encode())
         if blueprint_name:
@@ -110,7 +110,7 @@ class TransferTests(unittest.TestCase):
         self.output.write_bytes(header + AESGCM(key).encrypt(nonce, plaintext, header))
 
     def manifest(self, entries=None, databases=None) -> dict:
-        return json.loads(transfer.encode_manifest_v2(entries or [], "foundation-5", databases or []))
+        return json.loads(transfer.encode_manifest_v2(entries or [], "foundation-6", databases or []))
 
     def file_entry(self, root: str, name: str, content: bytes = b"test", database_id: str | None = None) -> dict:
         entry = {"root": root, "path": name, "kind": "file", "size": len(content),
@@ -156,7 +156,7 @@ class TransferTests(unittest.TestCase):
         if os.name == "posix":
             self.assertEqual(restored_note.stat().st_mode & 0o777, 0o700)
 
-    def test_foundation_4_user_state_upgrades_into_foundation_5(self):
+    def test_foundation_4_user_state_upgrades_into_foundation_6(self):
         self.write(self.source, transfer.SPEC_PATH, b"Specification version: `foundation-4`\n")
         manifest = self.create()
         self.assertEqual(manifest["specification"], "foundation-4")
