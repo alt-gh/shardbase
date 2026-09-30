@@ -36,7 +36,7 @@ Launchers run the selected instance's source by absolute path with `-B`, preserv
 
 Ownership is checked before installation and immediately before publication. New launchers use no-clobber publication; replacing an existing managed launcher is atomic but assumes no concurrent edits in the final check-to-replace interval. Avoid simultaneous installers or edits of the same launcher. Filesystems must support hard links for first publication; failures leave competing files intact.
 
-Bootstrap invokes the external interpreter directly to check `shardbase.py commands`, independently of PATH. A failed check fails setup. No database, Inbox, or note is created or inspected. After success, run `shardbase doctor` to check instance health, then `shardbase create new database` when ready. `shardbase init` remains deferred.
+Bootstrap invokes the external interpreter directly to check `shardbase.py commands`, independently of PATH. A failed check fails setup. After a successful root bootstrap, a fresh private ZIP-style instance in a fully interactive terminal is handed directly to `shardbase init` with that external interpreter; PATH availability is not required. Git-managed/development instances, noninteractive runs, lower-level installer use, and private instances with existing knowledge do not enter an interactive session and instead print `shardbase init` as the manual next step. Cancelling or failing guided setup preserves the successfully prepared runtime and launcher.
 
 PATH is never changed automatically. If needed, bootstrap prints the exact launcher directory and a current-session POSIX shell or PowerShell command. Persistent PATH/profile configuration remains your choice. The launcher selects the instance used for installation even from another working directory; creation/validation commands also support `--root "/path/to/instance"`.
 
@@ -89,6 +89,7 @@ Run `shardbase commands` to see every available command in the terminal. Running
 
 | Command | Purpose |
 |---|---|
+| `shardbase init [--root PATH] [--no-color]` | Guided new-instance, encrypted-restore, or setup-only onboarding |
 | `shardbase create new` | Create an Inbox capture or canonical database note; prompt for omitted choices |
 | `shardbase create new database` | Select a blueprint and create a new live database scaffold |
 | `shardbase create new database --blueprint games` | Create the Games database without a selection prompt |
@@ -108,6 +109,20 @@ Run `shardbase commands` to see every available command in the terminal. Running
 | `shardbase help validate` or `shardbase validate --help` | Show validation options |
 
 `shardbase help <command>` and `<command> --help` use the same parser and stay aligned with the implemented options. The standalone validator script remains available for existing workflows; it accepts the same optional database path and `--root` selection.
+
+## Guided Initialization
+
+Run `shardbase init` to choose one of three interactive workflows:
+
+1. **Start a new private instance** — inspect current health and live database identities, offer only supplied blueprints whose `database_id` is not already materialized, delegate creation to the database-creation engine, then structurally validate the created database and summarize doctor health.
+2. **Restore an encrypted backup** — use the same backup-path prompt, secure passphrase input, restore engine, and result wording as `shardbase restore`, then structurally validate discovered live databases and summarize doctor health. Existing structural knowledge failures do not universally block this recovery path; remaining failures after restore are reported.
+3. **Finish setup without creating knowledge** — summarize doctor health without creating `app/Knowledge/`, Inbox, Databases, Git/editor state, or a setup marker.
+
+Initialization is rerunnable and derives state from the framework, current knowledge boundary, live manifests, and diagnostics. It does not maintain a hidden completion marker. Existing databases are reported and never recreated or overwritten; malformed or ambiguous live state is surfaced rather than ignored. If every supplied blueprint is already materialized, the command exits without attempting a guaranteed collision.
+
+New and restored databases receive explicit read-only structural verification plus a doctor summary. A primary create/restore success is preserved if later verification fails, while the command returns nonzero and directs the user to inspect the result. Passing structural checks does not certify database-semantic validity. Guided new-instance setup stops after database creation and points to `shardbase create new`; it does not create a first note.
+
+Input termination and Ctrl+C print `Cancelled.` and return status 130. For automation, continue to use the lower-level creation, restore, validation, and doctor commands; guided initialization intentionally has no parallel noninteractive path-selection flags.
 
 ## Instance Health Diagnostics
 

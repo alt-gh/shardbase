@@ -86,6 +86,7 @@ For exact manifest requirements, note metadata, naming, placement, lifecycle, at
 
 Shardbase currently includes:
 
+- guided initialization for new, restored, or tooling-only private instances;
 - a local CLI for blueprint-based database scaffolding and direct canonical note creation;
 - a read-only structural validator;
 - manual encrypted knowledge backup and restore commands;
@@ -115,19 +116,17 @@ python bootstrap.py
 
 Use `python3 bootstrap.py` if that is your Python command on macOS/Linux, or `py bootstrap.py` on Windows. Bootstrap prepares the external runtime and launcher, installs pinned dependencies (which may access the network), and checks that the CLI starts. It prints a current-session PATH command if needed; it never changes PATH or shell profiles automatically.
 
-Once setup completes and the launcher is on PATH:
+For a fresh private ZIP-style instance in an interactive terminal, bootstrap continues directly into guided setup. You can also start or rerun it manually once the launcher is on PATH:
 
 ```sh
-shardbase commands
-shardbase create new database
-shardbase create new
+shardbase init
 ```
 
-Bootstrap prepares tooling only; it does not create knowledge. Guided `shardbase init` is not implemented yet.
+Guided setup offers three choices: start a new private instance from one available blueprint, restore an encrypted backup, or finish tooling setup without creating knowledge. The setup-only path creates no Knowledge directory or setup marker. Git-managed/development and noninteractive bootstrap runs print `shardbase init` as the manual next step instead of entering an interactive session.
 
-The first creation command lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are never merged or overwritten.
+The new-instance path lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are recognized and never merged or overwritten.
 
-The second creation command creates your first note. Choose database intent and your new database; the CLI prints its actual canonical path after structural checks pass. Use `shardbase validate` for later edits. Use `shardbase commands` to explore the CLI.
+After a new database is ready, run `shardbase create new` to create your first note. Choose database intent and your new database; the CLI prints its actual canonical path after structural checks pass. Use `shardbase validate` for later edits and `shardbase commands` to explore the CLI.
 
 The Python environment and launcher stay outside the project. For platform defaults, persistent PATH configuration, custom locations, and safe reruns, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
 

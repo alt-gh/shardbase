@@ -51,6 +51,7 @@ class BootstrapTests(unittest.TestCase):
         self.version = [3, 10, 0]
         self.failure = None
         self.on_pip = None
+        self.init_status = 0
 
     def make_runtime(self):
         interpreter = support.venv_python(self.runtime, os.name)
@@ -75,6 +76,8 @@ class BootstrapTests(unittest.TestCase):
                 raise subprocess.CalledProcessError(1, command)
         if command[-1] == "commands" and self.failure == "smoke":
             raise subprocess.CalledProcessError(1, command)
+        if "init" in command:
+            return subprocess.CompletedProcess(command, self.init_status, "")
         return subprocess.CompletedProcess(command, 0, "")
 
     def install(self, root=None):
@@ -106,6 +109,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(snapshot(self.root), before)
         self.assertFalse((self.root / "app/Knowledge").exists())
         self.assertIn("Private instance mode", self.stdout.getvalue())
+        self.assertIn("Next:\n  shardbase init", self.stdout.getvalue())
 
     def test_existing_synthetic_knowledge_is_untouched(self):
         note = self.root / "app/Knowledge/Inbox/Example.md"
@@ -387,6 +391,44 @@ class BootstrapTests(unittest.TestCase):
         (self.base / ".git").mkdir()
         self.assertEqual(self.setup(), 0)
         self.assertIn("Private instance mode", self.stdout.getvalue())
+
+    def test_interactive_fresh_private_bootstrap_hands_off_directly(self):
+        with patch.object(support, "interactive_terminal", return_value=True):
+            self.assertEqual(self.setup(), 0)
+        python = support.venv_python(self.runtime, os.name)
+        self.assertEqual(
+            self.run.call_args_list[-1].args[0],
+            [str(python), "-B", str(self.root / "app/Scripts/shardbase.py"),
+             "init", "--root", str(self.root)],
+        )
+        self.assertIn("Starting guided setup", self.stdout.getvalue())
+        self.assertNotIn("Next:\n  shardbase init", self.stdout.getvalue())
+
+    def test_handoff_cancel_preserves_prepared_tooling(self):
+        self.init_status = 130
+        with patch.object(support, "interactive_terminal", return_value=True):
+            self.assertEqual(self.setup(), 130)
+        self.assertTrue(self.runtime.is_dir())
+        self.assertTrue(self.launcher.is_file())
+        self.assertIn("runtime and launcher were preserved", self.stderr.getvalue())
+
+    def test_interactive_bootstrap_skips_git_and_established_instances(self):
+        for marker in ("git", "knowledge"):
+            with self.subTest(marker=marker):
+                if marker == "git":
+                    (self.root / ".git").mkdir()
+                else:
+                    note = self.root / "app/Knowledge/Inbox/Example.md"
+                    note.parent.mkdir(parents=True)
+                    note.write_text("Synthetic knowledge\n", encoding="utf-8")
+                self.run.reset_mock()
+                with patch.object(support, "interactive_terminal", return_value=True):
+                    self.assertEqual(self.setup(), 0)
+                self.assertFalse(any("init" in call.args[0] for call in self.run.call_args_list))
+                if marker == "git":
+                    (self.root / ".git").rmdir()
+                else:
+                    shutil.rmtree(self.root / "app/Knowledge")
 
     def test_path_normalization_and_guidance(self):
         self.assertTrue(support.launcher_on_path(self.bin_dir, "posix", {"PATH": str(self.bin_dir / "../bin")}))

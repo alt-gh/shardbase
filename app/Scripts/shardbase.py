@@ -171,6 +171,12 @@ def run_doctor(args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+def run_initialization(args: argparse.Namespace) -> int:
+    from initialization import initialize
+
+    return initialize(args.root, Terminal(args.no_color))
+
+
 def new_database(args: argparse.Namespace) -> int:
     from database_creation import available_blueprints, create_database
     from note_creation import CreationError
@@ -203,11 +209,11 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
     import secrets
     from datetime import datetime, timezone
 
-    from backup_restore import backup, external, instance, read_password, restore
+    from backup_restore import backup, external, instance, read_password
 
     ui = Terminal()
     root = instance(args.root)
-    if args.password_file is not None:
+    if args.command == "backup" and args.password_file is not None:
         args.password_file = external(args.password_file, root, "Password file")
     if args.command == "backup":
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -235,16 +241,10 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
         print(f"Backup verified: {len(files)} local files, {sum(entry['size'] for entry in files)} bytes; {excluded} Git-backed files excluded.")
         print(ui.style(str(output.expanduser().absolute())))
     else:
-        source = args.archive or Path(input("Backup file: ").strip()).expanduser()
-        password = read_password(args.password_file, confirm=False)
-        result = restore(root, source, password, args.staging_dir, dry_run=args.dry_run)
-        verb = "Restore checked" if args.dry_run else "Restore complete"
-        action = "to add" if args.dry_run else "added"
-        print(f"{verb}: {result['files_added']} files {action}, {result['files_unchanged']} identical files preserved, {result['git_files']} excluded Git-backed files verified.")
-        if args.dry_run:
-            print("No knowledge was written. This check does not certify database-semantic or structural validity.")
-        else:
-            print("Knowledge transferred unchanged. This does not certify database-semantic or structural validity.")
+        from initialization import guided_restore
+
+        guided_restore(root, archive=args.archive, password_file=args.password_file,
+                       staging_dir=args.staging_dir, dry_run=args.dry_run, ui=ui)
     return 0
 
 
@@ -293,6 +293,14 @@ def build_parser() -> argparse.ArgumentParser:
     database.add_argument("--no-color", action="store_true", default=argparse.SUPPRESS, help="Disable terminal colors")
     database.set_defaults(handler=new_database)
     add_new_command(commands, ("new",), "Alias for create new")
+
+    init = register(
+        commands, "init", ("init",), "Guided private-instance setup",
+        description="Interactively create one database, restore an encrypted backup, or finish setup without creating knowledge.",
+    )
+    init.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: instance bound to this CLI)")
+    init.add_argument("--no-color", action="store_true", help="Disable terminal colors (also respects NO_COLOR)")
+    init.set_defaults(handler=run_initialization)
 
     validate = register(commands, "validate", ("validate",), "Check database structure without modifying files")
     validate.add_argument("path", nargs="?", type=Path, help="Database root; omit to check all live databases in the instance")

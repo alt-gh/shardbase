@@ -222,7 +222,9 @@ def launcher_on_path(bin_dir: Path, platform: str, environment) -> bool:
     return any(normalize(entry.strip('"')) == normalize(str(bin_dir)) for entry in entries if entry)
 
 
-def report_completion(root: Path, runtime: Path, launcher: Path, platform: str, environment) -> None:
+def report_completion(
+    root: Path, runtime: Path, launcher: Path, platform: str, environment, *, manual_next_step: bool = True
+) -> None:
     print(f"\nShardbase tooling is ready.\nRuntime: {runtime}\nLauncher: {launcher}")
     if launcher_on_path(launcher.parent, platform, environment):
         print(f"Launcher directory is on PATH: {launcher.parent}")
@@ -234,7 +236,54 @@ def report_completion(root: Path, runtime: Path, launcher: Path, platform: str, 
         else:
             print(f'  export PATH={shlex.quote(str(launcher.parent))}:"$PATH"')
         print("Persistent PATH configuration is your choice; no shell/profile settings were changed.")
-    print(f"Selected instance: {root}\nNext:\n  shardbase commands\n  shardbase create new database")
+    print(f"Selected instance: {root}")
+    if manual_next_step:
+        print("Next:\n  shardbase init")
+
+
+def onboarding_appropriate(root: Path) -> bool:
+    """Return true only for an observably fresh private knowledge boundary."""
+    knowledge = root / "app/Knowledge"
+    if not knowledge.exists():
+        return not knowledge.is_symlink()
+    if knowledge.is_symlink() or not knowledge.is_dir():
+        return False
+    try:
+        return next(knowledge.iterdir(), None) is None
+    except OSError:
+        return False
+
+
+def interactive_terminal() -> bool:
+    return all(stream.isatty() for stream in (sys.stdin, sys.stdout, sys.stderr))
+
+
+def handoff_to_initialization(root: Path, python: Path, environment) -> int:
+    """Run guided setup directly with the prepared runtime, never through PATH."""
+    script = root / "app/Scripts/shardbase.py"
+    print("\nStarting guided setup with the prepared external runtime.")
+    try:
+        result = subprocess.run(
+            [str(python), "-B", str(script), "init", "--root", str(root)],
+            env=dict(environment, PYTHONDONTWRITEBYTECODE="1"),
+            check=False,
+        )
+    except OSError as error:
+        print(
+            f"Guided setup could not start: {error}\n"
+            "Tooling remains installed. Run manually:\n  shardbase init",
+            file=sys.stderr,
+        )
+        return 1
+    if result.returncode == 130:
+        print("Guided setup was cancelled. The prepared runtime and launcher were preserved.", file=sys.stderr)
+    elif result.returncode:
+        print(
+            "Guided setup did not complete. The prepared runtime and launcher were preserved.\n"
+            "Retry with:\n  shardbase init",
+            file=sys.stderr,
+        )
+    return result.returncode
 
 
 def setup_main(instance_root: Path, argv=None, *, bootstrap=False) -> int:
@@ -254,7 +303,14 @@ def setup_main(instance_root: Path, argv=None, *, bootstrap=False) -> int:
             print("Private instance mode\nNo Git repository detected at the instance root.\n"
                   "This instance is locally isolated from the public Shardbase repository.")
         launcher = install(root, args.runtime, args.bin_dir)
-        report_completion(root, args.runtime.expanduser().resolve(), launcher, platform, os.environ)
+        resolved_runtime = args.runtime.expanduser().resolve()
+        private = not ((root / ".git").exists() or (root / ".git").is_symlink())
+        automatic_init = bootstrap and private and interactive_terminal() and onboarding_appropriate(root)
+        report_completion(
+            root, resolved_runtime, launcher, platform, os.environ, manual_next_step=not automatic_init
+        )
+        if automatic_init:
+            return handoff_to_initialization(root, venv_python(resolved_runtime, platform), os.environ)
     except (SetupError, OSError) as error:
         print(f"Setup failed: {error}", file=sys.stderr)
         return 1
