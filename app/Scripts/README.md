@@ -343,6 +343,12 @@ Canonical creation tests prove live database/template selection, workspace/flat 
 
 Backup/restore tests use only synthetic external instances. They cover a two-command subprocess round trip, binary attachments, empty directories, metadata, idempotence, Git exclusions, changed tracked data, independent AES-GCM decoding, wrong passphrases, tampering/truncation, authenticated malformed inventories, unsafe paths, collisions, source changes, interrupted publication, rollback, and dependency-free command help.
 
+## Continuous Integration
+
+The [CI workflow](../../.github/workflows/ci.yml) runs on pull requests and pushes to `main`, and supports manual dispatch. Separate jobs run pinned Ruff checks and the complete unittest suite, with a direct `python -B app/Scripts/shardbase.py commands` smoke check on every test environment. Tests cover Python 3.10 and 3.14 on Ubuntu, plus Python 3.14 on Windows. Python 3.10 is the supported minimum; 3.14 is the current stable endpoint selected for this matrix.
+
+Use the local setup, lint, and test commands above to reproduce failures in an external environment. CI keeps caches outside the checkout and disables Python bytecode generation. Required status checks and branch protection remain deferred.
+
 ## Compatibility
 
 The preferred spelling is `shardbase create new`; `shardbase new` remains equivalent. Use `--intent inbox` to retain capture behavior. `--intent database --database <database_id>` now writes directly to a live canonical path and requires complete supporting lineage. `--core` selects a supporting note's lineage; parent-only scripts remain supported. Blueprint-only targets and `--parent ""` are no longer accepted for database intent. `--destination` remains unsupported. Existing Inbox files, blank IDs in drafts, and flat lineages stay untouched. The specification is now foundation-4; foundation-3 naming and `manifest_version: 1` are retained.
