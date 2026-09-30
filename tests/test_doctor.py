@@ -299,7 +299,7 @@ class DoctorTests(unittest.TestCase):
         status, output = self.cli()
         self.assertEqual(status, 1)
         self.assertIn("knowledge.structural-frontmatter", output)
-        self.assertIn("Data/Game/Broken.md", output)
+        self.assertIn(f"{note.relative_to(self.root)}: structural-frontmatter", output)
         self.assertNotIn("Secret body", output)
         self.assertEqual(snapshot(self.root), before)
         (database.parent / "stray.txt").write_text("Synthetic")
