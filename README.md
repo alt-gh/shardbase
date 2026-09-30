@@ -1,6 +1,6 @@
 # ShardBase
 
-ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain and source of truth.
+ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain.
 
 Its durable source is ordinary Markdown and YAML. Obsidian is the primary knowledge environment, Dataview is a primary query interface, and scripts or external AI systems may assist with the knowledge, but none of those tools owns or defines the canonical meaning of the data.
 
