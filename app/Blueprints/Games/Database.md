@@ -15,7 +15,7 @@ creation_defaults:
 
 The Games database owns the user's durable knowledge about games across physical and digital forms and game-specific subjects best understood in the context of a particular game. It supports long-term reference, play-related notes, discovery, querying, and growth without attempting to model an exhaustive games-industry ontology.
 
-This file defines **Games-specific meaning only**. Universal ShardBase structure, metadata, lineage, placement, filename, lifecycle, attachment, safety, and validation rules come from the [System Specification](../../Docs/Shard%20System%20Specification.md).
+This file defines **Games-specific meaning only**. Universal Shardbase structure, metadata, lineage, placement, filename, lifecycle, attachment, safety, and validation rules come from the [System Specification](../../Docs/Shard%20System%20Specification.md).
 
 ## Scope
 
@@ -287,7 +287,7 @@ The blueprint ships [`Agents/Vera.md`](Agents/Vera.md), an optional Games specia
 
 Once materialized into a live database, the Vera copy becomes user-owned and travels with that database. Later blueprint edits do not silently update it.
 
-ShardBase stores/manages the Agent resource but does not execute Vera, connect to an AI provider, or transmit database content. External use is a separate user-controlled workflow.
+Shardbase stores/manages the Agent resource but does not execute Vera, connect to an AI provider, or transmit database content. External use is a separate user-controlled workflow.
 
 ### Scripts
 

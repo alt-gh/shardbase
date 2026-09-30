@@ -8,9 +8,9 @@ Foundation-4 change note: this edition adds direct canonical database creation a
 
 ## 1. Purpose and Authority
 
-This document is the highest architectural authority inside the ShardBase repository. It defines the universal contract every compliant ShardBase database, tool, agent, and implementation must share.
+This document is the highest architectural authority inside the Shardbase repository. It defines the universal contract every compliant Shardbase database, tool, agent, and implementation must share.
 
-ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework. Canonical knowledge uses human-readable Markdown and YAML. Obsidian is the primary target environment, but canonical content and architectural meaning must remain understandable and editable without Obsidian, Dataview, AI assistance, scripts, generated indexes, or hosted services.
+Shardbase is a privacy-focused, user-owned structured Markdown knowledge-base framework. Canonical knowledge uses human-readable Markdown and YAML. Obsidian is the primary target environment, but canonical content and architectural meaning must remain understandable and editable without Obsidian, Dataview, AI assistance, scripts, generated indexes, or hosted services.
 
 Database-specific meaning belongs in the root `Database.md` of the owning database. A database may define domain-specific collections, Pool values, semantic fields, relationships, conventions, templates, views, and other local resources, but it may not override this specification.
 
@@ -27,7 +27,7 @@ Examples, templates, agents, scripts, views, existing content, prompts, provider
 
 ### 1.2 Universal vs. Database-Local Rules
 
-A rule belongs here when independently designed compliant databases must agree on it for ShardBase or its tooling to interpret them safely and consistently.
+A rule belongs here when independently designed compliant databases must agree on it for Shardbase or its tooling to interpret them safely and consistently.
 
 Domain concepts that a valid database can reasonably exist without understanding remain database-local unless a deliberate framework change establishes a universal requirement.
 
@@ -35,19 +35,19 @@ Local rules may extend only areas this specification leaves open. A local rule t
 
 ## 2. Product Boundaries and Guarantees
 
-ShardBase is local-first and user-owned. User-owned knowledge and local state remain on the user's machine by default. Reading or operating on local information does not authorize transmission, synchronization, publication, upload, sharing, or other external exposure.
+Shardbase is local-first and user-owned. User-owned knowledge and local state remain on the user's machine by default. Reading or operating on local information does not authorize transmission, synchronization, publication, upload, sharing, or other external exposure.
 
-Local-first is not local-only. Users may deliberately choose cloud synchronization, backup, Git hosting, publishing, database sharing, or external AI systems. Those choices remain external workflows and must not become prerequisites for interpreting canonical ShardBase knowledge.
+Local-first is not local-only. Users may deliberately choose cloud synchronization, backup, Git hosting, publishing, database sharing, or external AI systems. Those choices remain external workflows and must not become prerequisites for interpreting canonical Shardbase knowledge.
 
-ShardBase may manage, validate, package, convert, and export user-owned AI-related files such as Agent definitions, Prompts, instructions, and context. **ShardBase does not execute models, authenticate with AI providers, invoke or orchestrate agents, or transmit local knowledge to AI services.** This is a product boundary, not deferred implementation work.
+Shardbase may manage, validate, package, convert, and export user-owned AI-related files such as Agent definitions, Prompts, instructions, and context. **Shardbase does not execute models, authenticate with AI providers, invoke or orchestrate agents, or transmit local knowledge to AI services.** This is a product boundary, not deferred implementation work.
 
-ShardBase does not aim to become a proprietary knowledge platform, synchronization or backup service, publishing platform, general-purpose search/indexing engine, transactional database engine, cloud-first collaboration system, or universal ontology.
+Shardbase does not aim to become a proprietary knowledge platform, synchronization or backup service, publishing platform, general-purpose search/indexing engine, transactional database engine, cloud-first collaboration system, or universal ontology.
 
 Canonical knowledge must remain:
 
 - **readable** as ordinary documents and inspectable metadata;
 - **editable** with compatible text or Markdown tooling;
-- **portable** without requiring a ShardBase export merely to possess or move it;
+- **portable** without requiring a Shardbase export merely to possess or move it;
 - **recoverable in meaning** without hidden application, provider, cache, index, embedding, or runtime state.
 
 Optional tooling may reduce convenience when unavailable; it must not redefine otherwise valid canonical knowledge.
@@ -94,7 +94,7 @@ These surfaces should be safe to distribute and must not silently embed private 
 
 ### 3.2 Knowledge Boundary
 
-`app/Knowledge/` is the canonical local boundary for user-owned ShardBase knowledge. During Foundation it has exactly two canonical direct children:
+`app/Knowledge/` is the canonical local boundary for user-owned Shardbase knowledge. During Foundation it has exactly two canonical direct children:
 
 - `Inbox/` — unresolved pre-structural capture;
 - `Databases/` — live canonical databases.
@@ -184,7 +184,7 @@ Every `Database.md` contains:
 ## Resources
 ```
 
-These sections document the database's own contract, not the complete ShardBase architecture.
+These sections document the database's own contract, not the complete Shardbase architecture.
 
 - **Purpose** explains why the database exists.
 - **Scope** defines canonical semantic ownership, including realistic inclusions and exclusions.
@@ -197,7 +197,7 @@ If a database has no additional semantic fields, semantic note kinds, or convent
 
 ### 4.3 Database Ownership
 
-Within ShardBase, database ownership means canonical semantic responsibility for knowledge inside the scope documented by `Database.md`. It is distinct from the user's ownership of all live database data.
+Within Shardbase, database ownership means canonical semantic responsibility for knowledge inside the scope documented by `Database.md`. It is distinct from the user's ownership of all live database data.
 
 Physical placement should follow determined ownership rather than define it after the fact. If multiple databases plausibly claim knowledge and their contracts do not resolve the ambiguity, do not guess or create duplicate authoritative copies. Leave the knowledge unresolved or pre-structural where practical and clarify the affected contracts.
 
@@ -207,7 +207,7 @@ A portable database should retain coherent owned meaning when moved independentl
 
 ## 5. Structural Model
 
-ShardBase uses:
+Shardbase uses:
 
 **Pool → Core → Shard → Pebble**
 
@@ -298,7 +298,7 @@ Database-specific semantic metadata is additional to the universal fields and is
 
 Semantic metadata may inform classification but never substitutes for structural metadata. Folder placement, data-collection membership, tags, links, backlinks, categories, series, organizations, and other domain relationships are not structural lineage.
 
-If a proposed field could be structural or semantic, ask whether every compliant database must share its meaning for ShardBase to establish or validate a universal invariant. If not, keep it database-local.
+If a proposed field could be structural or semantic, ask whether every compliant database must share its meaning for Shardbase to establish or validate a universal invariant. If not, keep it database-local.
 
 ## 7. Placement, Collections, Workspaces, and Attachments
 
@@ -443,7 +443,7 @@ The lifecycle is a state-and-decision model rather than a mandatory linear pipel
 
 ### 11.1 Entry
 
-ShardBase recommends two primary creation paths:
+Shardbase recommends two primary creation paths:
 
 - deliberately database-owned notes should normally use the CLI to select a live database and create canonical state directly after resolving identity, collection, Pool, Core/parent lineage, naming, and placement and passing applicable deterministic validation;
 - temporary, unresolved, or pre-structural captures created through the CLI, a Markdown editor (preferably Obsidian), or filesystem should normally enter `app/Knowledge/Inbox/`.
@@ -488,7 +488,7 @@ Restoring archived structural knowledge normally means returning its structural 
 
 ### 11.6 Deletion
 
-During Foundation, normal deletion is a deliberate user action through the Markdown editor or filesystem. ShardBase agents and tooling must not autonomously delete canonical user knowledge.
+During Foundation, normal deletion is a deliberate user action through the Markdown editor or filesystem. Shardbase agents and tooling must not autonomously delete canonical user knowledge.
 
 Archived, obsolete, orphaned, duplicate-looking, invalid, or unreferenced content is not automatically deletable. Orphan detection is diagnostic, not cleanup permission.
 
@@ -569,7 +569,7 @@ Prefer deterministic, reversible automation for low-risk mechanical work. Keep d
 
 ## 14. Architectural Change, Versioning, and Migration
 
-ShardBase distinguishes the nature of a change, its compatibility effect, and any transformation used to apply it.
+Shardbase distinguishes the nature of a change, its compatibility effect, and any transformation used to apply it.
 
 ### 14.1 Change Categories
 
@@ -726,9 +726,9 @@ Inbox files are excluded from canonical database conformance until promotion. Pr
 
 ## 17. Foundation Agent Contract
 
-Shard is the canonical primary AI architectural and database agent for ShardBase. Other agents may specialize, but all agents that operate on ShardBase structure or user-owned knowledge remain subject to the same authority, privacy, preservation, and authorization rules.
+Shard is the canonical primary AI architectural and database agent for Shardbase. Other agents may specialize, but all agents that operate on Shardbase structure or user-owned knowledge remain subject to the same authority, privacy, preservation, and authorization rules.
 
-Shard should translate ordinary user intent into the smallest valid ShardBase operation rather than requiring users to know the full architecture first.
+Shard should translate ordinary user intent into the smallest valid Shardbase operation rather than requiring users to know the full architecture first.
 
 When proposing a structural entity, an agent should make the decision inspectable by identifying the classification, database ownership, data collection, Pool, root Core, immediate parent, recommended location, filename, required metadata, rationale, and significant assumptions where relevant.
 
@@ -794,6 +794,6 @@ Operational instructions for repository agents live in [`../../AGENTS.md`](../..
 
 ## 19. Core Mission
 
-ShardBase should create the smallest durable structure that preserves ownership, clarity, lineage, integrity, portability, queryability, and future growth.
+Shardbase should create the smallest durable structure that preserves ownership, clarity, lineage, integrity, portability, queryability, and future growth.
 
 Implementation may still discover details; it should no longer have to invent architecture.

@@ -98,7 +98,7 @@ def instance(root: Path) -> Path:
     # Resolve the user's root alias, but never any in-instance symlink.
     root = root.expanduser().resolve(strict=True)
     if not safe_path(root / "app").is_dir():
-        raise BackupError("--root must select a ShardBase instance containing app/.")
+        raise BackupError("--root must select a Shardbase instance containing app/.")
     safe_path(root / BOUNDARY)
     return root
 
@@ -125,7 +125,7 @@ def external(path: Path, root: Path, label: str) -> Path:
         (parent / SPEC_PATH).is_file() or (parent / ".obsidian").is_dir()
         for parent in (path, *path.parents)
     ):
-        raise BackupError(f"{label} must be outside ShardBase instances and knowledge vaults.")
+        raise BackupError(f"{label} must be outside Shardbase instances and knowledge vaults.")
     return path
 
 
@@ -367,7 +367,7 @@ def decrypt(source: Path, output: Path, password: bytes) -> None:
             raise BackupError("The backup was truncated while reading its header.")
         magic, version, salt, nonce = HEADER.unpack(header)
         if magic != MAGIC or version != VERSION:
-            raise BackupError("Not a supported ShardBase backup; expected format version 1.")
+            raise BackupError("Not a supported Shardbase backup; expected format version 1.")
         reader.seek(-16, os.SEEK_END)
         tag = reader.read(16)
         reader.seek(HEADER.size)

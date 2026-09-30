@@ -222,7 +222,7 @@ def _diagnose(root: Path) -> list[CheckResult]:
 
     candidates = attempt("runtime.launcher", launcher_candidates)
     if candidates == []:
-        add("runtime.launcher", "INFO", "No ShardBase launcher discovered; direct/script use may be intentional")
+        add("runtime.launcher", "INFO", "No Shardbase launcher discovered; direct/script use may be intentional")
     for candidate in candidates or []:
         try:
             inspect_launcher(candidate, root)

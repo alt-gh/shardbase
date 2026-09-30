@@ -1,14 +1,14 @@
-# ShardBase
+# Shardbase
 
-ShardBase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain.
+Shardbase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain.
 
 Its durable source is ordinary Markdown and YAML. Obsidian is the primary knowledge environment, Dataview is a primary query interface, and scripts or external AI systems may assist with the knowledge, but none of those tools owns or defines the canonical meaning of the data.
 
-ShardBase is local-first: user-owned knowledge stays local unless the user deliberately chooses to synchronize, publish, share, back up, or provide it to an external service.
+Shardbase is local-first: user-owned knowledge stays local unless the user deliberately chooses to synchronize, publish, share, back up, or provide it to an external service.
 
 ## The Core Idea
 
-ShardBase adds a small shared architectural contract to familiar knowledge-management primitives such as Markdown, YAML, folders, wikilinks, tags, queries, templates, scripts, and AI assistance.
+Shardbase adds a small shared architectural contract to familiar knowledge-management primitives such as Markdown, YAML, folders, wikilinks, tags, queries, templates, scripts, and AI assistance.
 
 The structural model is:
 
@@ -25,7 +25,7 @@ For the complete structural contract, see [`app/Docs/Shard System Specification.
 
 ## Documentation Authority
 
-ShardBase deliberately avoids duplicating authoritative rules across documents.
+Shardbase deliberately avoids duplicating authoritative rules across documents.
 
 | Document | Role | Authority |
 |---|---|---|
@@ -35,7 +35,7 @@ ShardBase deliberately avoids duplicating authoritative rules across documents.
 | [`AGENTS.md`](AGENTS.md) | Operating instructions for agents working in this repository | Operational guidance; consumes the authorities above |
 | [`app/Scripts/README.md`](app/Scripts/README.md) | Current CLI/validator setup, behavior, and implementation limits | Tooling documentation; does not define architecture |
 | [`app/Registry/Registry.md`](app/Registry/Registry.md) | Runtime database discovery/navigation view | Navigational only |
-| [`app/Docs/ShardBase Foundation Roadmap.md`](app/Docs/ShardBase%20Foundation%20Roadmap.md) | Current work, milestone status, blockers, and deferred work | Planning only; never architectural authority |
+| [`app/Docs/Shardbase Foundation Roadmap.md`](app/Docs/Shardbase%20Foundation%20Roadmap.md) | Current work, milestone status, blockers, and deferred work | Planning only; never architectural authority |
 | [`app/Docs/ADR/`](app/Docs/ADR/) | Accepted architectural decisions and rationale | Historical rationale; current normative rules remain in the System Specification |
 
 If supporting documentation and an authoritative contract disagree, correct the supporting documentation rather than treating the disagreement as a new rule.
@@ -72,7 +72,7 @@ shardbase/
 
 ## Working with Databases
 
-Each database owns the domain meaning inside its documented scope. Universal ShardBase structure stays universal; domain-specific fields, relationships, classifications, and conventions stay in the owning database's `Database.md`.
+Each database owns the domain meaning inside its documented scope. Universal Shardbase structure stays universal; domain-specific fields, relationships, classifications, and conventions stay in the owning database's `Database.md`.
 
 A database may relate to knowledge in another database without taking ownership of it. Structural lineage remains database-local: `core` and `parent_note` never create cross-database ancestry.
 
@@ -84,7 +84,7 @@ For exact manifest requirements, note metadata, naming, placement, lifecycle, at
 
 ## Current Tooling
 
-ShardBase currently includes:
+Shardbase currently includes:
 
 - a local CLI for blueprint-based database scaffolding and direct canonical note creation;
 - a read-only structural validator;
@@ -95,7 +95,7 @@ ShardBase currently includes:
 
 Use `shardbase create new` to choose **Inbox capture** or **database creation**. Database creation selects a live database, resolves canonical identity and lineage, and writes directly after structural validation. New Cores normally receive a workspace; supporting notes inherit the selected Core’s Pool, collection, and existing workspace or flat location. Each canonical note receives a stable ID and the required filename. Inbox captures remain provisional in `app/Knowledge/Inbox/`.
 
-For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. ShardBase does not change your editor settings automatically.
+For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. Shardbase does not change your editor settings automatically.
 
 Canonical creation checks structural validity before and after writing and rolls back its own new artifacts on failure. Database-specific semantics still require review. Existing flat lineages and historical Inbox notes remain unchanged; live databases never synchronize automatically from blueprints.
 
@@ -141,7 +141,7 @@ After a blueprint is materialized into a live database, the live copy is user-ow
 
 ## Product Boundaries
 
-ShardBase is designed to preserve user-owned knowledge, shared explicit meaning, safe evolution, and replaceable tooling. It is intentionally **not**:
+Shardbase is designed to preserve user-owned knowledge, shared explicit meaning, safe evolution, and replaceable tooling. It is intentionally **not**:
 
 - a proprietary or cloud-owned knowledge platform;
 - an AI runtime or AI-provider integration layer;
@@ -149,12 +149,12 @@ ShardBase is designed to preserve user-owned knowledge, shared explicit meaning,
 - a replacement for a transactional database engine;
 - a universal ontology or maximum-structure system.
 
-ShardBase may manage, validate, package, convert, or export user-owned AI-related files, but it does not execute models, authenticate with providers, orchestrate agents, or transmit local knowledge to AI services. Any external AI use is a separate user-controlled workflow.
+Shardbase may manage, validate, package, convert, or export user-owned AI-related files, but it does not execute models, authenticate with providers, orchestrate agents, or transmit local knowledge to AI services. Any external AI use is a separate user-controlled workflow.
 
 ## Project Status
 
-ShardBase is in the **Foundation** stage. The universal architecture and substantial deterministic validation are already implemented, but Foundation is not complete.
+Shardbase is in the **Foundation** stage. The universal architecture and substantial deterministic validation are already implemented, but Foundation is not complete.
 
 The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, extend creation with semantic validation and add deliberate draft promotion, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
 
-See [`app/Docs/ShardBase Foundation Roadmap.md`](app/Docs/ShardBase%20Foundation%20Roadmap.md) for current status only. Architectural requirements belong in the System Specification, not the roadmap.
+See [`app/Docs/Shardbase Foundation Roadmap.md`](app/Docs/Shardbase%20Foundation%20Roadmap.md) for current status only. Architectural requirements belong in the System Specification, not the roadmap.

@@ -94,7 +94,7 @@ class BootstrapTests(unittest.TestCase):
             path = self.root / marker
             data = path.read_bytes()
             path.unlink()
-            with self.subTest(marker=marker), self.assertRaisesRegex(support.SetupError, "Expected a ShardBase"):
+            with self.subTest(marker=marker), self.assertRaisesRegex(support.SetupError, "Expected a Shardbase"):
                 self.install()
             path.write_bytes(data)
         self.run.assert_not_called()
@@ -150,10 +150,10 @@ class BootstrapTests(unittest.TestCase):
                          (home / ".local/share/shardbase/venv", home / ".local/bin"))
         local = self.base / "Local Data"
         self.assertEqual(support.default_paths("nt", {"LOCALAPPDATA": str(local)}, home),
-                         (local / "ShardBase/venv", local / "ShardBase/bin"))
+                         (local / "Shardbase/venv", local / "Shardbase/bin"))
         for environment in ({}, {"LOCALAPPDATA": ""}):
             self.assertEqual(support.default_paths("nt", environment, home),
-                             (home / "AppData/Local/ShardBase/venv", home / "AppData/Local/ShardBase/bin"))
+                             (home / "AppData/Local/Shardbase/venv", home / "AppData/Local/Shardbase/bin"))
 
     def test_platform_interpreter_paths(self):
         self.assertEqual(support.venv_python(self.runtime, "posix"), self.runtime / "bin/python")
@@ -519,7 +519,7 @@ class RootEntryTests(unittest.TestCase):
             shutil.copy2(ROOT / "bootstrap.py", root)
             result = subprocess.run([sys.executable, str(root / "bootstrap.py")], text=True, capture_output=True)
             self.assertEqual(result.returncode, 1)
-            self.assertIn("expected a ShardBase instance", result.stderr)
+            self.assertIn("expected a Shardbase instance", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
             self.assertEqual(list(root.iterdir()), [root / "bootstrap.py"])
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compatibility entry point for external ShardBase runtime installation."""
+"""Compatibility entry point for external Shardbase runtime installation."""
 
 import sys
 from pathlib import Path

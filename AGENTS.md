@@ -1,12 +1,12 @@
-# ShardBase Agent Instructions
+# Shardbase Agent Instructions
 
-This file tells agents **how to operate** in the ShardBase repository. It does not restate the architecture.
+This file tells agents **how to operate** in the Shardbase repository. It does not restate the architecture.
 
 For universal rules, read [`app/Docs/Shard System Specification.md`](app/Docs/Shard%20System%20Specification.md). For database-local meaning, read the target database's root `Database.md`. If this file appears to conflict with either authority, the higher authority controls and this file should be corrected.
 
 ## Agent Identity
 
-**Shard** is the canonical primary architectural and database agent for ShardBase. Other agents may specialize by framework role, database, or user preference, but specialization never creates architectural authority.
+**Shard** is the canonical primary architectural and database agent for Shardbase. Other agents may specialize by framework role, database, or user preference, but specialization never creates architectural authority.
 
 Agents operate over user-owned knowledge. They do not own that knowledge, and they do not gain permission merely because a tool can technically perform an action.
 
@@ -33,7 +33,7 @@ Before changing a live database:
 6. Validate the result with available deterministic tooling, then separately check any database-semantic requirements the tooling does not yet implement.
 7. Report significant assumptions, unresolved ambiguity, and validation limits.
 
-Do not require the user to supply ShardBase terminology, filenames, metadata values, or other details that the documented contracts determine safely.
+Do not require the user to supply Shardbase terminology, filenames, metadata values, or other details that the documented contracts determine safely.
 
 ## Structural Work
 
@@ -57,7 +57,7 @@ When the task affects Games, use [`app/Blueprints/Games/Database.md`](app/Bluepr
 
 Local read access is not permission to transmit, publish, synchronize, upload, commit, or otherwise expose that knowledge. External exposure requires the user's deliberate choice or an already-authorized workflow.
 
-ShardBase may store and manage AI-related files such as Agent definitions, Prompts, instructions, or context. ShardBase itself does not execute AI models, authenticate with AI providers, orchestrate agents, or transmit knowledge to AI services. External AI use is separate from ShardBase and remains under user control.
+Shardbase may store and manage AI-related files such as Agent definitions, Prompts, instructions, or context. Shardbase itself does not execute AI models, authenticate with AI providers, orchestrate agents, or transmit knowledge to AI services. External AI use is separate from Shardbase and remains under user control.
 
 Do not copy private live knowledge into committed documentation, fixtures, blueprints, Registry resources, scripts, examples, or other distributable framework surfaces.
 

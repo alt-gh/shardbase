@@ -1,8 +1,8 @@
-# Contributing to ShardBase
+# Contributing to Shardbase
 
-This guide is for people changing the **ShardBase framework repository**. Contributors use a Git clone or fork of the public framework and work on a focused branch.
+This guide is for people changing the **Shardbase framework repository**. Contributors use a Git clone or fork of the public framework and work on a focused branch.
 
-Contributing to ShardBase and using ShardBase privately are intentionally different workflows. For a private instance, download the repository ZIP and follow [Get Started](README.md#get-started) and the [runtime setup guide](app/Scripts/README.md#runtime-setup). Contributor cloning and development checks are not prerequisites for private use.
+Contributing to Shardbase and using Shardbase privately are intentionally different workflows. For a private instance, download the repository ZIP and follow [Get Started](README.md#get-started) and the [runtime setup guide](app/Scripts/README.md#runtime-setup). Contributor cloning and development checks are not prerequisites for private use.
 
 ## Read the relevant authorities
 
@@ -58,7 +58,7 @@ python -m pip install -r app/Scripts/requirements.txt
 python -m pip install -r requirements-dev.txt
 ```
 
-[Runtime requirements](app/Scripts/requirements.txt) supply the CLI dependencies; [development requirements](requirements-dev.txt) pin Ruff. Keep development-only dependencies separate. The scripts run directly from `app/Scripts/`; ShardBase is not configured as an installable Python package.
+[Runtime requirements](app/Scripts/requirements.txt) supply the CLI dependencies; [development requirements](requirements-dev.txt) pin Ruff. Keep development-only dependencies separate. The scripts run directly from `app/Scripts/`; Shardbase is not configured as an installable Python package.
 
 ## Run the local quality gate
 

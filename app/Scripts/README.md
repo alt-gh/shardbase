@@ -1,14 +1,14 @@
-# ShardBase CLI and Validation Tooling
+# Shardbase CLI and Validation Tooling
 
 This document describes the **current implementation** in `app/Scripts/`: how to run it, what it does, and what it does not yet do.
 
-It does not define ShardBase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
+It does not define Shardbase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
 
 Current tooling targets System Specification `foundation-4`, retaining foundation-3 naming within the implementation scope described below.
 
 ## Runtime Setup
 
-The current scripts require Python 3.10 or newer and the pinned PyYAML and cryptography dependencies in `requirements.txt`. These are tooling requirements, not universal ShardBase requirements. Existing installations should rerun the installer after updating to install new dependencies.
+The current scripts require Python 3.10 or newer and the pinned PyYAML and cryptography dependencies in `requirements.txt`. These are tooling requirements, not universal Shardbase requirements. Existing installations should rerun the installer after updating to install new dependencies.
 
 ### Bootstrap a private instance (macOS/Linux/Windows)
 
@@ -23,10 +23,10 @@ Use `python3 bootstrap.py` on macOS/Linux if needed, or `py bootstrap.py` on Win
 | Platform | External runtime | External launcher |
 |---|---|---|
 | macOS/Linux | `~/.local/share/shardbase/venv` | `~/.local/bin/shardbase` |
-| Windows | `%LOCALAPPDATA%\ShardBase\venv` | `%LOCALAPPDATA%\ShardBase\bin\shardbase.cmd` |
-| Windows without `LOCALAPPDATA` | `~/AppData/Local/ShardBase/venv` | `~/AppData/Local/ShardBase/bin/shardbase.cmd` |
+| Windows | `%LOCALAPPDATA%\Shardbase\venv` | `%LOCALAPPDATA%\Shardbase\bin\shardbase.cmd` |
+| Windows without `LOCALAPPDATA` | `~/AppData/Local/Shardbase/venv` | `~/AppData/Local/Shardbase/bin/shardbase.cmd` |
 
-Use `--runtime "/external/path/to/venv"` and `--bin-dir "/external/path/to/bin"` for custom locations; `--help` lists these options. Runtime, launcher, and temporary paths must resolve outside this instance, other identifiable ShardBase instances, and Obsidian vaults. Keep custom locations outside vaults without recognizable markers too.
+Use `--runtime "/external/path/to/venv"` and `--bin-dir "/external/path/to/bin"` for custom locations; `--help` lists these options. Runtime, launcher, and temporary paths must resolve outside this instance, other identifiable Shardbase instances, and Obsidian vaults. Keep custom locations outside vaults without recognizable markers too.
 
 Bootstrap creates or reuses an external venv and verifies its interpreter can run Python 3.10+. An invalid, unsupported, or partially created runtime is preserved and setup fails; review it yourself or choose another `--runtime`. Rerunning a valid runtime reinstalls/repairs pinned dependencies.
 
@@ -130,18 +130,18 @@ Doctor is observational: it performs no repair, initialization, installation, mi
 
 These are manual CLI commands. They operate only on `app/Knowledge/`, including Inbox, database contracts, notes, attachments, and database-owned resources. Obsidian settings, framework files, and unrelated local files are outside scope. Nothing is uploaded, scheduled, or synchronized.
 
-For a normal backup and restore into another existing ShardBase checkout:
+For a normal backup and restore into another existing Shardbase checkout:
 
 ```sh
 shardbase backup "$HOME/knowledge.sbbackup"
 shardbase restore "$HOME/knowledge.sbbackup" --root "/path/to/new/shardbase"
 ```
 
-The first command prompts for a hidden passphrase and confirmation. The second prompts for the same passphrase, verifies the entire backup and destination, then imports the knowledge automatically. No decryption, extraction, file rearrangement, or post-import conversion commands are needed. Use a strong passphrase of several random words; creation requires at least 12 UTF-8 bytes. **ShardBase cannot recover a lost passphrase.**
+The first command prompts for a hidden passphrase and confirmation. The second prompts for the same passphrase, verifies the entire backup and destination, then imports the knowledge automatically. No decryption, extraction, file rearrangement, or post-import conversion commands are needed. Use a strong passphrase of several random words; creation requires at least 12 UTF-8 bytes. **Shardbase cannot recover a lost passphrase.**
 
-With no output argument, `shardbase backup` prompts for a save location. Enter a new filename or an existing folder; choosing a folder generates a unique `.sbbackup` filename there. Press Enter to accept the suggested unique filename in `~/ShardBase Backups/`; that default folder is created if needed. An explicit output argument also accepts either a filename or an existing folder. For a custom filename, its parent directory must already exist. Output must be outside ShardBase instances and identifiable vaults. An existing backup is never replaced, and the command prints the resulting location.
+With no output argument, `shardbase backup` prompts for a save location. Enter a new filename or an existing folder; choosing a folder generates a unique `.sbbackup` filename there. Press Enter to accept the suggested unique filename in `~/Shardbase Backups/`; that default folder is created if needed. An explicit output argument also accepts either a filename or an existing folder. For a custom filename, its parent directory must already exist. Output must be outside Shardbase instances and identifiable vaults. An existing backup is never replaced, and the command prints the resulting location.
 
-`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose which existing ShardBase instance receives the restored knowledge; files retain their layout under that instance's `app/Knowledge/`. Both commands accept `--root`, defaulting to the checkout used for installation. For example, `shardbase backup "/Volumes/Archive/My Backups"` saves into that existing folder, and `shardbase restore "/Volumes/Archive/My Backups/chosen.sbbackup" --root "/path/to/new/shardbase"` imports that selected backup into the selected instance.
+`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose which existing Shardbase instance receives the restored knowledge; files retain their layout under that instance's `app/Knowledge/`. Both commands accept `--root`, defaulting to the checkout used for installation. For example, `shardbase backup "/Volumes/Archive/My Backups"` saves into that existing folder, and `shardbase restore "/Volumes/Archive/My Backups/chosen.sbbackup" --root "/path/to/new/shardbase"` imports that selected backup into the selected instance.
 
 ### Local Data and Git Exclusion
 

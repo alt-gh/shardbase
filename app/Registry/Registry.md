@@ -1,4 +1,4 @@
-# ShardBase Registry
+# Shardbase Registry
 
 The Registry is the instance-wide **navigation and discovery** surface for live databases. It is not an architectural authority and does not certify database validity.
 

@@ -1,4 +1,4 @@
-# ShardBase Foundation Roadmap
+# Shardbase Foundation Roadmap
 
 document_role: Planning and status tracker; not architectural authority.
 current_stage: foundation
@@ -202,7 +202,7 @@ The Games `Database.md` is the sole authority for Games-specific scope, Pool voc
 
 Movies should be designed **after** the Games vertical slice is proven. It must be an independent second-domain design, not a renamed Games schema. Its purpose is to reveal whether proposed generic mechanisms actually generalize across domains.
 
-Movies is not required to block every remaining Foundation task, but it should occur before ShardBase commits to broad post-Foundation generic capabilities whose design depends on database-semantic generalization.
+Movies is not required to block every remaining Foundation task, but it should occur before Shardbase commits to broad post-Foundation generic capabilities whose design depends on database-semantic generalization.
 
 ---
 
@@ -263,8 +263,8 @@ Movies is not required to block every remaining Foundation task, but it should o
 ### Explicit Product Non-Goals
 
 - AI provider/model integration or orchestration
-- ShardBase-owned sync system
-- ShardBase-owned general-purpose search/indexing engine
+- Shardbase-owned sync system
+- Shardbase-owned general-purpose search/indexing engine
 - transactional database engine
 - cloud-first collaborative platform
 

@@ -17,7 +17,7 @@ The duplication created avoidable costs as databases grew:
 - similarly named local subjects depended on ancestry text for filesystem disambiguation;
 - filenames mixed human-facing labels with structural encoding, making identity less stable across reorganizations.
 
-ShardBase also needs canonical filenames to remain understandable to people rather than becoming opaque machine keys.
+Shardbase also needs canonical filenames to remain understandable to people rather than becoming opaque machine keys.
 
 ## Decision
 

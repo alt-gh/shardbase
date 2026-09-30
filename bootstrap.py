@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare external ShardBase tooling for this instance (Python 3.10+)."""
+"""Prepare external Shardbase tooling for this instance (Python 3.10+)."""
 
 # Keep this preflight parseable on older Python, before importing shared code.
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 
 def main(argv=None):
     if sys.version_info < (3, 10):
-        print("ShardBase bootstrap requires Python 3.10 or newer.\n"
+        print("Shardbase bootstrap requires Python 3.10 or newer.\n"
               "Detected: Python {}.{}.{}\n"
               "Rerun bootstrap.py with Python 3.10+.".format(*sys.version_info[:3]),
               file=sys.stderr)
@@ -17,7 +17,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parent
     support = root / "app/Scripts/bootstrap_support.py"
     if not support.is_file():
-        print("Setup failed: expected a ShardBase instance containing "
+        print("Setup failed: expected a Shardbase instance containing "
               "app/Scripts/bootstrap_support.py.", file=sys.stderr)
         return 1
     sys.path.insert(0, str(support.parent))

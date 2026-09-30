@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ShardBase command-line entry point. See README.md for external runtime setup."""
+"""Shardbase command-line entry point. See README.md for external runtime setup."""
 
 from __future__ import annotations
 
@@ -149,7 +149,7 @@ def run_doctor(args: argparse.Namespace) -> int:
 
     ui = Terminal(args.no_color)
     results = diagnose(args.root)
-    print("ShardBase doctor")
+    print("Shardbase doctor")
     colors = {"OK": "32", "INFO": "2", "WARN": "33", "FAIL": "31"}
     for category in CATEGORIES:
         ui.section(category)
@@ -214,7 +214,7 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
         filename = f"shardbase-{timestamp}-{secrets.token_hex(4)}.sbbackup"
         output = args.archive
         if output is None:
-            suggested = Path.home() / "ShardBase Backups" / filename
+            suggested = Path.home() / "Shardbase Backups" / filename
             print("Choose an existing folder or a new backup filename. Press Enter to use the suggested location.")
             chosen = input(f"Save backup to [{ui.style(str(suggested))}]: ").strip()
             if chosen:
@@ -227,7 +227,7 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
         if output.is_dir():
             output = output / filename
         print("Backing up local knowledge only. Git-tracked data and generated caches are excluded.")
-        print("Keep the passphrase: it cannot be recovered by ShardBase.")
+        print("Keep the passphrase: it cannot be recovered by Shardbase.")
         password = read_password(args.password_file, confirm=True)
         manifest = backup(root, output, password, args.staging_dir)
         files = [entry for entry in manifest["entries"] if entry["kind"] == "file"]
@@ -249,7 +249,7 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="shardbase", description="ShardBase — local notes, structured simply.")
+    parser = argparse.ArgumentParser(prog="shardbase", description="Shardbase — local notes, structured simply.")
     commands = parser.add_subparsers(dest="command")
     pages = {(): parser}
     catalog: list[tuple[str, str]] = []
@@ -309,7 +309,7 @@ def build_parser() -> argparse.ArgumentParser:
                              ("restore", "Import an encrypted backup without replacing existing content")):
         page = register(commands, command, (command,), summary)
         page.add_argument("archive", nargs="?", type=Path,
-                          help="Output file or existing folder; prompted when omitted (Enter accepts ~/ShardBase Backups/)" if command == "backup" else "Input .sbbackup path; prompted when omitted")
+                          help="Output file or existing folder; prompted when omitted (Enter accepts ~/Shardbase Backups/)" if command == "backup" else "Input .sbbackup path; prompted when omitted")
         page.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2], help="Instance root containing app/ (default: this checkout)")
         page.add_argument("--password-file", type=Path, help="Read a UTF-8 passphrase from an owner-only file instead of a secure terminal prompt")
         page.add_argument("--staging-dir", type=Path, help="Existing external temporary directory; restore requires the target filesystem (default: system temp)")
@@ -318,7 +318,7 @@ def build_parser() -> argparse.ArgumentParser:
         page.set_defaults(handler=transfer_knowledge)
 
     def show_commands(args):
-        print("ShardBase commands\n")
+        print("Shardbase commands\n")
         for route, summary in catalog:
             print(f"  {'shardbase ' + route:<32} {summary}")
         print("\nUse shardbase help <command> or append --help for options.")

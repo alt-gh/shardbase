@@ -12,7 +12,7 @@ Ordinary correctness bugs may use [public Issues](https://github.com/alt-gh/shar
 
 During Foundation, the currently maintained development codebase is the security-support target. Historical commits and branches are not promised security support, and backports are not currently promised.
 
-A formal supported-release matrix will be introduced when ShardBase has versioned releases that warrant one. This policy does not establish long-term-support branches or production response guarantees.
+A formal supported-release matrix will be introduced when Shardbase has versioned releases that warrant one. This policy does not establish long-term-support branches or production response guarantees.
 
 ## Security-sensitive areas
 
@@ -22,7 +22,7 @@ Reports are especially relevant in these areas:
 - **Backup and restore:** authentication bypass, encryption misuse, loss of confidentiality or integrity, unsafe passphrase handling, unsafe backup inventory/path handling, restore conflict or overwrite flaws, plaintext exposure, or publication of unauthenticated data.
 - **Filesystem and path safety:** path traversal, symlink or containment escapes, writes outside authorized boundaries, unsafe file replacement or deletion, or filename/path handling that targets unintended files.
 - **Knowledge preservation with security impact:** unintended destructive overwrite of canonical user knowledge or bypass of collision/refusal safeguards that creates a confidentiality or integrity risk. Not every ordinary data-correctness bug is a security vulnerability.
-- **Dependencies:** vulnerabilities that meaningfully affect ShardBase's actual threat surface or supported tooling. Explain the relevant usage and impact; an upstream CVE does not by itself demonstrate exploitability in ShardBase.
+- **Dependencies:** vulnerabilities that meaningfully affect Shardbase's actual threat surface or supported tooling. Explain the relevant usage and impact; an upstream CVE does not by itself demonstrate exploitability in Shardbase.
 
 The [tooling guide](app/Scripts/README.md), including its [backup and restore behavior and limits](app/Scripts/README.md#encrypted-backup-and-restore), and the [backup format contract](app/Scripts/BACKUP_FORMAT.md) describe the current implementation. This policy does not replace those contracts or extend their guarantees.
 

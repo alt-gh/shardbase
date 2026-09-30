@@ -131,7 +131,7 @@ class TransferTests(unittest.TestCase):
         with patch("pathlib.Path.home", return_value=self.base), redirect_stdout(io.StringIO()):
             with patch("builtins.input", return_value=""), patch("backup_restore.getpass.getpass", return_value=PASSWORD.decode()):
                 self.assertEqual(main(["backup", "--root", str(self.source)]), 0)
-            archives = list((self.base / "ShardBase Backups").glob("*.sbbackup"))
+            archives = list((self.base / "Shardbase Backups").glob("*.sbbackup"))
             self.assertEqual(len(archives), 1)
             with patch("builtins.input", return_value=str(archives[0])), patch("backup_restore.getpass.getpass", return_value=PASSWORD.decode()):
                 self.assertEqual(main(["restore", "--root", str(self.target)]), 0)
@@ -163,7 +163,7 @@ class TransferTests(unittest.TestCase):
                 patch("backup_restore.getpass.getpass", side_effect=AssertionError("Unexpected password prompt")), \
                 redirect_stdout(io.StringIO()):
             self.assertEqual(main(["backup", "--root", str(self.source)]), 130)
-        self.assertFalse((self.base / "ShardBase Backups").exists())
+        self.assertFalse((self.base / "Shardbase Backups").exists())
 
     def test_repeat_restore_is_idempotent_and_preserves_unrelated_data(self):
         self.write(self.target, "app/Knowledge/Inbox/Unrelated.md", b"Keep me")

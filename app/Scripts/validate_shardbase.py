@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validation of ShardBase manifests and structural notes.
+"""Read-only validation of Shardbase manifests and structural notes.
 
 See app/Scripts/README.md for setup, supported conventions, and limitations.
 """

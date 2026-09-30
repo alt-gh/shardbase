@@ -18,6 +18,7 @@ MINIMUM_PYTHON = (3, 10)
 SPECIFICATION = "app/Docs/Shard System Specification.md"
 MARKER = "SHARDBASE-MANAGED-LAUNCHER: 1"
 POSIX_HEADER = "#!/bin/sh\n# " + MARKER + "\n"
+# Preserve the historical signature so existing launchers remain recognizable.
 LEGACY_HEADER = "#!/bin/sh\n# ShardBase launcher; source and knowledge remain in the selected checkout.\n"
 WINDOWS_HEADER = "@echo off\nrem " + MARKER + "\nsetlocal DisableDelayedExpansion\n"
 
@@ -30,14 +31,14 @@ def validate_instance_root(root: Path) -> Path:
     root = root.resolve()
     for marker in ("app/Scripts/shardbase.py", "app/Scripts/requirements.txt", SPECIFICATION):
         if not (root / marker).is_file():
-            raise SetupError(f"Expected a ShardBase instance containing {marker}: {root}")
+            raise SetupError(f"Expected a Shardbase instance containing {marker}: {root}")
     return root
 
 
 def default_paths(platform: str, environment, home: Path) -> tuple[Path, Path]:
     if platform == "nt":
         local = environment.get("LOCALAPPDATA")
-        base = (Path(local) if local else home / "AppData/Local") / "ShardBase"
+        base = (Path(local) if local else home / "AppData/Local") / "Shardbase"
         return base / "venv", base / "bin"
     return home / ".local/share/shardbase/venv", home / ".local/bin"
 
@@ -45,10 +46,10 @@ def default_paths(platform: str, environment, home: Path) -> tuple[Path, Path]:
 def external_path(path: Path, label: str, instance_root: Path) -> Path:
     resolved = path.expanduser().resolve()
     if resolved == instance_root or resolved.is_relative_to(instance_root):
-        raise SetupError(f"{label} must be outside the ShardBase project/vault.")
+        raise SetupError(f"{label} must be outside the Shardbase project/vault.")
     for ancestor in (resolved, *resolved.parents):
         if (ancestor / SPECIFICATION).is_file() or (ancestor / ".obsidian").is_dir():
-            raise SetupError(f"{label} must be outside every ShardBase instance and Obsidian vault.")
+            raise SetupError(f"{label} must be outside every Shardbase instance and Obsidian vault.")
     return resolved
 
 
@@ -201,7 +202,7 @@ def install(instance_root: Path, runtime: Path, bin_dir: Path, *, platform=None,
     contents = render_launcher(venv_python(runtime, platform), script, platform)
     original = inspect_launcher(launcher, platform)
     python = prepare_runtime(runtime, platform, environment, temp_dir)
-    print("Installing pinned ShardBase runtime dependencies.\n"
+    print("Installing pinned Shardbase runtime dependencies.\n"
           "This step may access configured Python package indexes/network resources.", flush=True)
     run_step([str(python), "-B", "-m", "pip", "--isolated", "install", "--no-cache-dir",
               "--no-compile", "--disable-pip-version-check", "-r", str(root / "app/Scripts/requirements.txt")],
@@ -222,7 +223,7 @@ def launcher_on_path(bin_dir: Path, platform: str, environment) -> bool:
 
 
 def report_completion(root: Path, runtime: Path, launcher: Path, platform: str, environment) -> None:
-    print(f"\nShardBase tooling is ready.\nRuntime: {runtime}\nLauncher: {launcher}")
+    print(f"\nShardbase tooling is ready.\nRuntime: {runtime}\nLauncher: {launcher}")
     if launcher_on_path(launcher.parent, platform, environment):
         print(f"Launcher directory is on PATH: {launcher.parent}")
     else:
@@ -239,19 +240,19 @@ def report_completion(root: Path, runtime: Path, launcher: Path, platform: str, 
 def setup_main(instance_root: Path, argv=None, *, bootstrap=False) -> int:
     platform = os.name
     runtime, bin_dir = default_paths(platform, os.environ, Path.home())
-    parser = argparse.ArgumentParser(description="Prepare external ShardBase tooling for this instance.")
+    parser = argparse.ArgumentParser(description="Prepare external Shardbase tooling for this instance.")
     parser.add_argument("--runtime", type=Path, default=runtime, help=f"External virtual environment (default: {runtime})")
     parser.add_argument("--bin-dir", type=Path, default=bin_dir, help=f"External launcher directory (default: {bin_dir})")
     args = parser.parse_args(argv)
     try:
         root = validate_instance_root(instance_root)
         if bootstrap:
-            print("ShardBase bootstrap\n")
+            print("Shardbase bootstrap\n")
         if (root / ".git").is_file() or (root / ".git").is_dir():
             print("Git-managed/development instance detected.")
         else:
             print("Private instance mode\nNo Git repository detected at the instance root.\n"
-                  "This instance is locally isolated from the public ShardBase repository.")
+                  "This instance is locally isolated from the public Shardbase repository.")
         launcher = install(root, args.runtime, args.bin_dir)
         report_completion(root, args.runtime.expanduser().resolve(), launcher, platform, os.environ)
     except (SetupError, OSError) as error:

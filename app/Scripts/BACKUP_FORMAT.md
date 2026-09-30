@@ -1,4 +1,4 @@
-# ShardBase Knowledge Backup Format
+# Shardbase Knowledge Backup Format
 
 Format version: `1`
 
