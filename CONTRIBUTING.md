@@ -18,7 +18,7 @@ This contributor guide describes the contribution process. It does not establish
 
 ## Protect private knowledge
 
-`app/Knowledge/` is private-by-default, user-owned data. Do not use it or other private-instance content as a source for public contributions.
+`app/Knowledge/` is private by default. It combines Shardbase-managed live database package files with user-owned Inbox, Data, and Views; `.obsidian/` is also user-owned local state. Do not use private-instance content as a source for public contributions.
 
 Use synthetic subjects and values in tests, fixtures, documentation, examples, screenshots, CLI help, blueprints, Registry resources, framework scripts, and issue or PR descriptions. Do not copy private material into those surfaces. Even a publicly known title or name selected from a private instance is user-derived context: replace it and its related filenames, links, aliases, and assertions with a consistent synthetic example.
 

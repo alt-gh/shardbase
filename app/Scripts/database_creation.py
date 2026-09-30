@@ -1,4 +1,4 @@
-"""Materialize a selected blueprint into a new user-owned database only."""
+"""Build and materialize destination-release database packages."""
 
 from __future__ import annotations
 
@@ -52,6 +52,16 @@ def available_blueprints(root: Path) -> list[Blueprint]:
         identities.add(identity)
         result.append(Blueprint(path, identity, name))
     return result
+
+
+def resolve_blueprint(root: Path, database_id: str) -> Blueprint:
+    """Resolve one installed package by stable database identity."""
+    matches = [item for item in available_blueprints(root) if item.database_id == database_id]
+    if len(matches) != 1:
+        raise CreationError(
+            f"Database {database_id} cannot be reconstructed from an installed Shardbase blueprint/package."
+        )
+    return matches[0]
 
 
 def inspect_package(root: Path, source: Path) -> None:
@@ -136,21 +146,48 @@ def copy_new_file(source: str, destination: str) -> str:
     return destination
 
 
-def create_database(root: Path, blueprint_id: str) -> Path:
+def prepare_database_package(root: Path, blueprint: Blueprint, stage_root: Path, destination: Path) -> Path:
+    """Build and validate the current managed package in an external staging instance.
+
+    ``destination`` is the eventual live path and is used only when rebasing
+    supported framework links. Nothing beneath the live Knowledge boundary is
+    changed by this function.
+    """
     root = instance_root(root)
-    matches = [item for item in available_blueprints(root) if item.database_id == blueprint_id]
-    if len(matches) != 1:
-        raise CreationError(f"No blueprint declares database_id: {blueprint_id}.")
-    blueprint = matches[0]
     if portable_component(blueprint.path.name) != blueprint.path.name:
         raise CreationError("The blueprint folder needs a portable name before it can become a database folder.")
     metadata, _ = read_document(root, blueprint.path / "Database.md")
     if metadata.get("database_status") not in ("active", "draft"):
-        raise CreationError("Only active or draft blueprints can bootstrap a new database.")
+        raise CreationError("Only active or draft blueprints can bootstrap a database package.")
+    inspect_package(root, blueprint.path)
+    stage_root = stage_root.resolve(strict=True)
+    staged = stage_root / "app/Knowledge/Databases" / blueprint.path.name
+    staged.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(blueprint.path, staged, symlinks=True)
+    # Recheck the copy so a concurrently changed source cannot introduce links.
+    inspect_package(stage_root, staged)
+    for path in sorted(staged.rglob("*.md")):
+        relative = path.relative_to(staged)
+        text = path.read_text(encoding="utf-8")
+        rebased = rebase_framework_links(text, root, blueprint.path / relative, destination / relative)
+        if rebased != text:
+            path.write_text(rebased, encoding="utf-8", newline="\n")
+    issues = validate_database(staged)
+    if issues:
+        details = "\n".join(issue.render(staged) for issue in issues)
+        raise CreationError(f"Blueprint failed structural validation; no live database was written:\n{details}")
+    return staged
+
+
+def create_database(root: Path, blueprint_id: str) -> Path:
+    root = instance_root(root)
+    try:
+        blueprint = resolve_blueprint(root, blueprint_id)
+    except CreationError as error:
+        raise CreationError(f"No blueprint declares database_id: {blueprint_id}.") from error
     directory = root / "app/Knowledge/Databases"
     destination = directory / blueprint.path.name
     check_destination(root, blueprint, directory)
-    inspect_package(root, blueprint.path)
     temporary = Path(tempfile.gettempdir()).resolve()
     project = Path(__file__).resolve().parents[2]
     if temporary.is_relative_to(root) or temporary.is_relative_to(project) or any(
@@ -159,20 +196,7 @@ def create_database(root: Path, blueprint_id: str) -> Path:
     ):
         raise CreationError("The temporary directory must be outside the project and knowledge vaults.")
     with tempfile.TemporaryDirectory(prefix="shardbase-blueprint-", dir=temporary) as scratch:
-        staged = Path(scratch) / "app/Knowledge/Databases" / blueprint.path.name
-        shutil.copytree(blueprint.path, staged, symlinks=True)
-        # Recheck the copied tree as well, so links cannot enter via a changed source.
-        inspect_package(Path(scratch).resolve(), staged)
-        for path in sorted(staged.rglob("*.md")):
-            relative = path.relative_to(staged)
-            text = path.read_text(encoding="utf-8")
-            rebased = rebase_framework_links(text, root, blueprint.path / relative, destination / relative)
-            if rebased != text:
-                path.write_text(rebased, encoding="utf-8", newline="\n")
-        issues = validate_database(staged)
-        if issues:
-            details = "\n".join(issue.render(staged) for issue in issues)
-            raise CreationError(f"Blueprint failed structural validation; no live database was written:\n{details}")
+        staged = prepare_database_package(root, blueprint, Path(scratch), destination)
         check_destination(root, blueprint, directory)
         directory.mkdir(parents=True, exist_ok=True)
         (root / "app/Knowledge/Inbox").mkdir(exist_ok=True)

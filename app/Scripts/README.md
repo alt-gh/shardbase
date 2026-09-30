@@ -4,7 +4,7 @@ This document describes the **current implementation** in `app/Scripts/`: how to
 
 It does not define Shardbase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
 
-Current tooling targets System Specification `foundation-4`, retaining foundation-3 naming within the implementation scope described below.
+Current tooling targets System Specification `foundation-5`, retaining foundation-3 naming and `manifest_version: 1` within the implementation scope described below.
 
 ## Runtime Setup
 
@@ -143,7 +143,7 @@ Doctor is observational: it performs no repair, initialization, installation, mi
 
 ## Encrypted Backup and Restore
 
-These are manual CLI commands. They operate only on `app/Knowledge/`, including Inbox, database contracts, notes, attachments, and database-owned resources. Obsidian settings, framework files, and unrelated local files are outside scope. Nothing is uploaded, scheduled, or synchronized.
+These are manual offline CLI commands. New backups use format v2 and contain only durable user state: `app/Knowledge/Inbox/**`, every reconstructable live database's `Data/**` and `Views/**`, and the entire `.obsidian/**` tree. Live `Database.md`, supplied Templates and Agents, other managed package resources, framework files, and unrelated local files are excluded. Nothing is uploaded, scheduled, synchronized, or executed.
 
 For a normal backup and restore into another existing Shardbase checkout:
 
@@ -156,27 +156,27 @@ The first command prompts for a hidden passphrase and confirmation. The second p
 
 With no output argument, `shardbase backup` prompts for a save location. Enter a new filename or an existing folder; choosing a folder generates a unique `.sbbackup` filename there. Press Enter to accept the suggested unique filename in `~/Shardbase Backups/`; that default folder is created if needed. An explicit output argument also accepts either a filename or an existing folder. For a custom filename, its parent directory must already exist. Output must be outside Shardbase instances and identifiable vaults. An existing backup is never replaced, and the command prints the resulting location.
 
-`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose which existing Shardbase instance receives the restored knowledge; files retain their layout under that instance's `app/Knowledge/`. Both commands accept `--root`, defaulting to the checkout used for installation. For example, `shardbase backup "/Volumes/Archive/My Backups"` saves into that existing folder, and `shardbase restore "/Volumes/Archive/My Backups/chosen.sbbackup" --root "/path/to/new/shardbase"` imports that selected backup into the selected instance.
+`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose the destination checkout. Format v2 resolves each archived `database_id` against that checkout's installed blueprints, materializes its current package folder, and places archived Data and Views beneath it; the old folder name is not destination truth. Both commands accept `--root`, defaulting to the checkout used for installation.
 
-### Local Data and Git Exclusion
+### User State and Git
 
-The commands never contact GitHub. For offline operation, **unchanged committed Git-tracked knowledge is the proxy for data already hosted in Git**. Its bytes are omitted, while encrypted references record the paths, sizes, and SHA-256 digests restore must find in the destination checkout. Local commits are not proof of a push; users who deliberately track knowledge must ensure that committed data is available in the target checkout. The CLI does not claim to verify remote availability.
+The commands never contact GitHub. Format v2 embeds all in-scope user files regardless of Git status; it has no Git-reference optimization. `.obsidian/` remains ignored by the root `.gitignore`, and backup fails closed with an untracking diagnostic if any `.obsidian` content was force-added to the repository.
 
-Staged or modified tracked knowledge blocks the operation so local changes cannot be silently omitted. Index flags such as `assume-unchanged` do not bypass this check. Symlink/submodule entries and nested repositories are refused. Git clean/text filters are not executed; transformed working copies of tracked knowledge also block the check. Git is required for an instance with root `.git`. A downloaded/copied instance without root `.git` includes all ordinary knowledge because it has no local tracking information. Framework data is excluded in either case by the knowledge boundary.
-
-Ignored knowledge is included. A small fixed list of generated caches and OS files is excluded; the exact list is in the [format contract](BACKUP_FORMAT.md#path-and-inventory-rules). Other `.gitignore` patterns do not remove user data from backups. Symlinks and special files are refused instead of followed or silently skipped.
+A small fixed list of generated caches and OS files is excluded; the exact list is in the [format contract](BACKUP_FORMAT.md#path-and-inventory-rules). `.gitignore` is not an inventory selector. Symlinks, nested `.git` paths, and special files are refused instead of followed or silently skipped.
 
 ### Restoration and Version Updates
 
-Restore preserves bytes, filenames, directory layout, empty directories, and file modification times. It preserves the owner's executable bit while limiting newly restored files to owner access. It does not rewrite metadata, links, IDs, templates, or database contracts. Existing byte-identical files are skipped; differing files and file/directory conflicts stop the entire preflight before any knowledge is written. Destination-only content is preserved. There is no destructive overwrite, merge-resolution, or snapshot-mirroring mode.
+Restore preserves user-state bytes, logical filenames, directory layout, empty directories, and file modification times. It preserves the owner's executable bit while limiting newly restored files to owner access. Existing byte-identical files are skipped; differing files and file/directory conflicts stop the entire preflight before any durable write. Destination-only content is preserved. `.obsidian/` is never merged by overwriting differences, so restore before first opening a fresh checkout in Obsidian when possible.
 
-The intended update workflow is to back up the old instance and restore into a fresh newer checkout using the two commands above. Do not create replacement databases in the fresh checkout first; restore brings the existing databases and their contracts with it. The target framework and CLI must already be installed, as for all other CLI operations.
+The intended update workflow is to back up the old instance and restore into a fresh newer checkout. Do not create replacement databases first: restore obtains each managed package from the destination release, then adds archived Data and Views. Every source live database must have exactly one reconstructable installed destination blueprint/package. Custom or missing identities fail visibly rather than producing incomplete databases.
 
-Format v1 supports unchanged `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4` transfer. The archive format is unchanged; downgrades are refused. Restore refuses an unsupported specification transition before writing. It is a temporary **data transfer** mechanism for version updates; it does not implement historical or future schema migrations. The source's declared specification is recorded, not inferred from individual notes. An older or malformed note can therefore be recovered unchanged; successful restore is not a claim of structural or database-semantic validity. The read-only `shardbase validate` remains available for a separate conformance review, but is not required to complete transfer.
+If a destination already has the represented database, restore accepts it only when its managed files exactly match what the current destination release would materialize; Data and Views are ignored in that package comparison and checked separately as user state. A differing package fails rather than being upgraded or overwritten. This explicitly protects pre-foundation-5 live customizations: format v2 does not preserve edits to managed files, and no in-place migration is attempted.
+
+Format v2 supports user-state transfer from `foundation-4` or `foundation-5` into `foundation-5`. This is the explicit ownership-boundary upgrade path: it leaves the old instance untouched and does not preserve its managed-file customizations. The reader retains format-v1 full-`app/Knowledge/` semantics and its fixed compatibility vector for `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4`; v1 is never reinterpreted or silently crossed into foundation-5.
 
 ### Verification, Password Input, and Failures
 
-Backup streams encryption and then uses the actual restore reader to decrypt, authenticate, and hash-check the result before publishing it. Restore authenticates the entire envelope, validates its inventory, verifies each file, checks compatibility and excluded Git dependencies, and preflights conflicts before publishing any knowledge. Encryption uses AES-256-GCM and scrypt; filenames and manifest metadata are also encrypted. The [versioned format contract](BACKUP_FORMAT.md) defines the complete interoperable file layout.
+Backup streams encryption and then uses the actual restore reader to decrypt, authenticate, and hash-check the result before publishing it. Restore authenticates the entire envelope, validates its logical inventory, verifies each file, resolves all database packages, stages them, and preflights every package/user-state conflict before publishing. Encryption uses AES-256-GCM and scrypt; filenames and manifest metadata are also encrypted. Restored plugins and Agents are copied as inert bytes and never executed.
 
 To inspect a restore without changing knowledge:
 
@@ -192,7 +192,7 @@ Temporary plaintext is held in owner-private directories outside the vault and c
 
 Restore staging must support hardlinks and reside on the same filesystem as its destination. The default is the system temporary directory. For a target on another volume, pass `--staging-dir "/external/directory/on/target-volume"`; this existing directory must be outside every vault. No manual copying or extraction is needed. Backup accepts the same option for verification staging but does not require staging to share the source filesystem. Backups themselves may be stored on another volume, provided that output filesystem supports hardlinks for atomic publication.
 
-Format-v1 limits are a 32 GiB uncompressed payload, a 16 MiB manifest, 100,000 inventory entries, and portable paths. Key derivation needs approximately 128 MiB of RAM; file I/O is streamed in 1 MiB blocks. Allow external staging space for approximately twice the uncompressed backup size during verification/restore. No compression or deduplication is performed. ACLs, ownership, xattrs/resource forks, directory timestamps, and hardlink relationships are not preserved. These limits are checked and failures are reported; they are not silently approximated.
+Format-v2 and legacy-v1 limits are a 32 GiB uncompressed payload, a 16 MiB manifest, 100,000 inventory entries, and portable paths. Key derivation needs approximately 128 MiB of RAM; file I/O is streamed in 1 MiB blocks. Allow external staging space for approximately twice the uncompressed backup size plus reconstructed packages during restore. No compression or deduplication is performed. ACLs, ownership, xattrs/resource forks, directory timestamps, and hardlink relationships are not preserved.
 
 ## Database Creation
 
@@ -224,7 +224,7 @@ An existing destination, including an empty folder or a case/Unicode-equivalent 
 
 The final copy uses exclusive creation. If an I/O error or interruption occurs during that copy, an incomplete new folder can remain; inspect it before retrying. The command reports copy errors and does not delete or overwrite the partial state. As with other creation operations, the filesystem is assumed stable during the operation; the copy is not a transaction.
 
-Once created, the database is user-owned. Future blueprint changes do not synchronize into it. Review its `Database.md`, then run `shardbase create new` to create a canonical note directly in that database. Structural validation is not a proof of arbitrary database-semantic rules or complete Foundation compliance.
+Once created, its Data and Views are user-owned; its manifest, supplied Templates and Agents, and other package resources are managed. Future blueprint changes do not synchronize into the live package in place. Review `Database.md`, then run `shardbase create new` to create a canonical note directly in that database.
 
 ## Note Creation
 
@@ -400,14 +400,14 @@ Use the local setup, lint, and test commands above to reproduce failures in an e
 
 ## Compatibility
 
-The preferred spelling is `shardbase create new`; `shardbase new` remains equivalent. Use `--intent inbox` to retain capture behavior. `--intent database --database <database_id>` now writes directly to a live canonical path and requires complete supporting lineage. `--core` selects a supporting note's lineage; parent-only scripts remain supported. Blueprint-only targets and `--parent ""` are no longer accepted for database intent. `--destination` remains unsupported. Existing Inbox files, blank IDs in drafts, and flat lineages stay untouched. The specification is now foundation-4; foundation-3 naming and `manifest_version: 1` are retained.
+The preferred spelling is `shardbase create new`; `shardbase new` remains equivalent. Use `--intent inbox` to retain capture behavior. `--intent database --database <database_id>` writes directly to a live canonical path and requires complete supporting lineage. Existing Inbox files, blank IDs in drafts, and flat lineages stay untouched. The specification is now foundation-5; foundation-3 naming and `manifest_version: 1` are retained.
 
-The validator checks the current `foundation-4` contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
+The validator checks the current `foundation-5` structural contract in its documented scope. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
 
-The validator does not migrate older state. For the recorded `foundation-1` through `foundation-4` compatibility boundaries and preservation-oriented transitions, use the System Specification.
+The validator does not migrate older state. For the recorded `foundation-1` through `foundation-5` compatibility boundaries and preservation-oriented transitions, use the System Specification.
 
 ## Blueprint Scaffolding
 
 `app/Blueprints/Games/` includes tracked empty-directory scaffolding for `Data/Game/Attachments/` and `Views/`, plus draft templates and the optional Vera Agent resource. Packaging placeholders are not semantic knowledge.
 
-Copying a blueprint materializes a starting database package. Later blueprint changes never silently update a live database.
+Copying a blueprint materializes a managed database package plus user-owned Data/Views scaffolding. Later blueprint changes never silently update an existing live database; format-v2 restore reconstructs the current package only in a fresh checkout or verifies an already-equivalent package.

@@ -6,7 +6,7 @@ roadmap_status: active
 foundation_completion_status: incomplete
 architectural_source_of_truth: app/Docs/Shard System Specification.md
 database_local_authority: each live database's root Database.md
-last_reconciled: 2026-09-28
+last_reconciled: 2026-09-30
 
 This roadmap records **what remains to be done and what has been completed**. It intentionally does not restate the product thesis, universal architecture, lifecycle contract, schema rules, migration rules, or agent contract. Those belong in their authoritative documents.
 
@@ -33,12 +33,12 @@ current_primary_goal: finish the vertical slice from intent to valid canonical k
 current_architecture_status: substantially settled
 current_implementation_status: substantial deterministic structural validation exists; database scaffolding and direct canonical creation with structural validation exist; canonical semantic validation and draft promotion remain incomplete
 current_proof_status: Games proving workflow partially complete
-current_documentation_status: authority roles consolidated; duplicated architecture removed from supporting documents; ADRs record foundation-3 naming and foundation-4 direct creation
+current_documentation_status: authority roles consolidated; ADRs record foundation-3 naming, foundation-4 direct creation, and foundation-5 user-state ownership/transfer
 
 ### What Already Exists
 
-- Universal System Specification at `foundation-4`, preserving foundation-3 naming and existing flat/workspace state.
-- Private `app/Knowledge/` boundary with `Inbox/` and `Databases/`.
+- Universal System Specification at `foundation-5`, preserving foundation-3 naming, existing flat/workspace state, and manifest version 1.
+- Private `app/Knowledge/` boundary with user-owned Inbox/Data/Views and managed live database packages.
 - Database manifest and ownership contracts.
 - Pool → Core → Shard → Pebble structural model.
 - Common required note fields `aliases`, `id`, and `tags` in addition to structural fields.
@@ -52,6 +52,7 @@ current_documentation_status: authority roles consolidated; duplicated architect
 - Local creation CLI with Inbox capture or direct live database creation, Core/parent selection, inherited placement and Pool, workspace defaults, structural validation, and safe rollback.
 - Blueprint-based database scaffolding with dynamic selection, external preflight validation, and no overwrite/merge behavior.
 - Read-only structural validator, tests, and sanitized fixtures.
+- Format-v2 encrypted user-state backup/restore with destination-package reconstruction and legacy-v1 reading.
 
 ### Main Remaining Gaps
 
@@ -145,7 +146,7 @@ Current validator scope includes manifest discovery/shape, safe path boundaries,
 
 Not yet generic/deterministic: database semantic schema validation, Pool-vocabulary interpretation from database contracts, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical draft promotion.
 
-Manual encrypted knowledge backup and restore are implemented, with a versioned format and synthetic round-trip, preservation, and failure tests. They support transfer between compatible checkouts; historical schema migration remains deferred. See the [tooling guide](../Scripts/README.md#encrypted-backup-and-restore) for the supported scope and limits.
+Manual encrypted user-state backup and restore are implemented with format-v2 destination-package reconstruction, complete Obsidian configuration transfer, synthetic compatibility vectors, and preservation/failure tests. The legacy format-v1 reader retains its historical full-Knowledge semantics. Historical schema migration and custom-database packaging remain deferred. See the [tooling guide](../Scripts/README.md#encrypted-backup-and-restore).
 
 ### Milestone 6 — Foundation Proof
 

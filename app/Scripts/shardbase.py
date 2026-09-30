@@ -198,7 +198,7 @@ def new_database(args: argparse.Namespace) -> int:
     destination = create_database(args.root, identity)
     ui.section("Database created")
     print(f"  {ui.style(str(destination.relative_to(args.root.resolve())), '32')}")
-    print("  The blueprint's scaffolding and resources are now your local database copy.")
+    print("  The current managed package is installed; Data and Views are your durable user state.")
     print("  Structural checks passed. Review Database.md for its domain conventions.")
     print("\n  Next: shardbase create new")
     print("  Choose database intent to create a canonical note directly in the new database.\n")
@@ -232,13 +232,16 @@ def transfer_knowledge(args: argparse.Namespace) -> int:
         output = external(output, root, "Backup output")
         if output.is_dir():
             output = output / filename
-        print("Backing up local knowledge only. Git-tracked data and generated caches are excluded.")
+        print("Backing up Shardbase user data and Obsidian configuration. Managed database package files are not included.")
         print("Keep the passphrase: it cannot be recovered by Shardbase.")
         password = read_password(args.password_file, confirm=True)
         manifest = backup(root, output, password, args.staging_dir)
         files = [entry for entry in manifest["entries"] if entry["kind"] == "file"]
-        excluded = sum(entry["kind"] == "git" for entry in manifest["entries"])
-        print(f"Backup verified: {len(files)} local files, {sum(entry['size'] for entry in files)} bytes; {excluded} Git-backed files excluded.")
+        obsidian = sum(entry["root"] == "obsidian" for entry in files)
+        print(
+            f"Backup verified: {len(files)} user files, {sum(entry['size'] for entry in files)} bytes; "
+            f"{len(manifest['databases'])} databases represented; {obsidian} Obsidian files."
+        )
         print(ui.style(str(output.expanduser().absolute())))
     else:
         from initialization import guided_restore

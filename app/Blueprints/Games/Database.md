@@ -285,7 +285,7 @@ Inbox capture may fall back to blueprint templates; canonical creation uses only
 
 The blueprint ships [`Agents/Vera.md`](Agents/Vera.md), an optional Games specialist Agent resource. Vera contains Games-specific workflow guidance but does not define schema or architecture; this `Database.md` remains the Games authority.
 
-Once materialized into a live database, the Vera copy becomes user-owned and travels with that database. Later blueprint edits do not silently update it.
+Once materialized into a live database, the Vera copy is a Shardbase-managed package resource. Format-v2 restore obtains the current copy from the destination release; local edits are not durable user state. Later blueprint edits do not silently update an existing live package in place.
 
 Shardbase stores/manages the Agent resource but does not execute Vera, connect to an AI provider, or transmit database content. External use is a separate user-controlled workflow.
 

@@ -18,7 +18,7 @@ A formal supported-release matrix will be introduced when Shardbase has versione
 
 Reports are especially relevant in these areas:
 
-- **Private-data exposure:** accidental inclusion or publication of `app/Knowledge/`; leakage of user-owned knowledge through logs, tests, fixtures, examples, diagnostics, backup handling, or framework artifacts; unexpected external transmission of local knowledge.
+- **Private-data exposure:** accidental inclusion or publication of private live knowledge or `.obsidian/`; leakage of user-owned state through logs, tests, fixtures, examples, diagnostics, backup handling, or framework artifacts; unexpected external transmission of local knowledge.
 - **Backup and restore:** authentication bypass, encryption misuse, loss of confidentiality or integrity, unsafe passphrase handling, unsafe backup inventory/path handling, restore conflict or overwrite flaws, plaintext exposure, or publication of unauthenticated data.
 - **Filesystem and path safety:** path traversal, symlink or containment escapes, writes outside authorized boundaries, unsafe file replacement or deletion, or filename/path handling that targets unintended files.
 - **Knowledge preservation with security impact:** unintended destructive overwrite of canonical user knowledge or bypass of collision/refusal safeguards that creates a confidentiality or integrity risk. Not every ordinary data-correctness bug is a security vulnerability.

@@ -118,12 +118,18 @@ def guided_restore(
     print(
         f"{verb}: {result['files_added']} files {action}, "
         f"{result['files_unchanged']} identical files preserved, "
-        f"{result['git_files']} excluded Git-backed files verified."
+        f"{result['databases_materialized']} current database packages materialized."
     )
     if dry_run:
-        print("No knowledge was written. This check does not certify database-semantic or structural validity.")
+        if result["format_version"] == 2:
+            print("No user state or package files were written. Differing existing files would never be overwritten.")
+        else:
+            print("No legacy knowledge was written. Differing existing files would never be overwritten.")
     else:
-        print("Knowledge transferred unchanged. This does not certify database-semantic or structural validity.")
+        if result["format_version"] == 2:
+            print("Destination-release database packages and archived user data/configuration were restored without overwriting differences.")
+        else:
+            print("Legacy full-Knowledge data transferred unchanged. This does not certify database-semantic or structural validity.")
     return result
 
 

@@ -53,7 +53,7 @@ When the task affects Games, use [`app/Blueprints/Games/Database.md`](app/Bluepr
 
 ## User-Owned Data and Privacy
 
-`app/Knowledge/` contains user-owned knowledge and is private by default.
+`app/Knowledge/` is private by default and contains both user-owned state and Shardbase-managed live database package material. Inbox, live database Data and Views, and `.obsidian/` are user-owned; live `Database.md`, supplied Templates, supplied Agents, and other package resources are managed. Path location alone does not determine ownership.
 
 Local read access is not permission to transmit, publish, synchronize, upload, commit, or otherwise expose that knowledge. External exposure requires the user's deliberate choice or an already-authorized workflow.
 
@@ -83,7 +83,7 @@ Use repository locations according to their documented ownership:
 
 - `app/Blueprints/` — framework-owned reusable bootstrap material.
 - `app/Docs/` — framework documentation; potentially public.
-- `app/Knowledge/` — private-by-default user-owned knowledge.
+- `app/Knowledge/` — private-by-default live knowledge, combining managed database packages with user-owned Inbox, Data, and Views.
 - `app/Registry/` — committed discovery/navigation infrastructure.
 - `app/Scripts/` — framework tooling that implements documented contracts.
 
@@ -112,7 +112,7 @@ A passing validator result proves only the checks described by the tooling docum
 
 ## Agent Specialization
 
-Database-owned specialist agents may operate independently within their documented scope. They remain subject to the System Specification and owning database contract.
+Database-scoped specialist agents may operate independently within their documented scope. Supplied Agent files are managed package resources; their behavior remains subject to the System Specification and owning database contract.
 
 Specialist Agent files should contain:
 

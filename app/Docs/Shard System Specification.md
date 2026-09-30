@@ -1,10 +1,10 @@
 # Shard — System Specification
 
-Specification version: `foundation-4` (2026-09-28)
+Specification version: `foundation-5` (2026-09-30)
 
-Editorial revision: 2026-09-28
+Editorial revision: 2026-09-30
 
-Foundation-4 change note: this edition adds direct canonical database creation and optional Core placement preferences. Existing foundation-3 IDs, filenames, metadata, and both legal placement modes remain unchanged; no existing knowledge migration is required. Universal rules remain here; database-local semantics belong in each `Database.md`; operational and planning documents must reference these authorities rather than duplicate them.
+Foundation-5 change note: this edition separates Shardbase-managed live database packages from durable user-owned state and defines user-state-only upgrade transfer. `Database.md`, supplied Agents, supplied Templates, and other package resources are reconstructed from the destination release; Inbox, database Data and Views, and `.obsidian/` are preserved as user state. Existing foundation-4 live packages are not rewritten automatically, and `manifest_version: 1` remains unchanged.
 
 ## 1. Purpose and Authority
 
@@ -39,7 +39,7 @@ Shardbase is local-first and user-owned. User-owned knowledge and local state re
 
 Local-first is not local-only. Users may deliberately choose cloud synchronization, backup, Git hosting, publishing, database sharing, or external AI systems. Those choices remain external workflows and must not become prerequisites for interpreting canonical Shardbase knowledge.
 
-Shardbase may manage, validate, package, convert, and export user-owned AI-related files such as Agent definitions, Prompts, instructions, and context. **Shardbase does not execute models, authenticate with AI providers, invoke or orchestrate agents, or transmit local knowledge to AI services.** This is a product boundary, not deferred implementation work.
+Shardbase may manage, validate, package, convert, and export AI-related files such as Agent definitions, Prompts, instructions, and context. Ownership follows the applicable surface: supplied live database Agents are managed package resources, while any user-owned state remains under user control. **Shardbase does not execute models, authenticate with AI providers, invoke or orchestrate agents, or transmit local knowledge to AI services.** This is a product boundary, not deferred implementation work.
 
 Shardbase does not aim to become a proprietary knowledge platform, synchronization or backup service, publishing platform, general-purpose search/indexing engine, transactional database engine, cloud-first collaboration system, or universal ontology.
 
@@ -92,14 +92,22 @@ shardbase/
 
 These surfaces should be safe to distribute and must not silently embed private live knowledge.
 
-### 3.2 Knowledge Boundary
+### 3.2 Knowledge and User-State Boundaries
 
-`app/Knowledge/` is the canonical local boundary for user-owned Shardbase knowledge. During Foundation it has exactly two canonical direct children:
+`app/Knowledge/` is the canonical local boundary for Shardbase knowledge. During Foundation it has exactly two canonical direct children:
 
 - `Inbox/` — unresolved pre-structural capture;
 - `Databases/` — live canonical databases.
 
-These contents are private and untracked by the framework repository by default unless the user deliberately establishes another policy.
+This boundary is private and ignored by the framework repository by default, but path location alone does not determine ownership. `Inbox/`, each live database's `Data/`, and each live database's `Views/` are user-owned. A live database's `Database.md`, `Agents/`, `Templates/`, and any other package resources supplied by its blueprint are Shardbase-managed. Here, managed means reconstructed from the release rather than Git-tracked in the live boundary. `.obsidian/` is user-owned local configuration outside `app/Knowledge/`; it remains ignored by the framework repository.
+
+The durable user state transferred by the Foundation backup workflow is exactly:
+
+- `app/Knowledge/Inbox/**`;
+- every live database's `Data/**` and `Views/**`, identified by stable `database_id` rather than folder name;
+- `.obsidian/**`.
+
+Managed live package resources are reconstructed from the destination release and are not backup payload. A private location, a managed location, and a user-owned location are therefore related but distinct concepts.
 
 Every direct child of `app/Knowledge/Databases/` is a database. Nested database roots and category directories between `Databases/` and a database root are not part of the Foundation contract.
 
@@ -109,7 +117,7 @@ Generated runtimes, virtual environments, dependency installations, bytecode, ca
 
 ## 4. Database Contract
 
-A live database is a direct child of `app/Knowledge/Databases/` and contains one or more declared data collections beneath `Data/`.
+A live database is a direct child of `app/Knowledge/Databases/`. It combines a Shardbase-managed package with user-owned Data and Views and contains one or more declared data collections beneath `Data/`.
 
 A minimal database contains:
 
@@ -197,13 +205,13 @@ If a database has no additional semantic fields, semantic note kinds, or convent
 
 ### 4.3 Database Ownership
 
-Within Shardbase, database ownership means canonical semantic responsibility for knowledge inside the scope documented by `Database.md`. It is distinct from the user's ownership of all live database data.
+Within Shardbase, database ownership means canonical semantic responsibility for knowledge inside the scope documented by `Database.md`. It is distinct from filesystem ownership and from the managed/user-state boundary inside a live database package.
 
 Physical placement should follow determined ownership rather than define it after the fact. If multiple databases plausibly claim knowledge and their contracts do not resolve the ambiguity, do not guess or create duplicate authoritative copies. Leave the knowledge unresolved or pre-structural where practical and clarify the affected contracts.
 
 Cross-database semantic relationships are permitted. They do not transfer ownership, redefine another database's schema, or create structural ancestry.
 
-A portable database should retain coherent owned meaning when moved independently with its `Database.md`, declared collections, canonical notes, permitted attachments, Views, optional Templates, optional Agents, and other documented local resources.
+A portable database should retain coherent owned meaning when its current managed package is combined with its user-owned Data and Views. User-state backup is not a standalone custom-database package format.
 
 ## 5. Structural Model
 
@@ -498,6 +506,8 @@ Archived, obsolete, orphaned, duplicate-looking, invalid, or unreferenced conten
 
 Database `Views/` contain read-oriented projections, queries, dashboards, or navigation notes. Views may query other authorized databases when their documented purpose requires it, but they remain non-authoritative.
 
+Live `Views/` are user-owned. A blueprint may scaffold the directory, but release upgrades must not replace files in a materialized database's `Views/`. Future built-in managed views require a distinct managed surface.
+
 A missing or broken View must not change canonical meaning.
 
 ### 12.2 Registry
@@ -508,15 +518,15 @@ The framework Registry lives at `app/Registry/Registry.md` and provides instance
 
 ### 12.3 Blueprints
 
-Blueprints are reusable framework-owned bootstrap material. They may provide a starter `Database.md`, directory structure, Views, Templates, Agent resources, and minimal structural scaffolding.
+Blueprints are reusable framework-owned database packages. They may provide a `Database.md`, directory structure, Templates, Agent resources, and minimal Data/Views scaffolding.
 
-After materialization, the live database owns its files. Later blueprint changes never silently synchronize into a live database. Adoption of changes that affect existing live state is an explicit migration.
+After materialization, the live `Database.md`, supplied Templates, supplied Agents, and other package resources remain Shardbase-managed; `Data/` and `Views/` are user-owned. A normal release upgrade reconstructs the managed package only when restoring user state into a fresh checkout. It never synchronizes a newer blueprint into an existing live package in place. An existing package that differs from the current release must fail restore preflight rather than be merged or overwritten.
 
 ### 12.4 Agents
 
-A database may contain an optional root `Agents/` directory for database-owned specialist Agent resources. Placement follows ownership rather than total read scope.
+A database may contain an optional root `Agents/` directory for Shardbase-managed specialist Agent resources supplied by its package. Placement follows database scope rather than total read scope.
 
-Agent resources are ordinary user-owned files, not structural notes and not architectural authority. Rules needed for reliable canonical interpretation belong in this specification or the applicable `Database.md`, not only in an Agent prompt or memory.
+Agent resources are ordinary managed files, not structural notes and not architectural authority. Edits to supplied live Agents are not a durable customization mechanism and are not preserved by user-state backup. Rules needed for reliable canonical interpretation belong in this specification or the applicable `Database.md`, not only in an Agent prompt or memory.
 
 Foundation standardizes the database-owned `Agents/` boundary, not a mandatory internal package anatomy.
 
@@ -670,6 +680,16 @@ No automatic live-data migration is authorized or required. Existing Inbox draft
 
 Backup transfer can preserve foundation-3 knowledge unchanged into foundation-4; no archive-format change or schema conversion is required. Same-version foundation-3 and foundation-4 transfers remain supported. Downgrades and unknown specification transitions require separate explicit compatibility support.
 
+### 15.5 `foundation-5`
+
+`foundation-5` changes the ownership and upgrade contract for materialized databases. Inbox, database Data and Views, and Obsidian configuration are durable user state. Live `Database.md`, supplied Templates, supplied Agents, and other package resources are managed by Shardbase and reconstructed from the destination release. Database identity remains the manifest's stable `database_id`; folder names are not transfer identity. `manifest_version` remains `1` because the manifest schema is unchanged.
+
+This is a breaking ownership boundary for existing foundation-4 installations whose live managed-looking files were previously user-owned. No in-place rewrite or destructive migration is authorized. Such edits remain untouched in the old instance, but format-v2 backup does not preserve them. Restore should target a fresh foundation-5 checkout. An existing destination database is accepted only when its managed package is equivalent to the package the current release would materialize; otherwise preflight fails.
+
+Backup format v2 is the foundation-5 user-state transfer contract. It accepts foundation-4 or foundation-5 sources and restores them into foundation-5, leaving the source untouched and excluding managed-file customizations. It embeds all in-scope user bytes regardless of Git status, includes the complete ignored `.obsidian/` tree, and reconstructs every represented database from exactly one installed destination package. Unreconstructable database identities fail visibly. Restore is additive and conflict-safe: identical files may remain, differing files are never overwritten, destination-only files remain, and dry-run authenticates and completes preflight without durable writes.
+
+Format v1 retains its historical full-`app/Knowledge/` and Git-reference meaning. It is not reinterpreted as user-state-only and does not cross the foundation-5 ownership boundary automatically.
+
 ## 16. Validation Protocol
 
 A deterministic audit should validate the following within the capabilities documented by the implementation.
@@ -742,7 +762,7 @@ Operational instructions for repository agents live in [`../../AGENTS.md`](../..
 
 **Attachment orphan** — attachment currently referenced by no canonical note; diagnostic only.
 
-**Blueprint** — framework-owned reusable bootstrap material for creating a database; materialized live state becomes user-owned.
+**Blueprint** — framework-owned reusable package used to construct the managed portion and directory scaffold of a live database.
 
 **Canonical note** — a conformant Core, Shard, or Pebble Markdown file in a valid declared-collection location.
 
@@ -754,7 +774,7 @@ Operational instructions for repository agents live in [`../../AGENTS.md`](../..
 
 **Data collection** — database-defined filesystem grouping for canonical notes; not a structural lineage mechanism.
 
-**Database** — self-contained user-owned canonical knowledge boundary directly beneath `app/Knowledge/Databases/` and governed by its root `Database.md`.
+**Database** — canonical knowledge boundary directly beneath `app/Knowledge/Databases/`, combining a Shardbase-managed package with user-owned Data and Views and governed by its root `Database.md`.
 
 **Database ownership** — canonical semantic responsibility within a database's documented scope.
 
@@ -764,7 +784,9 @@ Operational instructions for repository agents live in [`../../AGENTS.md`](../..
 
 **Inbox** — private-by-default pre-structural capture outside every database.
 
-**Knowledge boundary** — `app/Knowledge/`, containing `Inbox/` and `Databases/`.
+**Knowledge boundary** — private-by-default `app/Knowledge/`, containing `Inbox/` and `Databases/`; it includes both managed package material and user-owned state.
+
+**Managed database package** — the destination-release `Database.md`, supplied Templates, supplied Agents, and other non-Data/non-Views package resources reconstructed for one stable `database_id`.
 
 **Lineage** — structural ancestry expressed authoritatively through `core` and `parent_note`.
 
@@ -790,7 +812,9 @@ Operational instructions for repository agents live in [`../../AGENTS.md`](../..
 
 **Structural orphan** — Shard or Pebble whose required root Core or immediate parent cannot be validly resolved.
 
-**View** — non-authoritative query, presentation, or navigation resource over canonical knowledge.
+**User state** — durable user-owned Inbox, database Data and Views, and `.obsidian/` configuration preserved by format-v2 backup.
+
+**View** — user-owned, non-authoritative query, presentation, or navigation resource over canonical knowledge.
 
 ## 19. Core Mission
 

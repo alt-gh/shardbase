@@ -1,12 +1,12 @@
-# Shardbase Knowledge Backup Format
+# Shardbase User-State Backup Format
 
-Format version: `1`
+Current write format: `2`
 
-This is the wire contract implemented by `backup_restore.py`, not a change to the System Specification or database schemas. The conventional extension is `.sbbackup`; readers identify the header, not the extension. Backup and restore are offline, manual CLI operations. Usage and operational limits are in [README.md](README.md#encrypted-backup-and-restore).
+This is the interoperable wire contract implemented by `backup_restore.py`. The conventional extension is `.sbbackup`; readers identify the authenticated header version, not the filename. Format v2 is an offline user-state transfer format for Foundation-4/5 sources into a `foundation-5` destination. The reader also retains the historical format-v1 contract described below.
 
-## Envelope
+## Encryption Envelope
 
-All integers in the envelope and payload framing are unsigned, big-endian. The complete file is:
+All integers are unsigned and big-endian:
 
 ```text
 40-byte header || ciphertext || 16-byte authentication tag
@@ -14,80 +14,93 @@ All integers in the envelope and payload framing are unsigned, big-endian. The c
 
 | Offset | Length | Meaning |
 |---:|---:|---|
-| 0 | 8 | Magic bytes `53 48 41 52 44 42 4b 00` (`SHARDBK` followed by NUL) |
-| 8 | 4 | Format version, integer `1` |
-| 12 | 16 | Cryptographically random scrypt salt |
-| 28 | 12 | Cryptographically random AES-GCM nonce |
+| 0 | 8 | Magic bytes `53 48 41 52 44 42 4b 00` |
+| 8 | 4 | Format version (`2` for new backups; legacy reader also accepts `1`) |
+| 12 | 16 | Random scrypt salt |
+| 28 | 12 | Random AES-GCM nonce |
 | 40 | variable | Encrypted payload, at most 32 GiB |
 | EOF − 16 | 16 | Full AES-GCM authentication tag |
 
-Derive a 32-byte key with scrypt: `N=131072`, `r=8`, `p=1`, using the exact UTF-8 passphrase bytes and the header salt. These fixed parameters consume approximately 128 MiB for key derivation; the file cannot request higher costs. No Unicode normalization, whitespace stripping, or passphrase storage is performed. A password file may end in one LF or CRLF, which is removed. Embedded CR/LF is rejected. Creation requires 12–4096 bytes; readers accept 1–4096 bytes. Passphrases remain vulnerable to offline guessing if weak.
+Derive a 32-byte key from the exact UTF-8 passphrase bytes with scrypt `N=131072`, `r=8`, `p=1`. Encrypt with AES-256-GCM, authenticating all 40 header bytes as additional data. Every backup uses a fresh operating-system-generated salt and nonce. The format fixes the KDF cost; files cannot request more. Readers reject unknown versions before key derivation.
 
-Encrypt using AES-256-GCM with the header nonce and **all 40 header bytes as authenticated additional data**. Generate a fresh salt and nonce for every backup using the operating system CSPRNG. Use the full 128-bit tag. The 32 GiB plaintext cap stays below GCM's per-message limit. Changing algorithms, KDF parameters, framing, or field meanings requires a new format version. Unknown versions are refused before key derivation.
+The passphrase is 1–4096 bytes for reading and 12–4096 bytes for creation. One terminal LF or CRLF in a password file is removed; embedded line endings are invalid. There is no normalization or stored verifier. Weak passphrases remain vulnerable to offline guessing.
 
-The implementation uses the `cryptography` library's [GCM construction](https://cryptography.io/en/50.0.1/hazmat/primitives/symmetric-encryption/#cryptography.hazmat.primitives.ciphers.modes.GCM) and [scrypt KDF](https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/#scrypt). Decryption streams to an owner-private external temporary directory, and **no manifest parsing, path interpretation, or destination write occurs before authentication succeeds**. The complete envelope, including truncation and appended data, is authenticated. Metadata and filenames are encrypted; envelope version and total size remain visible.
+Decryption completes into an owner-private external staging directory before any JSON parsing, path interpretation, package resolution, or durable write. Truncation, appended bytes, metadata, filenames, and payload bytes are authenticated. Only the version and total encrypted size are visible.
 
-## Plaintext Payload
+## Plaintext Framing
 
 ```text
-8-byte manifest byte length || UTF-8 JSON manifest || file bytes in manifest order
+8-byte manifest length || UTF-8 JSON manifest || file bytes in entry order
 ```
 
-There is no compression, archive extraction, ZIP password scheme, pickle, executable deserialization, or external encryption executable. The manifest length must be 1–16 MiB. The manifest contains at most 100,000 entries, including directories and excluded Git references. File bytes are concatenated only for entries whose `kind` is `file`, in entry-array order; their `size` fields give exact boundaries. Zero-length files consume zero bytes. Trailing or missing payload bytes are errors.
+The manifest is 1–16 MiB and contains at most 100,000 entries. Only entries with `kind: "file"` consume payload bytes; each `size` determines its exact boundary. Zero-length files consume none. Missing or trailing plaintext bytes are errors. JSON duplicate keys, unknown fields, and unsupported values are rejected. There is no compression, deduplication, executable deserialization, or archive extraction.
 
-Example manifest, with a synthetic four-byte file containing `test`:
+## Version 2 Manifest
+
+A representative manifest is:
 
 ```json
 {
-  "format": "shardbase-knowledge-backup",
-  "version": 1,
-  "specification": "foundation-3",
-  "created_utc": "2026-09-26T12:00:00+00:00",
-  "scope": "app/Knowledge",
-  "git_policy": "committed-tracked-files-excluded",
+  "format": "shardbase-user-state-backup",
+  "version": 2,
+  "specification": "foundation-5",
+  "created_utc": "2026-09-30T20:00:00+00:00",
+  "git_policy": "all-user-state-embedded",
+  "databases": [
+    {"database_id": "example"}
+  ],
   "entries": [
-    {"path": "app/Knowledge", "kind": "directory"},
-    {"path": "app/Knowledge/Inbox", "kind": "directory"},
-    {
-      "path": "app/Knowledge/Inbox/Example.txt",
-      "kind": "file",
-      "size": 4,
-      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
-      "mode": 384,
-      "mtime_ns": 1700000000000000000
-    }
+    {"root": "inbox", "path": "", "kind": "directory"},
+    {"root": "inbox", "path": "Draft.md", "kind": "file", "size": 4, "sha256": "9f86d081884c7d659a2feaa0c55ad0153bf4f1b2b0b822cd15d6c15b0f00a08", "mode": 384, "mtime_ns": 1700000000000000000},
+    {"root": "database", "database_id": "example", "path": "Data/Items", "kind": "directory"},
+    {"root": "database", "database_id": "example", "path": "Views", "kind": "directory"},
+    {"root": "obsidian", "path": "", "kind": "directory"}
   ]
 }
 ```
 
-The writer records its source instance's declared System Specification version and accepts `foundation-3` and `foundation-4`. This is provenance, not proof that individual notes conform to that specification. The reader supports unchanged `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4` transfer. Downgrades are refused. This compatibility extension does not change format v1. A different framework checkout/release with the same specification is compatible. Historical schema conversion and unknown future specifications require explicit migration support; both commands reject them.
+Top-level fields are exact. `specification` records the source and matches `foundation-N`; the v2 writer accepts `foundation-4` and `foundation-5`, while restore supports `foundation-4` → `foundation-5` and `foundation-5` → `foundation-5`. `created_utc` is an informational ISO 8601 string. `databases` contains unique objects with one non-empty stable `database_id`. Source and destination folder names are intentionally absent.
 
-Required fields are exact: unknown fields and duplicate JSON keys are rejected. Top-level `version` is integer `1`; `format`, `scope`, and `git_policy` have the exact values above. `specification` has the form `foundation-N` with a positive integer N. `created_utc` is a string written as an ISO 8601 UTC timestamp and is informational.
+Entry roots are:
 
-Entry fields:
+| `root` | Optional identity | Logical `path` | Destination |
+|---|---|---|---|
+| `inbox` | none | relative to Inbox; `""` denotes the root | `app/Knowledge/Inbox/` |
+| `database` | required `database_id` | `Data` or `Views` and descendants | current destination package resolved by identity |
+| `obsidian` | none | relative to `.obsidian`; `""` denotes the root | `.obsidian/` |
 
-| Kind | Fields | Interpretation |
-|---|---|---|
-| `directory` | `path`, `kind` | Preserve a directory, including an empty one |
-| `file` | `path`, `kind`, `size`, `sha256`, `mode`, `mtime_ns` | Restore the next `size` payload bytes and verify their SHA-256 |
-| `git` | Same fields as `file` | No payload bytes; require an existing destination file with the recorded size and SHA-256 |
-
-`size` is an integer from 0 through 32 GiB. `sha256` is 64 lowercase hexadecimal characters. `mode` is decimal 384 (`0600`) or 448 (`0700`), preserving only the owner's executable bit; it never grants group/world access or privileged bits. `mtime_ns` is an integer from 0 through `2^63−1`, in nanoseconds since the Unix epoch. Ownership, ACLs, xattrs/resource forks, hardlink relationships, directory timestamps, and other filesystem metadata are not represented. Existing identical files retain their existing metadata. Files restored on less precise filesystems may have rounded timestamps.
+Directory entries contain exactly `root`, optional `database_id`, `path`, and `kind`. File entries additionally contain `size`, `sha256`, `mode`, and `mtime_ns`. `size` is 0–32 GiB; `sha256` is 64 lowercase hexadecimal characters; `mode` is decimal 384 (`0600`) or 448 (`0700`), preserving only owner execute; `mtime_ns` is 0 through `2^63−1`. Existing identical files retain their existing metadata. Ownership, ACLs, xattrs/resource forks, directory timestamps, and hardlink relationships are not represented.
 
 ## Path and Inventory Rules
 
-Paths are instance-relative POSIX strings, limited to 4096 UTF-8 bytes. Every path is either `app/Knowledge` or a descendant. The knowledge root, when present, must be a directory; every other entry must have a declared directory parent. Entry ordering has no ancestry meaning. An empty list represents an absent knowledge directory.
+Logical paths are POSIX strings of at most 4096 UTF-8 bytes. Reject absolute paths, `.`/`..` or empty interior components, backslashes, Windows-reserved characters/device names, controls, surrogates, trailing dots/spaces, nested `.git` components, and duplicates or collisions under NFC normalization plus case folding. Every non-root entry has a declared directory parent; database `Data` and `Views` entries are logical roots and need no database-root entry.
 
-Reject absolute paths, empty/`.`/`..` components, backslashes, Windows-reserved characters and device names, control characters, trailing dots/spaces, surrogate characters, duplicate paths, and paths equivalent under NFC normalization plus case folding. Nested `.git` components, symlinks, and special files are unsupported. Readers never use manifest paths for external staging filenames; staging uses entry indexes.
+The writer inventories exactly:
 
-The writer includes ordinary files and directories within knowledge, including Inbox drafts, database contracts, attachments, Templates, Views, and Agents. It omits these exact generated directory names: `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.venv`, `node_modules`; and these exact file names: `.DS_Store`, `Thumbs.db`, `Desktop.ini`. A symlink with an otherwise excluded name still causes failure. No other ignore pattern is used to select private files. Framework surfaces, `.obsidian/`, and unrelated local files are outside scope.
+- `app/Knowledge/Inbox/**`;
+- each reconstructable live database's complete `Data/**` and `Views/**` trees;
+- `.obsidian/**`.
 
-Within a Git checkout, unchanged committed tracked knowledge becomes `git` references. The writer checks the index against `HEAD` and raw working-file bytes against their committed Git blob IDs; staged changes and local edits are errors, including edits hidden by index flags. Git filters are not run, so a filter/line-ending-converted tracked file also requires resolution. Ignored private knowledge remains included. Git submodules/nested repositories are not traversed. A copied/downloaded instance with no root `.git` includes all in-scope files, because there is no local tracking information. The CLI does not contact GitHub or prove that local commits have been pushed.
+It does not inventory live `Database.md`, `Agents/**`, `Templates/**`, other managed package resources, framework surfaces, or unrelated root files. Each live database must resolve by `database_id` to exactly one installed blueprint/package or backup fails. Data and Views are traversed as preservation roots rather than filtered by declared collections or semantic validity.
 
-## Reader Safety and Compatibility
+The entire `.obsidian/` tree is included as encrypted inert content. In a Git checkout, any force-tracked `.obsidian` entry aborts backup; `.obsidian/` remains ignored. All v2 user-file bytes are embedded regardless of their Git status, and `kind: "git"` is invalid.
 
-Readers authenticate the complete envelope, enforce manifest and payload bounds, validate the complete inventory, hash every included file, check specification compatibility, verify excluded Git dependencies, and preflight **all** destination conflicts before creating knowledge. Restore is additive: it skips byte-identical files and refuses differing files, file/directory conflicts, unsafe paths, and equivalent-name collisions. It neither deletes destination-only files nor overwrites existing ones. It is a recovery/transfer operation, not a schema validator or a destructive snapshot mirror.
+The writer omits exact generated directory names `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.venv`, and `node_modules`, and exact file names `.DS_Store`, `Thumbs.db`, and `Desktop.ini`. A symlink with an excluded-looking name still fails. Other ignore patterns do not select inventory. Symlinks and special files are always rejected.
 
-Publication uses same-filesystem hardlinks with exclusive destination creation. Each published file is complete. Ordinary failures and Ctrl+C trigger best-effort rollback of only files/directories created by the current restore. Abrupt process termination can leave a subset of complete additions; running the same restore again recognizes them and completes the import. The multi-file operation is not globally atomic. Keep the source and destination idle during transfer; this is not a live filesystem snapshot or protection against hostile concurrent filesystem changes.
+## Version 2 Restore
 
-Future readers must explicitly retain v1 support or fail visibly. They must not reinterpret these fields, silently normalize knowledge, guess a schema migration, or require a user to extract/decrypt/rearrange backup contents manually.
+After complete authentication and manifest/file verification, restore resolves every archived identity against the destination release. Exactly one installed package must exist. The blueprint folder name determines the current live folder; the source folder name is unknown and irrelevant. Restore stages and validates that current package, then maps logical Data and Views beneath it.
+
+If a represented live database already exists, its non-Data/non-Views managed tree must be byte/structure/executable-bit equivalent to the currently materialized destination package. Otherwise restore fails before writes. Data and Views are conflict-checked as user state. New packages receive managed files and Data/Views directory scaffolding; archived user files supply their contents.
+
+All existing byte-identical user files are skipped. Differing files, file/directory conflicts, unsafe paths, case/Unicode collisions, tracked Obsidian state, missing packages, and managed-package differences fail complete preflight. Destination-only files remain. Dry-run performs authentication, verification, package construction, identity resolution, and conflict preflight without durable writes. Restored Obsidian plugins, Agents, and other files are never executed.
+
+Publication uses same-filesystem hardlinks and exclusive destination creation. Ordinary errors and Ctrl+C roll back only new files/directories from that invocation. Abrupt termination can leave complete additions; rerunning the same restore is idempotent. The operation is not a live filesystem snapshot or a globally atomic filesystem transaction.
+
+## Legacy Version 1
+
+Version 1 keeps its original meaning: `format: "shardbase-knowledge-backup"`, `scope: "app/Knowledge"`, `git_policy: "committed-tracked-files-excluded"`, and instance-relative `path` entries of kind `directory`, `file`, or `git`. It transfers the full historical Knowledge tree, including database contracts, Templates, Views, and Agents. Unchanged committed knowledge may be represented by payload-free Git references that must exist identically at the destination.
+
+The reader supports the historical `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4` transitions. It does not discard managed-looking v1 entries, reinterpret them as v2 roots, or cross the foundation-5 ownership boundary. The independent fixed v1 vector remains part of compatibility testing.
+
+Future readers must explicitly retain each version or fail visibly. They must not silently normalize user state, guess package identity, merge differences, or infer schema migrations.

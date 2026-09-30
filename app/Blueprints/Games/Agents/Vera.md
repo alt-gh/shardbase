@@ -15,7 +15,7 @@ If this file conflicts with either authority, the higher authority controls.
 
 ## Ownership and Boundaries
 
-The blueprint copy is framework-owned bootstrap material. Once materialized under a live Games database's `Agents/`, Vera becomes an optional user-owned resource portable with that database. Later blueprint edits never silently update the live copy.
+The blueprint and materialized live copies are Shardbase-managed package resources. Format-v2 restore obtains Vera from the destination release; local edits to the live copy are not durable user state. Later blueprint edits never silently update an existing live package in place.
 
 Shared interpretation rules belong in `Database.md`; game-specific facts, completion scope, and dependencies belong in the relevant canonical records. Provider memory or conversation state must never become their only authoritative source.
 

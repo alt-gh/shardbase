@@ -66,7 +66,7 @@ shardbase/
 └── README.md
 ```
 
-`app/Knowledge/` is the private-by-default boundary for user-owned knowledge. `Inbox/` contains unresolved pre-structural capture. `Databases/` contains live canonical databases. Every direct child of `app/Knowledge/Databases/` is a database governed by its own root `Database.md`.
+`app/Knowledge/` is the private-by-default live knowledge boundary. `Inbox/` contains user-owned unresolved capture. Each direct child of `Databases/` combines a Shardbase-managed package (`Database.md`, supplied Templates and Agents, and other package resources) with user-owned `Data/` and `Views/`. Path location alone no longer determines ownership.
 
 `app/Blueprints/`, `app/Docs/`, `app/Registry/`, and `app/Scripts/` are framework surfaces intended to be distributable. They must not silently absorb private live knowledge.
 
@@ -89,7 +89,7 @@ Shardbase currently includes:
 - guided initialization for new, restored, or tooling-only private instances;
 - a local CLI for blueprint-based database scaffolding and direct canonical note creation;
 - a read-only structural validator;
-- manual encrypted knowledge backup and restore commands;
+- manual encrypted user-state backup and restore commands;
 - regression tests and sanitized fixtures;
 - runtime Registry discovery;
 - a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
@@ -98,13 +98,13 @@ Use `shardbase create new` to choose **Inbox capture** or **database creation**.
 
 For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. Shardbase does not change your editor settings automatically.
 
-Canonical creation checks structural validity before and after writing and rolls back its own new artifacts on failure. Database-specific semantics still require review. Existing flat lineages and historical Inbox notes remain unchanged; live databases never synchronize automatically from blueprints.
+Canonical creation checks structural validity before and after writing and rolls back its own new artifacts on failure. Database-specific semantics still require review. Existing flat lineages and historical Inbox notes remain unchanged; release upgrades reconstruct managed packages during restore into a fresh checkout and never synchronize them into an existing live database in place.
 
 Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
 
 Use `shardbase doctor` for read-only framework, privacy, runtime, and structural database health checks. It distinguishes warnings from blocking issues and performs no repairs; see [instance health diagnostics](app/Scripts/README.md#instance-health-diagnostics).
 
-Use `shardbase backup` and `shardbase restore` to preserve local knowledge or transfer it to a compatible newer checkout. These offline commands exclude framework files and Obsidian settings. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, Git exclusions, and compatibility limits.
+Use `shardbase backup` and `shardbase restore` to preserve user state or transfer it into a fresh compatible checkout. Format v2 supports foundation-4/5 sources into foundation-5, encrypts Inbox, every database's Data and Views, and the entire `.obsidian/` tree; the destination release supplies current managed database packages by stable `database_id`. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, conflict safety, and compatibility limits.
 
 ## Get Started
 
@@ -136,7 +136,7 @@ The Python environment and launcher stay outside the project. For platform defau
 
 The blueprint also contains three draft templates and [`Agents/Vera.md`](app/Blueprints/Games/Agents/Vera.md). These resources implement or operationalize the Games contract; they do not replace it.
 
-After a blueprint is materialized into a live database, the live copy is user-owned. Later blueprint changes never silently synchronize into it.
+After materialization, Data and Views are user-owned while the live manifest, supplied Templates and Agents, and other package resources are Shardbase-managed. Existing live packages are never silently synchronized or overwritten; the upgrade path restores user state into a fresh release checkout.
 
 ## Product Boundaries
 
@@ -148,7 +148,7 @@ Shardbase is designed to preserve user-owned knowledge, shared explicit meaning,
 - a replacement for a transactional database engine;
 - a universal ontology or maximum-structure system.
 
-Shardbase may manage, validate, package, convert, or export user-owned AI-related files, but it does not execute models, authenticate with providers, orchestrate agents, or transmit local knowledge to AI services. Any external AI use is a separate user-controlled workflow.
+Shardbase may manage, validate, package, convert, or export AI-related files under the ownership rules of their surface, but it does not execute models, authenticate with providers, orchestrate agents, or transmit local knowledge to AI services. Any external AI use is a separate user-controlled workflow.
 
 ## Project Status
 
