@@ -10,29 +10,45 @@ Current tooling targets System Specification `foundation-4`, retaining foundatio
 
 The current scripts require Python 3.10 or newer and the pinned PyYAML and cryptography dependencies in `requirements.txt`. These are tooling requirements, not universal ShardBase requirements. Existing installations should rerun the installer after updating to install new dependencies.
 
-### Install the convenient command (macOS/Linux)
+### Bootstrap a private instance (macOS/Linux/Windows)
 
-From the repository root:
+Download and extract the repository ZIP, then open a terminal in its root. Git and existing knowledge are not required:
 
 ```sh
-python3 -B app/Scripts/install_cli.py
-export PATH="$HOME/.local/bin:$PATH"
-shardbase commands
+python bootstrap.py
 ```
 
-The installer creates the Python environment at `~/.local/share/shardbase/venv` and the `shardbase` launcher at `~/.local/bin/shardbase`. Both live outside the project. It installs the pinned requirements with pip caching and dependency bytecode generation disabled. The launcher runs the checkout's source directly with `-B`; it does not copy knowledge or install build metadata into the vault.
+Use `python3 bootstrap.py` on macOS/Linux if needed, or `py bootstrap.py` on Windows. Python 3.10+ is required, with no fixed upper version limit. Bootstrap checks its own folder for framework files before preparing anything. A root `.git` file or directory is reported as a Git-managed/development instance; bootstrap never runs Git or checks enclosing repositories.
 
-Add the displayed PATH line to your shell configuration, such as `~/.zshrc`, if you want it available in new terminals. The installer does not edit shell configuration. If the launcher directory is already on PATH, no PATH change is needed.
+| Platform | External runtime | External launcher |
+|---|---|---|
+| macOS/Linux | `~/.local/share/shardbase/venv` | `~/.local/bin/shardbase` |
+| Windows | `%LOCALAPPDATA%\ShardBase\venv` | `%LOCALAPPDATA%\ShardBase\bin\shardbase.cmd` |
+| Windows without `LOCALAPPDATA` | `~/AppData/Local/ShardBase/venv` | `~/AppData/Local/ShardBase/bin/shardbase.cmd` |
 
-Use `--runtime "/external/path/to/venv"` and `--bin-dir "/external/path/to/bin"` to choose other locations. The installer rejects paths inside this project, another identifiable ShardBase instance, or an Obsidian vault, including symlink paths that resolve there. Its temporary directory must also be external. Keep all custom runtime/cache locations outside any vault, including vaults without recognizable markers.
+Use `--runtime "/external/path/to/venv"` and `--bin-dir "/external/path/to/bin"` for custom locations; `--help` lists these options. Runtime, launcher, and temporary paths must resolve outside this instance, other identifiable ShardBase instances, and Obsidian vaults. Keep custom locations outside vaults without recognizable markers too.
 
-Rerunning setup with the same paths is supported. Existing unrelated directories or different launchers are refused instead of overwritten. If you move the checkout, review the old launcher and remove it deliberately or choose a different launcher directory before reinstalling.
+Bootstrap creates or reuses an external venv and verifies its interpreter can run Python 3.10+. An invalid, unsupported, or partially created runtime is preserved and setup fails; review it yourself or choose another `--runtime`. Rerunning a valid runtime reinstalls/repairs pinned dependencies.
 
-The command defaults to the checkout used for installation, even when run from another directory. Use `--root "/path/to/instance"` with creation or validation to select another instance.
+Dependency installation may access configured Python package indexes/network resources. Pip runs with `--isolated`, `--no-cache-dir`, `--no-compile`, and `--disable-pip-version-check`; bytecode is disabled. Bootstrap performs no release lookup, telemetry, self-update, framework download, or knowledge synchronization.
+
+Launchers run the selected instance's source by absolute path with `-B`, preserving caller arguments. Reruns leave identical launchers unchanged. A complete recognized generated launcher (version 1, or the exact previous POSIX format) can be retargeted to a fresh ZIP after dependencies install successfully. A marker alone does not establish ownership. Unrelated or edited files, unknown formats, symlinks, and non-regular paths are refused and preserved; choose another `--bin-dir` or review the existing file.
+
+Ownership is checked before installation and immediately before publication. New launchers use no-clobber publication; replacing an existing managed launcher is atomic but assumes no concurrent edits in the final check-to-replace interval. Avoid simultaneous installers or edits of the same launcher. Filesystems must support hard links for first publication; failures leave competing files intact.
+
+Bootstrap invokes the external interpreter directly to check `shardbase.py commands`, independently of PATH. A failed check fails setup. No database, Inbox, or note is created or inspected. After success, run `shardbase commands`, then `shardbase create new database` when ready. `shardbase init` and `shardbase doctor` remain deferred.
+
+PATH is never changed automatically. If needed, bootstrap prints the exact launcher directory and a current-session POSIX shell or PowerShell command. Persistent PATH/profile configuration remains your choice. The launcher selects the instance used for installation even from another working directory; creation/validation commands also support `--root "/path/to/instance"`.
+
+The lower-level compatibility entry point remains available with the same overrides and shared installation behavior:
+
+```sh
+python -B app/Scripts/install_cli.py --runtime "/external/path/to/venv" --bin-dir "/external/path/to/bin"
+```
 
 ### Run without installing a launcher
 
-Use an external environment on platforms without the POSIX launcher, or for development/testing. From the repository root:
+For development/testing, you can prepare an external environment directly. From the repository root:
 
 ```sh
 shardbase_runtime="/tmp/shardbase-validator-venv"

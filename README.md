@@ -105,20 +105,29 @@ Use `shardbase backup` and `shardbase restore` to preserve local knowledge or tr
 
 ## Get Started
 
-After downloading or cloning the repository, open a terminal at its root. On macOS/Linux:
+For a private instance, download the repository ZIP, extract it, and open a terminal in the extracted folder. Git is not required. With Python 3.10 or newer, run:
 
 ```sh
-python3 -B app/Scripts/install_cli.py
-export PATH="$HOME/.local/bin:$PATH"
+python bootstrap.py
+```
+
+Use `python3 bootstrap.py` if that is your Python command on macOS/Linux, or `py bootstrap.py` on Windows. Bootstrap prepares the external runtime and launcher, installs pinned dependencies (which may access the network), and checks that the CLI starts. It prints a current-session PATH command if needed; it never changes PATH or shell profiles automatically.
+
+Once setup completes and the launcher is on PATH:
+
+```sh
+shardbase commands
 shardbase create new database
 shardbase create new
 ```
 
+Bootstrap prepares tooling only; it does not create knowledge. Guided `shardbase init` is not implemented yet.
+
 The first creation command lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are never merged or overwritten.
 
-The second command creates your first note. Choose database intent and your new database; the CLI prints its actual canonical path after structural checks pass. Use `shardbase validate` for later edits. Use `shardbase commands` to explore the CLI.
+The second creation command creates your first note. Choose database intent and your new database; the CLI prints its actual canonical path after structural checks pass. Use `shardbase validate` for later edits. Use `shardbase commands` to explore the CLI.
 
-The Python environment and launcher stay outside the project. For persistent PATH configuration, other platforms, custom locations, and bootstrap behavior, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
+The Python environment and launcher stay outside the project. For platform defaults, persistent PATH configuration, custom locations, and safe reruns, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
 
 ## Games Starter Database
 

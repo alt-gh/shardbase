@@ -28,7 +28,7 @@ For undisclosed vulnerabilities, follow [SECURITY.md](SECURITY.md); do not open 
 
 ## Set up development
 
-Development requires **Python 3.10 or newer**, as recorded in [pyproject.toml](pyproject.toml). The [CI workflow](.github/workflows/ci.yml) runs Ruff on Ubuntu with Python 3.10 and the full tests plus CLI smoke check on Ubuntu with Python 3.10 and 3.14, and Windows with Python 3.14. These are selected verification environments, not an exhaustive list of supported intermediate Python versions.
+Development requires **Python 3.10 or newer**, as recorded in [pyproject.toml](pyproject.toml). The [CI workflow](.github/workflows/ci.yml) runs Ruff on Ubuntu with Python 3.10 and the full tests plus CLI smoke check on Ubuntu with Python 3.10 and 3.14, and Windows with Python 3.14. A separate macOS/Python 3.14 bootstrap smoke job exercises disposable ZIP-style copies, actual dependency installation, the native launcher, reruns, retargeting, collision refusal, and instance preservation. Native Windows launcher argument forwarding is exercised in the Windows tests. These are selected verification environments, not an exhaustive list of supported intermediate Python versions.
 
 Keep virtual environments, installed dependencies, bytecode, caches, temporary test instances, and other generated runtime/build state outside the repository and every knowledge vault. Do not create a repository-local `.venv/`. See the [runtime guide](app/Scripts/README.md#runtime-setup) for platform-specific details.
 

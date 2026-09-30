@@ -73,3 +73,18 @@ jobs:
 
       - name: Smoke test CLI
         run: python -B app/Scripts/shardbase.py commands
+
+  bootstrap-macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Bootstrap disposable private instances and verify launcher
+        run: python -B tests/bootstrap_smoke.py
