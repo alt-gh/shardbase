@@ -15,14 +15,12 @@ from urllib.parse import unquote
 
 import yaml
 
+from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
+
 from database_creation import available_blueprints, create_database, rebase_framework_links
 from note_creation import CreationError
 from shardbase import main
 from validate_shardbase import parse_frontmatter, validate_database
-
-
-SCRIPTS = Path(__file__).resolve().parent
-BLUEPRINT = SCRIPTS.parent / "Blueprints/Games"
 
 
 class DatabaseCreationTests(unittest.TestCase):
@@ -31,7 +29,7 @@ class DatabaseCreationTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve() / "Example Instance"
         self.source = self.root / "app/Blueprints/Games"
-        shutil.copytree(BLUEPRINT, self.source)
+        shutil.copytree(GAMES_BLUEPRINT, self.source)
         (self.root / "app/Docs").mkdir()
         (self.root / "app/Docs/Shard System Specification.md").write_text("Framework specification placeholder\n")
         (self.root / "app/Scripts").mkdir()
@@ -89,7 +87,7 @@ class DatabaseCreationTests(unittest.TestCase):
 
     def test_added_blueprint_is_discovered_without_games_specific_code(self):
         extra = self.source.with_name("Example Library")
-        shutil.copytree(SCRIPTS / "fixtures/valid-database", extra)
+        shutil.copytree(FIXTURES / "valid-database", extra)
         self.update_manifest(extra / "Database.md", database_id="example-library", database_name="Example Library")
         options = available_blueprints(self.root)
         self.assertEqual({item.database_id for item in options}, {"games", "example-library"})

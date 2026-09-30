@@ -9,11 +9,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from _support import FIXTURES, GAMES_BLUEPRINT, ROOT, SCRIPTS
+
 from install_cli import external_path, install
-
-
-SCRIPTS = Path(__file__).resolve().parent
-PROJECT = SCRIPTS.parents[1]
 
 
 class CommandTests(unittest.TestCase):
@@ -22,7 +20,7 @@ class CommandTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve() / "Example Instance"
         self.root.mkdir()
-        shutil.copytree(PROJECT / "app/Blueprints/Games", self.root / "app/Blueprints/Games")
+        shutil.copytree(GAMES_BLUEPRINT, self.root / "app/Blueprints/Games")
 
     def cli(self, *args, without_dependencies=False):
         command = [sys.executable, "-B"]
@@ -76,7 +74,7 @@ class CommandTests(unittest.TestCase):
 
     def test_validate_command_checks_selected_instance_and_returns_failures(self):
         database = self.root / "app/Knowledge/Databases/Example Database"
-        shutil.copytree(SCRIPTS / "fixtures/valid-database", database)
+        shutil.copytree(FIXTURES / "valid-database", database)
         before = {path: path.read_bytes() for path in database.rglob("*") if path.is_file()}
         for arguments in (("--root", str(self.root)), (str(database),)):
             result = self.cli("validate", *arguments)
@@ -112,15 +110,15 @@ class InstallerTests(unittest.TestCase):
         return runtime
 
     def test_project_runtime_and_launcher_locations_are_rejected_before_work(self):
-        for runtime, bin_dir in ((PROJECT / ".venv", self.root / "bin"),
-                                 (self.root / "runtime", PROJECT / "bin")):
+        for runtime, bin_dir in ((ROOT / ".venv", self.root / "bin"),
+                                 (self.root / "runtime", ROOT / "bin")):
             with patch("install_cli.subprocess.run") as run, self.assertRaisesRegex(ValueError, "outside"):
                 install(runtime, bin_dir)
             run.assert_not_called()
 
     def test_symlink_into_project_and_other_vaults_are_rejected(self):
         link = self.root / "project-link"
-        link.symlink_to(PROJECT, target_is_directory=True)
+        link.symlink_to(ROOT, target_is_directory=True)
         with self.assertRaisesRegex(ValueError, "outside"):
             external_path(link / ".venv", "Runtime")
         vault = self.root / "Another Vault"
@@ -129,7 +127,7 @@ class InstallerTests(unittest.TestCase):
             external_path(vault / ".venv", "Runtime")
 
     def test_temporary_directory_inside_project_is_rejected(self):
-        with patch("install_cli.tempfile.gettempdir", return_value=str(PROJECT / "tmp")), patch("install_cli.subprocess.run") as run:
+        with patch("install_cli.tempfile.gettempdir", return_value=str(ROOT / "tmp")), patch("install_cli.subprocess.run") as run:
             with self.assertRaisesRegex(ValueError, "Temporary directory"):
                 install(self.root / "runtime", self.root / "bin")
         run.assert_not_called()

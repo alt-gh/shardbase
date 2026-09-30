@@ -41,7 +41,7 @@ python3 -B -m venv "$shardbase_runtime"
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py commands
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py create new
 "$shardbase_runtime/bin/python" -B app/Scripts/shardbase.py validate
-"$shardbase_runtime/bin/python" -B -m unittest discover -s app/Scripts -p 'test_*.py' -v
+"$shardbase_runtime/bin/python" -B -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 These are POSIX shell examples; on Windows choose an external environment directory and use its `Scripts/python.exe`. Temporary environments can be removed by the operating system; use the installed external runtime for regular use.
@@ -315,6 +315,8 @@ The implementation assumes a stable local filesystem during an operation and is 
 Backup/restore use separate authenticated staging and publication rules described under [Encrypted Backup and Restore](#encrypted-backup-and-restore).
 
 ## Tests and Fixtures
+
+Development tests live in the top-level [`tests/`](../../tests/) tree, with synthetic fixtures in [`tests/fixtures/`](../../tests/fixtures/). The test-only `_support.py` helper resolves shared paths and makes `app/Scripts/` importable during test discovery. Runtime tooling does not depend on the test tree.
 
 Tests use temporary instances outside the vault. Keep `TMPDIR` or its platform equivalent outside the vault when customizing it.
 

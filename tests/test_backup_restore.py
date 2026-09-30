@@ -20,12 +20,13 @@ from unittest.mock import patch
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
+from _support import FIXTURES, SCRIPTS
+
 import backup_restore as transfer
 from backup_restore import BackupError, backup, restore
 
 
 PASSWORD = b"synthetic test passphrase"
-SCRIPTS = Path(__file__).resolve().parent
 
 
 class TransferTests(unittest.TestCase):
@@ -106,7 +107,7 @@ class TransferTests(unittest.TestCase):
         self.assertEqual(self.output.stat().st_mode & 0o777, 0o600)
 
     def test_fixed_independent_v1_compatibility_vector(self):
-        vector = json.loads((SCRIPTS / "fixtures/backup-v1.json").read_text())
+        vector = json.loads((FIXTURES / "backup-v1.json").read_text())
         self.output.write_bytes(base64.b64decode(vector["envelope_base64"], validate=True))
         result = restore(self.target, self.output, vector["passphrase"].encode())
         self.assertEqual(result["files_added"], 1)
@@ -116,7 +117,7 @@ class TransferTests(unittest.TestCase):
         from validate_shardbase import validate_database
         source = self.make_instance("valid")
         relative = Path("app/Knowledge/Databases/Example Database")
-        shutil.copytree(SCRIPTS / "fixtures/valid-database", source / relative)
+        shutil.copytree(FIXTURES / "valid-database", source / relative)
         self.assertEqual(validate_database(source / relative), [])
         backup(source, self.output, PASSWORD)
         restore(self.target, self.output, PASSWORD)

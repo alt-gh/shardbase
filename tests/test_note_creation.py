@@ -10,12 +10,12 @@ from unittest.mock import patch
 
 import yaml
 
+from _support import GAMES_BLUEPRINT, SCRIPTS
+
 from note_creation import CreationError, create_note
 from shardbase import Terminal, main
 from validate_shardbase import parse_frontmatter, validate_database
 
-SCRIPTS = Path(__file__).resolve().parent
-BLUEPRINT = SCRIPTS.parent / "Blueprints/Games"
 
 class NoteCreationTests(unittest.TestCase):
     def setUp(self):
@@ -23,7 +23,7 @@ class NoteCreationTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve()
         self.blueprint = self.root / "app/Blueprints/Games"
-        shutil.copytree(BLUEPRINT, self.blueprint)
+        shutil.copytree(GAMES_BLUEPRINT, self.blueprint)
 
     def template_field(self, field, value, source=None, remove=False):
         path = (source or self.blueprint) / "Templates/Game.md"

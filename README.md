@@ -60,6 +60,8 @@ shardbase/
 │   │           └── Database.md
 │   ├── Registry/
 │   └── Scripts/
+├── tests/
+│   └── fixtures/
 ├── AGENTS.md
 └── README.md
 ```

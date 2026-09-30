@@ -12,14 +12,12 @@ from unittest.mock import patch
 
 import yaml
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
 
 from validate_shardbase import discover_databases, main, validate_database
 
 
-VALID_DATABASE = Path(__file__).parent / "fixtures" / "valid-database"
+VALID_DATABASE = FIXTURES / "valid-database"
 
 
 class ValidatorTests(unittest.TestCase):
@@ -496,10 +494,10 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("manifest-missing", output.getvalue())
 
     def test_cli_exit_status(self):
-        result = subprocess.run([sys.executable, "-B", str(SCRIPT_DIR / "validate_shardbase.py"), str(self.database)], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "-B", str(SCRIPTS / "validate_shardbase.py"), str(self.database)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.set_field(self.collection / "Example.md", "type", ["core"])
-        result = subprocess.run([sys.executable, "-B", str(SCRIPT_DIR / "validate_shardbase.py"), str(self.database)], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "-B", str(SCRIPTS / "validate_shardbase.py"), str(self.database)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 1)
         self.assertIn("structural-type", result.stdout)
         self.assertNotIn("Traceback", result.stderr)
@@ -527,13 +525,13 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("No databases found", output.getvalue())
 
     def test_missing_dependency_explains_setup(self):
-        result = subprocess.run([sys.executable, "-B", "-S", str(SCRIPT_DIR / "validate_shardbase.py")], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "-B", "-S", str(SCRIPTS / "validate_shardbase.py")], capture_output=True, text=True)
         self.assertEqual(result.returncode, 1)
         self.assertIn("app/Scripts/README.md", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
     def test_blueprint_scaffolding_survives_file_only_copy(self):
-        blueprint = SCRIPT_DIR.parent / "Blueprints/Games"
+        blueprint = GAMES_BLUEPRINT
         target = self.database.parent / "Games"
         # Copy files only, as Git does: empty directories alone cannot satisfy this test.
         for source in blueprint.rglob("*"):

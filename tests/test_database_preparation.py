@@ -12,14 +12,12 @@ from unittest.mock import patch
 
 import yaml
 
+from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
+
 from database_preparation import database_sources, new_id
 from note_creation import CreationError, create_note
 from shardbase import main
 from validate_shardbase import NOTE_ID, parse_frontmatter, validate_database
-
-
-SCRIPTS = Path(__file__).resolve().parent
-BLUEPRINT = SCRIPTS.parent / "Blueprints/Games"
 
 
 class DatabasePreparationTests(unittest.TestCase):
@@ -28,7 +26,7 @@ class DatabasePreparationTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve()
         self.blueprint = self.root / "app/Blueprints/Games"
-        shutil.copytree(BLUEPRINT, self.blueprint)
+        shutil.copytree(GAMES_BLUEPRINT, self.blueprint)
         self.database = self.root / "app/Knowledge/Databases/My Games"
         shutil.copytree(self.blueprint, self.database)
 
@@ -127,7 +125,7 @@ class DatabasePreparationTests(unittest.TestCase):
 
     def test_other_database_identity_and_template_are_selected(self):
         movies = self.root / "app/Knowledge/Databases/Personal Film Library"
-        shutil.copytree(SCRIPTS / "fixtures/valid-database", movies)
+        shutil.copytree(FIXTURES / "valid-database", movies)
         self.edit_metadata(movies / "Database.md", database_id="movies", database_name="Movies")
         templates = movies / "Templates"
         templates.mkdir()
@@ -280,7 +278,7 @@ class DatabasePreparationTests(unittest.TestCase):
 
     def test_interactive_selection_for_another_database_without_templates(self):
         movies = self.root / "app/Knowledge/Databases/Movies"
-        shutil.copytree(SCRIPTS / "fixtures/valid-database", movies)
+        shutil.copytree(FIXTURES / "valid-database", movies)
         self.edit_metadata(movies / "Database.md", database_id="movies", database_name="Movies",
                            data_collections=["Game", "Film"])
         (movies / "Data/Film/Attachments").mkdir(parents=True)
