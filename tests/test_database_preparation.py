@@ -11,9 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
-
 from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
-
 from database_preparation import database_sources, new_id
 from note_creation import CreationError, create_note
 from shardbase import main
@@ -198,7 +196,7 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot(self.root))
 
     def test_target_collisions_are_checked_across_workspaces(self):
-        core = self.created_path(self.create("Café"))
+        self.created_path(self.create("Café"))
         for title in ("Café", "Cafe\u0301", "CAFÉ"):
             with self.subTest(title=title), self.assertRaisesRegex(CreationError, "canonical filename"):
                 self.create(title)
@@ -410,7 +408,11 @@ class DatabasePreparationTests(unittest.TestCase):
             self.assertEqual(note.name, f"{kind} - {metadata['id']}.md")
 
     def test_parent_picker_filters_other_lineages_and_pebbles(self):
-        from database_preparation import eligible_parents, select_database, validated_notes
+        from database_preparation import (
+            eligible_parents,
+            select_database,
+            validated_notes,
+        )
         first = self.created_path(self.create("First"))
         second = self.created_path(self.create("Second"))
         topic = self.created_path(self.create("Topic", "shard", parent=first.stem))

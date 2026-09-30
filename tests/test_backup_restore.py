@@ -3,28 +3,28 @@
 from __future__ import annotations
 
 import base64
-from contextlib import redirect_stdout
 import hashlib
 import io
 import json
 import os
-from pathlib import Path
 import shutil
 import struct
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import patch
 
+from _support import FIXTURES, SCRIPTS
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
-from _support import FIXTURES, SCRIPTS
-
+# isort: split
+# The test path bootstrap must run before importing runtime modules.
 import backup_restore as transfer
 from backup_restore import BackupError, backup, restore
-
 
 PASSWORD = b"synthetic test passphrase"
 

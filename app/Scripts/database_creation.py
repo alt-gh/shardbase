@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import re
 import shutil
 import stat
 import tempfile
+from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 from note_creation import CreationError, checked_path, read_document, refuse_collision

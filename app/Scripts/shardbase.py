@@ -40,8 +40,15 @@ class Terminal:
 
 
 def new_note(args: argparse.Namespace) -> int:
+    from database_preparation import (
+        database_sources,
+        eligible_parents,
+        select_core,
+        select_database,
+        templates_for,
+        validated_notes,
+    )
     from note_creation import CreationError, create_note, read_document
-    from database_preparation import database_sources, eligible_parents, select_core, select_database, validated_notes, templates_for
 
     ui = Terminal(args.no_color)
     ui.section("SHARDBASE  /  New note")
@@ -166,8 +173,9 @@ def new_database(args: argparse.Namespace) -> int:
 
 
 def transfer_knowledge(args: argparse.Namespace) -> int:
-    from datetime import datetime, timezone
     import secrets
+    from datetime import datetime, timezone
+
     from backup_restore import backup, external, instance, read_password, restore
 
     ui = Terminal()

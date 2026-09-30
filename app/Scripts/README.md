@@ -50,6 +50,23 @@ Dependency installation may access the network. Creation, help, validation, back
 
 Use `-B` or `PYTHONDONTWRITEBYTECODE=1` for every Python runner that touches the project. Keep environments, dependencies, bytecode, caches, and test instances outside the project/vault. These settings prevent new bytecode but do not remove stale generated files already present.
 
+## Repository Development Lint
+
+Repository development requires Python 3.10 or newer, recorded in the root `pyproject.toml`. Use an activated external virtual environment, such as the one created above. From the repository root:
+
+```sh
+export PYTHONDONTWRITEBYTECODE=1
+export PIP_NO_CACHE_DIR=1
+export PIP_NO_COMPILE=1
+export RUFF_CACHE_DIR="${TMPDIR:-/tmp}/shardbase-ruff-cache"
+python -m pip install -r requirements-dev.txt
+python -m ruff check .
+```
+
+Keep any custom cache path outside the project/vault. The root `requirements-dev.txt` pins development-only Ruff; runtime dependencies remain in `app/Scripts/requirements.txt` and are installed separately as described above.
+
+Ruff targets Python 3.10 and checks `E4`, `E7`, `E9`, `F`, and `I` (fundamental errors, Pyflakes checks, and import ordering). Repository-owned Python is linted, with private `app/Knowledge/` and synthetic `tests/fixtures/` excluded from traversal. This is a lint-only workflow; no formatter or Python packaging/build system is configured.
+
 ## Command Reference
 
 Run `shardbase commands` to see every available command in the terminal. Running `shardbase` without arguments shows the same list. This is the complete current command set:

@@ -9,9 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
-
 from _support import GAMES_BLUEPRINT, SCRIPTS
-
 from note_creation import CreationError, create_note
 from shardbase import Terminal, main
 from validate_shardbase import parse_frontmatter, validate_database

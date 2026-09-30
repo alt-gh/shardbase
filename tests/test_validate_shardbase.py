@@ -1,6 +1,6 @@
 import contextlib
-import io
 import hashlib
+import io
 import re
 import shutil
 import subprocess
@@ -11,11 +11,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
-
 from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
-
 from validate_shardbase import discover_databases, main, validate_database
-
 
 VALID_DATABASE = FIXTURES / "valid-database"
 

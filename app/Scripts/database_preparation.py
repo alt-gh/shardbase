@@ -8,11 +8,25 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
-from note_creation import CreationError, DraftDumper, checked_path, filename_key, read_document, refuse_collision
+from note_creation import (
+    CreationError,
+    DraftDumper,
+    checked_path,
+    filename_key,
+    read_document,
+    refuse_collision,
+)
 from validate_shardbase import (
-    NOTE_ID, Note, expected_filename, nonempty_string, parse_frontmatter,
-    FrontmatterError, core_creation_placement, primary_title, validate_database, wikilink_target,
+    NOTE_ID,
+    FrontmatterError,
+    Note,
+    core_creation_placement,
+    expected_filename,
+    nonempty_string,
+    parse_frontmatter,
+    primary_title,
+    validate_database,
+    wikilink_target,
 )
 
 

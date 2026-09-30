@@ -1,16 +1,15 @@
 """Proof of discoverable commands and an external-runtime launcher."""
 
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from _support import FIXTURES, GAMES_BLUEPRINT, ROOT, SCRIPTS
-
 from install_cli import external_path, install
 
 

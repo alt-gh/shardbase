@@ -8,10 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from validate_shardbase import FrontmatterError, parse_frontmatter, portable_component
-
 import yaml
-
+from validate_shardbase import FrontmatterError, parse_frontmatter, portable_component
 
 if TYPE_CHECKING:
     from database_preparation import PreparedNote

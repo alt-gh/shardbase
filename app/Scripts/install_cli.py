@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
 import shlex
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 sys.dont_write_bytecode = True
 

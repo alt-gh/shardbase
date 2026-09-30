@@ -3,21 +3,23 @@
 import contextlib
 import io
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import unquote
 
 import yaml
-
 from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
-
-from database_creation import available_blueprints, create_database, rebase_framework_links
+from database_creation import (
+    available_blueprints,
+    create_database,
+    rebase_framework_links,
+)
 from note_creation import CreationError
 from shardbase import main
 from validate_shardbase import parse_frontmatter, validate_database

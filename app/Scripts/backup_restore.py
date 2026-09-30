@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
-from datetime import datetime, timezone
 import getpass
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
 import re
 import stat
 import struct
@@ -16,7 +13,9 @@ import subprocess
 import tempfile
 import unicodedata
 import warnings
-
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
 
 MAGIC = b"SHARDBK\x00"
 VERSION = 1
