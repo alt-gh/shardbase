@@ -25,12 +25,12 @@ class NoteCreationTests(unittest.TestCase):
 
     def template_field(self, field, value, source=None, remove=False):
         path = (source or self.blueprint) / "Templates/Game.md"
-        metadata, body = parse_frontmatter(path.read_text())
+        metadata, body = parse_frontmatter(path.read_text(encoding="utf-8"))
         if remove:
             metadata.pop(field)
         else:
             metadata[field] = value
-        path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False) + "---\n" + body)
+        path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False) + "---\n" + body, encoding="utf-8")
 
     def live_database(self, name="My Games"):
         database = self.root / "app/Knowledge/Databases" / name
@@ -43,10 +43,10 @@ class NoteCreationTests(unittest.TestCase):
     def test_inbox_draft_has_required_yaml_and_only_h1(self):
         result = create_note(self.root, "Example Game")
         self.assertEqual(result.path, self.root / "app/Knowledge/Inbox/Example Game.md")
-        metadata, body = parse_frontmatter(result.path.read_text())
+        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
         self.assertEqual(metadata, dict(type="core", pool="Games", core="[[Example Game]]", parent_note=None, status="draft", aliases=None, id=None, tags=None))
         self.assertEqual(body, "# Example Game\n\n")
-        self.assertIn("aliases:\nid:\ntags:\n", result.path.read_text())
+        self.assertIn("aliases:\nid:\ntags:\n", result.path.read_text(encoding="utf-8"))
         self.assertFalse((self.root / "app/Knowledge/Inbox/Staged").exists())
         self.assertFalse((self.root / "app/Knowledge/Databases").exists())
 
@@ -54,10 +54,10 @@ class NoteCreationTests(unittest.TestCase):
         staged = self.root / "app/Knowledge/Inbox/Staged"
         staged.mkdir(parents=True)
         capture = staged / "Example.md"
-        capture.write_text("User-authored staged content\n")
+        capture.write_text("User-authored staged content\n", encoding="utf-8")
         result = create_note(self.root, "Example")
         self.assertEqual(result.path, staged.parent / "Example.md")
-        self.assertEqual(capture.read_text(), "User-authored staged content\n")
+        self.assertEqual(capture.read_text(encoding="utf-8"), "User-authored staged content\n")
         self.assertEqual(list(staged.iterdir()), [capture])
 
     def test_rendered_note_conforms_after_deliberate_test_promotion(self):
@@ -67,7 +67,7 @@ class NoteCreationTests(unittest.TestCase):
         self.assertEqual(list((database / "Data/Game").glob("*.md")), [])
         promoted = database / "Data/Game" / result.path.name
         shutil.copyfile(result.path, promoted)
-        metadata, body = parse_frontmatter(promoted.read_text())
+        metadata, body = parse_frontmatter(promoted.read_text(encoding="utf-8"))
         metadata["id"] = "0a1b2c3d4e"
         promoted.write_text("---\n" + yaml.safe_dump(metadata, allow_unicode=True, sort_keys=False) + "---\n" + body, encoding="utf-8")
         self.assertEqual(validate_database(database), [])
@@ -77,10 +77,10 @@ class NoteCreationTests(unittest.TestCase):
         for field, value in (("tags", ["games"]), ("aliases", ["Alternate"]), ("id", "001"), ("developers", ["Example Studio"]), ("play_state", "not_started"), ("release_date", "2026-01-02")):
             self.template_field(field, value, database)
         path = database / "Templates/Game.md"
-        path.write_text(path.read_text() + "## User template section\n\nSome prose.\n")
+        path.write_text(path.read_text(encoding="utf-8") + "## User template section\n\nSome prose.\n", encoding="utf-8")
         before = {p: p.read_bytes() for p in database.rglob("*") if p.is_file()}
         result = create_note(self.root, "Example")
-        metadata, body = parse_frontmatter(result.path.read_text())
+        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
         self.assertEqual(metadata["id"], "001")
         self.assertEqual(metadata["tags"], ["games"])
         self.assertEqual(metadata["developers"], ["Example Studio"])
@@ -106,7 +106,7 @@ class NoteCreationTests(unittest.TestCase):
     def test_manifest_conformance_is_not_a_creation_gate(self):
         database = self.live_database()
         path = database / "Database.md"
-        path.write_text("---\ndatabase_id: games\nmanifest_version: future\ndata_collections: [Missing]\ndatabase_status: archived\n---\nIncomplete contract\n")
+        path.write_text("---\ndatabase_id: games\nmanifest_version: future\ndata_collections: [Missing]\ndatabase_status: archived\n---\nIncomplete contract\n", encoding="utf-8")
         result = create_note(self.root, "Example", "pebble")
         self.assertEqual(result.template, database / "Templates/Game Pebble.md")
         self.assertTrue(result.path.exists())
@@ -118,16 +118,16 @@ class NoteCreationTests(unittest.TestCase):
         for field, value in fields.items():
             self.template_field(field, value)
         result = create_note(self.root, "Example")
-        metadata, body = parse_frontmatter(result.path.read_text())
+        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
         for field, value in fields.items():
             self.assertEqual(metadata[field], value)
         self.assertEqual(body, "# Example\n\n")
 
     def test_missing_template_fields_receive_editable_defaults(self):
         path = self.blueprint / "Templates/Game Shard.md"
-        path.write_text("---\ncustom_field: unreviewed\n---\n")
+        path.write_text("---\ncustom_field: unreviewed\n---\n", encoding="utf-8")
         result = create_note(self.root, "Example", "shard")
-        metadata, body = parse_frontmatter(result.path.read_text())
+        metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
         self.assertEqual(metadata, dict(type="shard", pool="Games", core=None, parent_note=None,
                                        status="draft", aliases=None, id=None, tags=None,
                                        custom_field="unreviewed"))
@@ -136,7 +136,7 @@ class NoteCreationTests(unittest.TestCase):
     def test_yaml_errors_do_not_write_or_echo_template_content(self):
         path = self.blueprint / "Templates/Game.md"
         for text in ("---\nsecret: [sensitive-example-value\n---\n", "---\nsecret: sensitive-example-value\nsecret: sensitive-example-value\n---\n"):
-            path.write_text(text)
+            path.write_text(text, encoding="utf-8")
             with self.assertRaises(CreationError) as caught:
                 create_note(self.root, "Example")
             self.assertNotIn("sensitive-example-value", str(caught.exception))
@@ -147,7 +147,7 @@ class NoteCreationTests(unittest.TestCase):
             with self.subTest(title=title):
                 result = create_note(self.root, title)
                 self.assertEqual(result.path.name, filename)
-                metadata, body = parse_frontmatter(result.path.read_text())
+                metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
                 self.assertEqual(body, f"# {title}\n\n")
                 self.assertEqual(metadata["core"], f"[[{filename[:-3]}]]")
 
@@ -160,11 +160,11 @@ class NoteCreationTests(unittest.TestCase):
 
     def test_existing_file_and_normalized_collisions_never_overwritten(self):
         first = create_note(self.root, "Game: One")
-        first.path.write_text("User-edited content")
+        first.path.write_text("User-edited content", encoding="utf-8")
         for title in ("Game: One", "Game One", "game one"):
             with self.assertRaisesRegex(CreationError, "already uses"):
                 create_note(self.root, title)
-            self.assertEqual(first.path.read_text(), "User-edited content")
+            self.assertEqual(first.path.read_text(encoding="utf-8"), "User-edited content")
         self.assertEqual(list(first.path.parent.iterdir()), [first.path])
 
     def test_unicode_equivalent_collisions_refused(self):
@@ -188,7 +188,7 @@ class NoteCreationTests(unittest.TestCase):
         path.unlink()
         with tempfile.TemporaryDirectory() as outside:
             target = Path(outside) / "private.md"
-            target.write_text("private content")
+            target.write_text("private content", encoding="utf-8")
             path.symlink_to(target)
             with self.assertRaisesRegex(CreationError, "Symlink"):
                 create_note(self.root, "Example")
@@ -207,12 +207,12 @@ class NoteCreationTests(unittest.TestCase):
         original_open = Path.open
         def competing_open(path, mode="r", *args, **kwargs):
             if mode == "x":
-                path.write_text("Competing content")
+                path.write_text("Competing content", encoding="utf-8")
             return original_open(path, mode, *args, **kwargs)
         with patch.object(Path, "open", competing_open):
             with self.assertRaises(FileExistsError):
                 create_note(self.root, "Example")
-        self.assertEqual((self.root / "app/Knowledge/Inbox/Example.md").read_text(), "Competing content")
+        self.assertEqual((self.root / "app/Knowledge/Inbox/Example.md").read_text(encoding="utf-8"), "Competing content")
 
     def test_prompts_reprompt_and_create(self):
         with patch("builtins.input", side_effect=["Example", "invalid", "1", "", "inbox"]) as prompts, contextlib.redirect_stdout(io.StringIO()) as output:
@@ -266,7 +266,7 @@ class NoteCreationTests(unittest.TestCase):
         for kind in ("core", "shard", "pebble"):
             with self.subTest(kind=kind):
                 result = create_note(self.root, f"Example {kind}", kind)
-                metadata, body = parse_frontmatter(result.path.read_text())
+                metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
                 self.assertEqual(metadata, dict(type=kind, pool="Games",
                     core=f"[[Example {kind}]]" if kind == "core" else None,
                     parent_note=None, status="draft", aliases=None, id=None, tags=None))
@@ -283,7 +283,7 @@ class NoteCreationTests(unittest.TestCase):
         self.assertNotIn("Parent note", output.getvalue())
         self.assertNotIn("Destination", output.getvalue())
         path = self.root / "app/Knowledge/Inbox/Example Detail.md"
-        metadata, _ = parse_frontmatter(path.read_text())
+        metadata, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
         self.assertEqual(metadata["type"], "shard")
         self.assertEqual(metadata["aliases"], ["Alternate Detail"])
         self.assertIsNone(metadata["core"])
@@ -293,32 +293,32 @@ class NoteCreationTests(unittest.TestCase):
         for index, alias in enumerate((None, "", "   ", "Example Detail Alias", "001", "yes", 'A: "B", C', "日本語")):
             with self.subTest(alias=alias):
                 result = create_note(self.root, f"Note {index}", "pebble", alias=alias)
-                metadata, body = parse_frontmatter(result.path.read_text())
+                metadata, body = parse_frontmatter(result.path.read_text(encoding="utf-8"))
                 self.assertEqual(metadata["aliases"], [alias.strip()] if alias and alias.strip() else None)
                 self.assertEqual(body, f"# Note {index}\n\n")
 
     def test_skipping_alias_preserves_template_default(self):
         self.template_field("aliases", ["Template Alias"])
         result = create_note(self.root, "Example", alias="")
-        metadata, _ = parse_frontmatter(result.path.read_text())
+        metadata, _ = parse_frontmatter(result.path.read_text(encoding="utf-8"))
         self.assertEqual(metadata["aliases"], ["Template Alias"])
 
     def test_legacy_unresolved_template_tokens_become_blank(self):
         path = self.blueprint / "Templates/Game Shard.md"
-        path.write_text(path.read_text().replace("core:\n", 'core: "[[{{core}}]]"\n').replace("parent_note:\n", 'parent_note: "[[{{parent}}]]"\n'))
+        path.write_text(path.read_text(encoding="utf-8").replace("core:\n", 'core: "[[{{core}}]]"\n').replace("parent_note:\n", 'parent_note: "[[{{parent}}]]"\n'), encoding="utf-8")
         result = create_note(self.root, "Subject", "shard")
-        metadata, _ = parse_frontmatter(result.path.read_text())
+        metadata, _ = parse_frontmatter(result.path.read_text(encoding="utf-8"))
         self.assertIsNone(metadata["core"])
         self.assertIsNone(metadata["parent_note"])
 
     def test_existing_notes_are_neither_read_nor_validated(self):
         database = self.live_database()
         canonical = database / "Data/Game/Example Detail.md"
-        canonical.write_text("Malformed canonical data\n")
+        canonical.write_text("Malformed canonical data\n", encoding="utf-8")
         inbox = self.root / "app/Knowledge/Inbox"
         inbox.mkdir()
         capture = inbox / "Broken.md"
-        capture.write_text("---\ntype: [broken\n")
+        capture.write_text("---\ntype: [broken\n", encoding="utf-8")
         original_read = Path.read_text
         def guard_read(path, *args, **kwargs):
             if path in (canonical, capture):
@@ -327,8 +327,8 @@ class NoteCreationTests(unittest.TestCase):
         with patch.object(Path, "read_text", guard_read), patch("validate_shardbase.validate_database", side_effect=AssertionError("Unexpected validation")):
             result = create_note(self.root, "Example Detail", "shard")
         self.assertEqual(result.path.name, "Example Detail.md")
-        self.assertEqual(canonical.read_text(), "Malformed canonical data\n")
-        self.assertEqual(capture.read_text(), "---\ntype: [broken\n")
+        self.assertEqual(canonical.read_text(encoding="utf-8"), "Malformed canonical data\n")
+        self.assertEqual(capture.read_text(encoding="utf-8"), "---\ntype: [broken\n")
 
     def test_canonical_validation_still_reports_unresolved_promoted_draft(self):
         database = self.live_database()

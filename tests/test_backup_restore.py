@@ -101,10 +101,12 @@ class TransferTests(unittest.TestCase):
         self.assertEqual(self.tree(self.source / transfer.BOUNDARY), self.tree(self.target / transfer.BOUNDARY))
         note = self.target / self.note.relative_to(self.source)
         self.assertEqual(note.stat().st_mtime_ns, self.note.stat().st_mtime_ns)
-        self.assertEqual(note.stat().st_mode & 0o777, 0o700)
+        if os.name == "posix":
+            self.assertEqual(note.stat().st_mode & 0o777, 0o700)
         self.assertFalse((self.target / ".obsidian").exists())
         self.assertFalse((self.target / "app/Docs/framework.md").exists())
-        self.assertEqual(self.output.stat().st_mode & 0o777, 0o600)
+        if os.name == "posix":
+            self.assertEqual(self.output.stat().st_mode & 0o777, 0o600)
 
     def test_fixed_independent_v1_compatibility_vector(self):
         vector = json.loads((FIXTURES / "backup-v1.json").read_text())
@@ -320,9 +322,13 @@ class TransferTests(unittest.TestCase):
         with self.assertRaisesRegex(BackupError, "directory parent"):
             restore(self.target, self.output, PASSWORD)
 
-    def test_restore_from_system_tmp_alias(self):
+    def test_restore_from_staging_directory_alias(self):
+        staging = self.base / "staging"
+        staging.mkdir()
+        alias = self.base / "staging-alias"
+        alias.symlink_to(staging, target_is_directory=True)
         self.create()
-        result = restore(self.target, self.output, PASSWORD, Path("/tmp"))
+        result = restore(self.target, self.output, PASSWORD, alias)
         self.assertEqual(result["files_added"], 2)
 
     def test_broken_git_metadata_fails_closed(self):
@@ -393,20 +399,22 @@ class TransferTests(unittest.TestCase):
             restore(self.target, self.output, PASSWORD)
         self.assertFalse((self.target / transfer.BOUNDARY).exists())
 
-    def test_symlinks_and_special_files_are_refused(self):
+    def test_symlinks_are_refused(self):
         link = self.source / "app/Knowledge/Inbox/link"
         link.symlink_to(self.base / "missing")
         with self.assertRaisesRegex(BackupError, "Symlinks"):
-            self.create()
-        link.unlink()
-        os.mkfifo(link)
-        with self.assertRaisesRegex(BackupError, "special file"):
             self.create()
         link.unlink()
         self.create()
         (self.target / "app/Knowledge").symlink_to(self.source / "app/Knowledge", target_is_directory=True)
         with self.assertRaisesRegex(BackupError, "Symlinks"):
             restore(self.target, self.output, PASSWORD)
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "FIFO creation is unavailable on this platform")
+    def test_special_files_are_refused(self):
+        os.mkfifo(self.source / "app/Knowledge/Inbox/pipe")
+        with self.assertRaisesRegex(BackupError, "special file"):
+            self.create()
 
     def test_nested_git_repository_is_refused(self):
         (self.source / "app/Knowledge/Inbox/.git").mkdir()
@@ -473,16 +481,20 @@ class TransferTests(unittest.TestCase):
         result = restore(self.target, self.output, PASSWORD)
         self.assertEqual(result["files_added"], 0)
 
-    def test_password_input_is_owner_only_confirmed_and_never_echoed(self):
+    def test_password_input_is_confirmed(self):
         path = self.write(self.base, "passphrase", PASSWORD + b"\r\n")
         path.chmod(0o600)
         self.assertEqual(transfer.read_password(path, confirm=True), PASSWORD)
-        path.chmod(0o644)
-        with self.assertRaisesRegex(BackupError, "owner"):
-            transfer.read_password(path, confirm=True)
         with patch("backup_restore.getpass.getpass", side_effect=["long enough passphrase", "different passphrase"]):
             with self.assertRaisesRegex(BackupError, "do not match"):
                 transfer.read_password(None, confirm=True)
+
+    @unittest.skipUnless(os.name == "posix", "Owner-only mode bits require POSIX permissions")
+    def test_password_file_must_be_owner_only(self):
+        path = self.write(self.base, "passphrase", PASSWORD)
+        path.chmod(0o644)
+        with self.assertRaisesRegex(BackupError, "owner"):
+            transfer.read_password(path, confirm=True)
 
     def test_two_command_subprocess_workflow_and_clean_errors(self):
         password = self.write(self.base, "password", PASSWORD)

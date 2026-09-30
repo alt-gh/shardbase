@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import yaml
 from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
-from validate_shardbase import discover_databases, main, validate_database
+from validate_shardbase import Note, discover_databases, main, validate_database
 
 VALID_DATABASE = FIXTURES / "valid-database"
 
@@ -441,9 +441,14 @@ class ValidatorTests(unittest.TestCase):
     def test_unsafe_and_mismatched_core_filenames(self):
         for filename, title in (("Bad:Name.md", "Bad:Name"), ("CON.md", "CON"), ("Trailing..md", "Trailing."), ("Wrong.md", "Different")):
             with self.subTest(filename=filename):
-                path = self.create_note(filename, title)
-                self.assertIn("filename", self.codes())
-                path.unlink()
+                # Windows treats colons as alternate streams and CON as a device.
+                # Inject discovered notes to check every name without creating it.
+                path = self.collection / filename
+                note = Note(path, dict(type="core", pool="Examples", core=f"[[{path.stem}]]",
+                                       parent_note=None, status="active", aliases=None, id="0123456789", tags=None),
+                            f"# {title}\n\nExample content.\n")
+                with patch("validate_shardbase.database_notes", return_value=([note], {})):
+                    self.assertIn("filename", self.codes())
 
     def test_empty_normalized_name_is_reported(self):
         self.create_note("Wrong.md", "???")

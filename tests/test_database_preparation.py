@@ -285,7 +285,7 @@ class DatabasePreparationTests(unittest.TestCase):
         path = movies / "Data/Film/Example Film/Example Film.md"
         metadata, _ = parse_frontmatter(path.read_text())
         self.assertEqual(metadata["pool"], "Cinema")
-        self.assertIn("Movies/Data/Film/Example Film/Example Film.md", output.getvalue())
+        self.assertIn(str(path.relative_to(self.root)), output.getvalue())
 
     def test_malformed_canonical_yaml_blocks_identity_scan_without_writes(self):
         (self.database / "Data/Game/Broken.md").write_text("---\nid: [unfinished\n")

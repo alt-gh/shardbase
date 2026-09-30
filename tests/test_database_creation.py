@@ -33,18 +33,18 @@ class DatabaseCreationTests(unittest.TestCase):
         self.source = self.root / "app/Blueprints/Games"
         shutil.copytree(GAMES_BLUEPRINT, self.source)
         (self.root / "app/Docs").mkdir()
-        (self.root / "app/Docs/Shard System Specification.md").write_text("Framework specification placeholder\n")
+        (self.root / "app/Docs/Shard System Specification.md").write_text("Framework specification placeholder\n", encoding="utf-8")
         (self.root / "app/Scripts").mkdir()
-        (self.root / "app/Scripts/README.md").write_text("Framework tooling placeholder\n")
+        (self.root / "app/Scripts/README.md").write_text("Framework tooling placeholder\n", encoding="utf-8")
         self.destination = self.root / "app/Knowledge/Databases/Games"
 
     def snapshot(self, directory):
         return {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file() and not path.is_symlink()}
 
     def update_manifest(self, path, **fields):
-        metadata, body = parse_frontmatter(path.read_text())
+        metadata, body = parse_frontmatter(path.read_text(encoding="utf-8"))
         metadata.update(fields)
-        path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False) + "---\n" + body)
+        path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False) + "---\n" + body, encoding="utf-8")
 
     def run_cli(self, *args, **kwargs):
         return subprocess.run([sys.executable, "-B", str(SCRIPTS / "shardbase.py"), *args],
@@ -69,12 +69,12 @@ class DatabaseCreationTests(unittest.TestCase):
         result = create_database(self.root, "games")
         for relative in ("Database.md", "Agents/Vera.md"):
             note = result / relative
-            targets = re.findall(r"\]\(([^\s)]+)\)", note.read_text())
+            targets = re.findall(r"\]\(([^\s)]+)\)", note.read_text(encoding="utf-8"))
             self.assertTrue(targets)
             for target in targets:
                 self.assertTrue((note.parent / unquote(target)).is_file(), (relative, target))
-        self.assertIn("../../../Docs/", (result / "Database.md").read_text())
-        self.assertIn("../../../../Docs/", (result / "Agents/Vera.md").read_text())
+        self.assertIn("../../../Docs/", (result / "Database.md").read_text(encoding="utf-8"))
+        self.assertIn("../../../../Docs/", (result / "Agents/Vera.md").read_text(encoding="utf-8"))
 
     def test_rebasing_preserves_code_local_links_and_external_urls(self):
         original = self.source / "Database.md"
@@ -101,7 +101,7 @@ class DatabaseCreationTests(unittest.TestCase):
     def test_existing_database_and_user_edits_are_never_replaced(self):
         create_database(self.root, "games")
         user = self.destination / "Templates/Game.md"
-        user.write_text(user.read_text() + "\nUser-authored content\n")
+        user.write_text(user.read_text(encoding="utf-8") + "\nUser-authored content\n", encoding="utf-8")
         before = self.snapshot(self.root)
         with self.assertRaisesRegex(CreationError, "already uses"):
             create_database(self.root, "games")
@@ -151,13 +151,13 @@ class DatabaseCreationTests(unittest.TestCase):
     def test_malformed_source_and_existing_manifests_are_not_guessed(self):
         manifest = self.source / "Database.md"
         original = manifest.read_bytes()
-        manifest.write_text("---\ndatabase_id: [unfinished\n")
+        manifest.write_text("---\ndatabase_id: [unfinished\n", encoding="utf-8")
         with self.assertRaises(CreationError):
             create_database(self.root, "games")
         manifest.write_bytes(original)
         other = self.destination.with_name("Other")
         other.mkdir(parents=True)
-        (other / "Database.md").write_text("---\ndatabase_id: [unfinished\n")
+        (other / "Database.md").write_text("---\ndatabase_id: [unfinished\n", encoding="utf-8")
         before = self.snapshot(self.root)
         with self.assertRaises(CreationError):
             create_database(self.root, "games")
