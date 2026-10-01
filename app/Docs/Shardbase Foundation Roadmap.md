@@ -56,7 +56,7 @@ current_documentation_status: authority roles consolidated; root README and deta
 - Format-v2 encrypted user-state backup/restore with destination-package reconstruction and legacy-v1 reading.
 - ZIP-first private-instance onboarding through root `bootstrap.py`, cross-platform external runtime/launcher setup, `shardbase doctor`, and guided `shardbase init`; encrypted-backup-based updates are documented in the [tooling guide](../Scripts/README.md#updating-a-private-instance).
 - Top-level `tests/` separated from runtime tooling, root `pyproject.toml`, separate `requirements-dev.txt`, and Ruff lint configuration.
-- Active, green [GitHub Actions CI](../../.github/workflows/ci.yml) at reconciliation: Ruff lint, unit tests and CLI smoke checks on Ubuntu/Python 3.10 and 3.14 and Windows/Python 3.14, plus macOS/Python 3.14 bootstrap smoke coverage.
+- Active, green [GitHub Actions CI](../../.github/workflows/ci.yml) at the pre-hygiene reconciliation point: Ruff lint, unit tests and CLI smoke checks on Ubuntu/Python 3.10 and 3.14 and Windows/Python 3.14, plus macOS/Python 3.14 bootstrap smoke coverage. The workflow now also enforces tracked private-state and generated-artifact hygiene on Ubuntu; confirmation of the expanded workflow awaits the next maintainer push.
 - Weekly [Dependabot](../../.github/dependabot.yml) coverage for Python and GitHub Actions dependencies.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md), [SECURITY.md](../../SECURITY.md), Apache License 2.0 in [LICENSE](../../LICENSE), and existing [ADR practice](ADR/).
 - Reconciled [root README](../../README.md) and [detailed tooling documentation](../Scripts/README.md).
@@ -71,7 +71,7 @@ current_documentation_status: authority roles consolidated; root README and deta
 6. Governance substance exists in the System Specification and supporting contributor/security documents; remaining decision-process closure and formal Foundation sign-off are incomplete.
 7. A second independently designed domain has not yet tested generalization.
 
-Repository hardening follow-up: explicit CI enforcement against tracked private/generated artifacts remains incomplete and deferred to the final hygiene/professionalization follow-up. Current lint/test/platform coverage does not provide that guard. Required status checks and branch protection remain deferred.
+Repository hardening: explicit tracked-file CI enforcement now rejects private Knowledge and Obsidian state, Python bytecode/caches, local virtual environments, build/package output, and local backup archives. Required status checks and branch protection remain deferred administrative follow-up.
 
 ---
 
@@ -241,7 +241,7 @@ Movies is not required to block every remaining Foundation task, but it should o
 - migration principles: documented in System Specification; generalized tooling incomplete
 - ADR/project decision process: partially complete; ADR practice and contributor guidance exist; closure and Foundation approval remain incomplete
 - supporting contributor/security documentation and Apache-2.0 license: implemented; final governance reconciliation/sign-off remains incomplete
-- repository automation: CI and weekly Dependabot implemented; explicit tracked-private/generated-artifact CI enforcement remains deferred
+- repository automation: CI, weekly Dependabot, and explicit tracked-private/generated-artifact CI enforcement implemented; required status checks and branch protection remain deferred
 
 ### Understandability
 

@@ -40,16 +40,17 @@ python -B -m venv "<external-venv>"
 
 Activate that environment so `python` refers to its interpreter. Alternatively, use its full interpreter path for each command (`bin/python` on macOS/Linux or `Scripts/python.exe` on Windows).
 
-Before running development commands, set `PYTHONDONTWRITEBYTECODE=1`, `PIP_NO_CACHE_DIR=1`, and `PIP_NO_COMPILE=1`. Set `RUFF_CACHE_DIR` to a directory outside the repository/vault. For example, in a POSIX shell:
+Before running development commands, set `PYTHONDONTWRITEBYTECODE=1`, `PIP_NO_CACHE_DIR=1`, and `PIP_NO_COMPILE=1`. For example, in a POSIX shell:
 
 ```sh
 export PYTHONDONTWRITEBYTECODE=1
 export PIP_NO_CACHE_DIR=1
 export PIP_NO_COMPILE=1
-export RUFF_CACHE_DIR="${TMPDIR:-/tmp}/shardbase-ruff-cache"
 ```
 
 Use your shell's equivalent environment-variable syntax on Windows. Keep `TMPDIR` or its platform equivalent external if you customize it. Run Python with `-B` or `PYTHONDONTWRITEBYTECODE=1` whenever it touches the repository.
+
+Ruff defaults to `~/.cache/shardbase/ruff`, outside the repository, through `pyproject.toml`. To select another external location, use `--cache-dir`; the configured path takes precedence over `RUFF_CACHE_DIR`. Use `--no-cache` to disable caching entirely.
 
 Install runtime and development dependencies separately:
 
@@ -103,7 +104,7 @@ CI must be green before merge unless a maintainer explicitly decides to handle a
 
 Small bug fixes, tests, documentation corrections, refactors that preserve behavior, and true clarifications may proceed directly to a focused PR.
 
-Begin with a [GitHub Issue](https://github.com/alt-gh/shardbase/issues) for proposed changes to universal architecture, canonical structural schema, compatibility/versioning boundaries, migration behavior, privacy or ownership boundaries, structural invariants, breaking behavior, or similarly durable contracts spanning the framework. Describe the problem, proposed outcome, alternatives, and tradeoffs so they can be discussed before implementation or changes to normative text.
+Begin with a [GitHub Issue](https://github.com/shardbase-md/shardbase/issues) for proposed changes to universal architecture, canonical structural schema, compatibility/versioning boundaries, migration behavior, privacy or ownership boundaries, structural invariants, breaking behavior, or similarly durable contracts spanning the framework. Describe the problem, proposed outcome, alternatives, and tradeoffs so they can be discussed before implementation or changes to normative text.
 
 An Issue does not establish architecture. Accepted universal normative behavior belongs in the System Specification and must follow its [compatibility and versioning rules](app/Docs/Shard%20System%20Specification.md#14-architectural-change-versioning-and-migration). Database-local semantics belong in the affected `Database.md`.
 

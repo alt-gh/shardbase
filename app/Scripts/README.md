@@ -76,12 +76,11 @@ Repository development requires Python 3.10 or newer, recorded in the root `pypr
 export PYTHONDONTWRITEBYTECODE=1
 export PIP_NO_CACHE_DIR=1
 export PIP_NO_COMPILE=1
-export RUFF_CACHE_DIR="${TMPDIR:-/tmp}/shardbase-ruff-cache"
 python -m pip install -r requirements-dev.txt
 python -m ruff check .
 ```
 
-Keep any custom cache path outside the project/vault. The root `requirements-dev.txt` pins development-only Ruff; runtime dependencies remain in `app/Scripts/requirements.txt` and are installed separately as described above.
+Ruff defaults to `~/.cache/shardbase/ruff`, outside the project, through the root `pyproject.toml`. Use `--cache-dir "/external/cache/path"` to override that setting, or `--no-cache` to disable caching; the configured path takes precedence over `RUFF_CACHE_DIR`. Keep any custom cache path outside the project/vault. The root `requirements-dev.txt` pins development-only Ruff; runtime dependencies remain in `app/Scripts/requirements.txt` and are installed separately as described above.
 
 Ruff targets Python 3.10 and checks `E4`, `E7`, `E9`, `F`, and `I` (fundamental errors, Pyflakes checks, and import ordering). Repository-owned Python is linted, with private `app/Knowledge/` and synthetic `tests/fixtures/` excluded from traversal. This is a lint-only workflow; no formatter or Python packaging/build system is configured.
 

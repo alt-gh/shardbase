@@ -2,11 +2,11 @@
 
 ## Reporting a vulnerability privately
 
-Report undisclosed vulnerabilities through [GitHub Private Vulnerability Reporting](https://github.com/alt-gh/shardbase/security/advisories/new). Sign in to GitHub and use **Report a vulnerability** on the repository's **Security → Advisories** page to submit a private report.
+Report undisclosed vulnerabilities through [GitHub Private Vulnerability Reporting](https://github.com/shardbase-md/shardbase/security/advisories/new). Sign in to GitHub and use **Report a vulnerability** on the repository's **Security → Advisories** page to submit a private report.
 
 Do **not** open a public GitHub Issue for an undisclosed vulnerability or publish exploit details before coordinated handling. Do not send real private knowledge, passwords, backup passphrases, tokens, secrets, or unnecessary personal data as proof-of-concept material. Use the smallest synthetic reproduction that demonstrates the issue whenever possible.
 
-Ordinary correctness bugs may use [public Issues](https://github.com/alt-gh/shardbase/issues) when they do not expose sensitive details or create a security or privacy risk.
+Ordinary correctness bugs may use [public Issues](https://github.com/shardbase-md/shardbase/issues) when they do not expose sensitive details or create a security or privacy risk.
 
 ## Security-support scope
 

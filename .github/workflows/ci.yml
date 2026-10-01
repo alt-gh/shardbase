@@ -18,6 +18,55 @@ env:
   PYTHONDONTWRITEBYTECODE: "1"
 
 jobs:
+  repository-hygiene:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      - name: Reject tracked private state and generated artifacts
+        run: |
+          python -B - <<'PY'
+          import os
+          import subprocess
+          import sys
+
+          forbidden_directories = {
+              ".obsidian", "__pycache__", ".venv", "venv", "env", "ENV",
+              ".pytest_cache", ".mypy_cache", ".ruff_cache", "htmlcov",
+              "build", "dist",
+          }
+          tracked = subprocess.check_output(["git", "ls-files", "-z"])
+          violations = []
+          for raw_path in tracked.split(b"\0"):
+              if not raw_path:
+                  continue
+              path = os.fsdecode(raw_path)
+              parts = path.split("/")
+              name = parts[-1]
+              if (
+                  path.startswith("app/Knowledge/")
+                  or any(part in forbidden_directories for part in parts[:-1])
+                  or any(part.endswith(".egg-info") for part in parts[:-1])
+                  or name.endswith((".pyc", ".pyo", ".sbbackup"))
+                  or name == ".coverage"
+                  or name.startswith(".coverage.")
+              ):
+                  violations.append(path)
+          if violations:
+              print("Repository hygiene failed: prohibited tracked paths:")
+              for path in violations:
+                  print(f"  {path!r}")
+              sys.exit(1)
+          print("Repository hygiene passed: no tracked private state or generated artifacts.")
+          PY
+
   lint:
     runs-on: ubuntu-latest
 
@@ -36,9 +85,7 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
 
       - name: Lint
-        env:
-          RUFF_CACHE_DIR: ${{ runner.temp }}/shardbase-ruff-cache
-        run: python -m ruff check .
+        run: python -m ruff check --cache-dir "${{ runner.temp }}/shardbase-ruff-cache" .
 
   test:
     strategy:
