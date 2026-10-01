@@ -1,14 +1,71 @@
 # Shardbase
 
-Shardbase is a privacy-focused, user-owned structured Markdown knowledge-base framework designed to grow into an interconnected personal digital brain.
+Shardbase is a privacy-focused, user-owned, local-first framework for durable personal knowledge. It stores canonical knowledge as ordinary Markdown and YAML so your notes remain readable, editable, and portable without a proprietary platform.
 
-Its durable source is ordinary Markdown and YAML. Obsidian is the primary knowledge environment, Dataview is a primary query interface, and scripts or external AI systems may assist with the knowledge, but none of those tools owns or defines the canonical meaning of the data.
+Obsidian is the primary knowledge environment, but it does not own Shardbase's canonical meaning. Editors, queries, scripts, sync tools, and external AI systems may assist with your knowledge only when you choose to use them.
 
-Shardbase is local-first: user-owned knowledge stays local unless the user deliberately chooses to synchronize, publish, share, back up, or provide it to an external service.
+## Get Started
 
-## The Core Idea
+Private use is ZIP-first. You do not need Git or a development checkout.
 
-Shardbase adds a small shared architectural contract to familiar knowledge-management primitives such as Markdown, YAML, folders, wikilinks, tags, queries, templates, scripts, and AI assistance.
+1. On GitHub, choose **Code → Download ZIP**.
+2. Extract the ZIP into the folder where you want your private Shardbase instance.
+3. Open a terminal in the extracted folder.
+4. With Python 3.10 or newer, run:
+
+   ```sh
+   python bootstrap.py
+   ```
+
+   On macOS or Linux, use `python3 bootstrap.py` if `python3` is your Python command. On Windows, you can use `py bootstrap.py`.
+
+Bootstrap checks the instance, prepares or reuses a Python runtime outside it, installs the pinned runtime dependencies, safely creates or refreshes the external `shardbase` launcher, and verifies that the CLI starts. Dependency installation may access your configured Python package index. Bootstrap does not silently change `PATH` or shell profiles; if needed, it prints a command for the current terminal session.
+
+For a fresh private ZIP instance in an interactive terminal, bootstrap can continue directly into guided setup. Guided setup offers three paths:
+
+- start a new private instance from an available database blueprint;
+- restore an encrypted Shardbase backup;
+- finish tooling setup without creating knowledge.
+
+After initializing a new instance, capture your first note in Inbox:
+
+```sh
+shardbase create new
+```
+
+Run `shardbase commands` to explore the available commands. Use `shardbase doctor` to inspect instance and tooling health, and `shardbase validate` for read-only structural validation of live databases.
+
+For platform-specific setup, custom runtime locations, launcher safety, and all command details, use the [tooling guide](app/Scripts/README.md).
+
+## Private by Default
+
+The recommended private-user installation is a GitHub ZIP download, not `git clone`. A normal extracted ZIP has no `.git/` directory and no Git remote. Bootstrap does not initialize Git, add a remote, upload files, or connect the private instance to the public repository.
+
+Shardbase does not automatically upload, publish, synchronize, or transmit your knowledge. You may deliberately use sync software, backups, Git hosting, external AI, or other services, but those are separate user-controlled workflows. Git-less operation does not prevent editors, operating-system services, or other local software from accessing files according to their own permissions and behavior.
+
+`app/Knowledge/` is the private-by-default knowledge boundary. Inbox, each live database's Data and Views, and `.obsidian/` are user-owned state. A live database's `Database.md`, supplied Templates and Agents, and other blueprint package resources are Shardbase-managed so a compatible release can reconstruct them during restore. Path location alone does not determine ownership.
+
+## Why Shardbase
+
+Shardbase is for people who want structured, interconnected knowledge without surrendering control of the underlying files. Its design emphasizes:
+
+- human-readable Markdown and explicit YAML rather than hidden application state;
+- local ownership with optional, deliberate external services;
+- durable meaning that survives changes in editors, scripts, and hosted tools;
+- enough shared structure for navigation and validation without forcing every idea into a separate file;
+- preservation-oriented evolution, encrypted user-state backups, and replaceable tooling.
+
+Shardbase is not a hosted knowledge platform, synchronization service, publishing system, transactional database, universal ontology, or AI runtime. It does not execute models, authenticate with AI providers, orchestrate agents, or transmit local knowledge to AI services.
+
+## How It Works
+
+New CLI-created notes begin in `app/Knowledge/Inbox/` as database-independent, pre-structural captures. Each receives the complete universal YAML key set and a stable ID, while database ownership, Pool, lineage, database-specific metadata, and canonical placement remain unresolved.
+
+Promotion is a later, deliberate decision that resolves those details and moves knowledge into a live database's canonical structure. Automated promotion is not yet implemented. Existing Inbox captures and canonical data remain unchanged.
+
+Each live database owns the meaning of its domain through its root `Database.md`. Universal Shardbase structure remains universal, structural lineage stays within one database, and YAML—not folders, filenames, tags, or links—is authoritative for lineage.
+
+## Core Concepts
 
 The structural model is:
 
@@ -16,144 +73,77 @@ The structural model is:
 
 - **Pool** groups related lineages inside a database.
 - **Core** is the root note of one lineage.
-- **Shard** is a reusable subdivision that may have structural children.
+- **Shard** is a meaningful subdivision that may have structural children.
 - **Pebble** is a terminal structural note.
 
-Not everything should become a structural note. Ordinary Markdown headings and sections are preferred until a separate file earns independent value through growth, querying, navigation, reuse, reference, or lifecycle management.
+Not everything should become a structural note. Ordinary Markdown headings and sections are preferred until a separate file provides concrete value through growth, querying, navigation, reuse, reference, or lifecycle management.
 
-For the complete structural contract, see [`app/Docs/Shard System Specification.md`](app/Docs/Shard%20System%20Specification.md).
-
-## Documentation Authority
-
-Shardbase deliberately avoids duplicating authoritative rules across documents.
-
-| Document | Role | Authority |
-|---|---|---|
-| [`app/Docs/Shard System Specification.md`](app/Docs/Shard%20System%20Specification.md) | Universal architecture, invariants, compatibility, safety, validation contract | **Highest framework authority** |
-| `app/Knowledge/Databases/<Database>/Database.md` | Purpose, scope, semantic schema, Pool vocabulary, local conventions and resources for one live database | **Database-local authority** |
-| [`app/Blueprints/Games/Database.md`](app/Blueprints/Games/Database.md) | Bootstrap contract for a new Games database | Authoritative only as blueprint source before materialization |
-| [`AGENTS.md`](AGENTS.md) | Operating instructions for agents working in this repository | Operational guidance; consumes the authorities above |
-| [`app/Scripts/README.md`](app/Scripts/README.md) | Current CLI/validator setup, behavior, and implementation limits | Tooling documentation; does not define architecture |
-| [`app/Registry/Registry.md`](app/Registry/Registry.md) | Runtime database discovery/navigation view | Navigational only |
-| [`app/Docs/Shardbase Foundation Roadmap.md`](app/Docs/Shardbase%20Foundation%20Roadmap.md) | Current work, milestone status, blockers, and deferred work | Planning only; never architectural authority |
-| [`app/Docs/ADR/`](app/Docs/ADR/) | Accepted architectural decisions and rationale | Historical rationale; current normative rules remain in the System Specification |
-
-If supporting documentation and an authoritative contract disagree, correct the supporting documentation rather than treating the disagreement as a new rule.
+The [System Specification](app/Docs/Shard%20System%20Specification.md) defines the exact rules for metadata, lineage, naming, placement, lifecycle, attachments, validation, and compatibility.
 
 ## Repository Structure
 
 ```text
 shardbase/
-├── .obsidian/
+├── .github/                 # Repository automation
+├── .obsidian/               # User-owned local Obsidian configuration
 ├── app/
-│   ├── Blueprints/
-│   ├── Docs/
-│   │   └── ADR/
-│   ├── Knowledge/
-│   │   ├── Inbox/
-│   │   └── Databases/
-│   │       └── <Database>/
-│   │           ├── Agents/
-│   │           ├── Data/
-│   │           ├── Templates/
-│   │           ├── Views/
-│   │           └── Database.md
-│   ├── Registry/
-│   └── Scripts/
-├── tests/
-│   └── fixtures/
+│   ├── Blueprints/          # Distributable database packages
+│   ├── Docs/                # Architecture and project documentation
+│   ├── Knowledge/           # Private-by-default live knowledge
+│   │   ├── Inbox/           # Unresolved user-owned captures
+│   │   └── Databases/       # Live database packages and user data
+│   ├── Registry/            # Database discovery and navigation
+│   └── Scripts/             # CLI and validation tooling
+├── tests/                   # Tests and synthetic fixtures
 ├── AGENTS.md
-└── README.md
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── README.md
+├── bootstrap.py
+└── pyproject.toml
 ```
 
-`app/Knowledge/` is the private-by-default live knowledge boundary. `Inbox/` contains user-owned unresolved capture. Each direct child of `Databases/` combines a Shardbase-managed package (`Database.md`, supplied Templates and Agents, and other package resources) with user-owned `Data/` and `Views/`. Path location alone no longer determines ownership.
+`app/Blueprints/`, `app/Docs/`, `app/Registry/`, and `app/Scripts/` are distributable framework surfaces and must not absorb private live knowledge. Generated runtimes, dependencies, caches, and temporary output stay outside the instance.
 
-`app/Blueprints/`, `app/Docs/`, `app/Registry/`, and `app/Scripts/` are framework surfaces intended to be distributable. They must not silently absorb private live knowledge.
+Games is the currently supplied starter and proving blueprint. Its [`Database.md`](app/Blueprints/Games/Database.md) owns Games-specific scope and semantics; its templates and optional specialist Agent resources support that contract but do not replace it or the System Specification.
 
-## Working with Databases
+## Tooling
 
-Each database owns the domain meaning inside its documented scope. Universal Shardbase structure stays universal; domain-specific fields, relationships, classifications, and conventions stay in the owning database's `Database.md`.
+The root README provides only the first-run path. The [tooling guide](app/Scripts/README.md) documents exact setup behavior, options, safety rules, limitations, and compatibility.
 
-A database may relate to knowledge in another database without taking ownership of it. Structural lineage remains database-local: `core` and `parent_note` never create cross-database ancestry.
+| Command | Purpose |
+|---|---|
+| `python bootstrap.py` | Prepare or reuse the external runtime and launcher, then begin guided setup when appropriate. |
+| `shardbase init` | Run guided new-instance, encrypted-restore, or setup-only onboarding. |
+| `shardbase create new` | Create a local Inbox-first capture with a stable ID and provisional structural role. It does not promote the note. |
+| `shardbase commands` | List the complete current command set. |
+| `shardbase doctor` | Run read-only health diagnostics and distinguish warnings from blocking failures; it performs no repair. |
+| `shardbase validate` | Run read-only structural validation. Passing does not prove arbitrary database-semantic correctness or complete Foundation compliance. |
+| `shardbase backup` | Create an encrypted backup of durable user state. |
+| `shardbase restore` | Restore encrypted user state into a compatible Shardbase release. |
 
-Canonical notes may remain flat at a declared data-collection root or one Core lineage may be deliberately bundled into a direct-child Core workspace. Filesystem placement provides organization; YAML remains authoritative for lineage.
+Backup and restore compatibility, encryption, conflicts, and wire-format behavior are documented in the [tooling guide](app/Scripts/README.md#encrypted-backup-and-restore) and [backup format contract](app/Scripts/BACKUP_FORMAT.md).
 
-Under foundation-3, Core filenames remain human-readable title filenames. Shards and Pebbles use their local human-readable title plus a stable opaque note ID; ancestry is carried by `core` and `parent_note`, not repeated in filenames.
+## Documentation
 
-For exact manifest requirements, note metadata, naming, placement, lifecycle, attachment rules, and validation expectations, use the System Specification rather than this README.
+- The [System Specification](app/Docs/Shard%20System%20Specification.md) is the highest framework authority for universal architecture and safety rules.
+- A live database's `Database.md` is the authority for that database's scope, semantic schema, Pool vocabulary, conventions, and resources.
+- The [tooling guide](app/Scripts/README.md) documents current CLI and validator behavior and limitations.
+- [AGENTS.md](AGENTS.md) defines operating behavior for agents working in this repository.
+- [CONTRIBUTING.md](CONTRIBUTING.md) defines contributor and development workflows.
+- The [Foundation Roadmap](app/Docs/Shardbase%20Foundation%20Roadmap.md) records project planning and status, not architecture.
+- [Architecture Decision Records](app/Docs/ADR/) preserve accepted decisions and rationale; current normative rules remain in the System Specification.
 
-## Current Tooling
-
-Shardbase currently includes:
-
-- guided initialization for new, restored, or tooling-only private instances;
-- a local CLI for blueprint-based database scaffolding and Inbox-first note capture;
-- a read-only structural validator;
-- manual encrypted user-state backup and restore commands;
-- regression tests and sanitized fixtures;
-- runtime Registry discovery;
-- a Games starter blueprint with draft templates and the optional Vera specialist Agent resource.
-
-Use `shardbase create new` for local Inbox-first capture. Choose a title, provisional Core/Shard/Pebble type, and optional alias; the CLI writes universal YAML plus a title H1 to `app/Knowledge/Inbox/`. Every CLI capture receives a stable ID, while Pool, Core lineage, parent, database ownership, semantic metadata, and canonical placement remain unresolved until deliberate promotion.
-
-For temporary captures, create notes directly in your Markdown editor, preferably Obsidian, or filesystem. Configure the editor's default new-note location as `app/Knowledge/Inbox/`. These notes can remain ordinary Markdown without structural metadata. Shardbase does not change your editor settings automatically.
-
-There is no automated promotion command yet. Manual promotion must preserve the capture ID, resolve the complete destination contract, recheck collisions, and run structural validation; database-specific semantics still require review. Retained canonical preparation and rollback machinery remains available for future promotion work. Existing canonical state and historical Inbox notes remain unchanged; release upgrades reconstruct managed packages during restore into a fresh checkout and never synchronize them into an existing live database in place.
-
-Start with the [external-runtime setup](app/Scripts/README.md#runtime-setup), then run `shardbase commands` to browse the available commands. The [command reference](app/Scripts/README.md#command-reference) collects every command and links to the supported behavior and implementation limits. `shardbase new` remains a compatibility alias.
-
-Use `shardbase doctor` for read-only framework, privacy, runtime, and structural database health checks. It distinguishes warnings from blocking issues and performs no repairs; see [instance health diagnostics](app/Scripts/README.md#instance-health-diagnostics).
-
-Use `shardbase backup` and `shardbase restore` to preserve user state or transfer it into a fresh compatible checkout. Format v2 supports foundation-4/5/6 sources into foundation-6, encrypts Inbox, every database's Data and Views, and the entire `.obsidian/` tree; the destination release supplies current managed database packages by stable `database_id`. See [encrypted backup and restore](app/Scripts/README.md#encrypted-backup-and-restore) for passphrase handling, conflict safety, and compatibility limits.
-
-## Get Started
-
-For a private instance, download the repository ZIP, extract it, and open a terminal in the extracted folder. Git is not required. With Python 3.10 or newer, run:
-
-```sh
-python bootstrap.py
-```
-
-Use `python3 bootstrap.py` if that is your Python command on macOS/Linux, or `py bootstrap.py` on Windows. Bootstrap prepares the external runtime and launcher, installs pinned dependencies (which may access the network), and checks that the CLI starts. It prints a current-session PATH command if needed; it never changes PATH or shell profiles automatically.
-
-For a fresh private ZIP-style instance in an interactive terminal, bootstrap continues directly into guided setup. You can also start or rerun it manually once the launcher is on PATH:
-
-```sh
-shardbase init
-```
-
-Guided setup offers three choices: start a new private instance from one available blueprint, restore an encrypted backup, or finish tooling setup without creating knowledge. The setup-only path creates no Knowledge directory or setup marker. Git-managed/development and noninteractive bootstrap runs print `shardbase init` as the manual next step instead of entering an interactive session.
-
-The new-instance path lets you choose from `app/Blueprints/`. Games is currently the supplied option; additional blueprint packages appear automatically. Choosing Games creates `app/Knowledge/Databases/Games/` with its manifest, collection, attachments folder, templates, Views, and optional Agent resource. It also creates Inbox if needed. Existing databases are recognized and never merged or overwritten.
-
-After a new database is ready, run `shardbase create new` to capture your first note in Inbox. Review the database contract before manually promoting it into canonical structure, then run `shardbase validate`. Use `shardbase commands` to explore the CLI.
-
-The Python environment and launcher stay outside the project. For platform defaults, persistent PATH configuration, custom locations, and safe reruns, see the [tooling guide](app/Scripts/README.md#runtime-setup) and [database creation guide](app/Scripts/README.md#database-creation).
-
-## Games Starter Database
-
-`app/Blueprints/Games/` is the first framework-supplied proving database. Its `Database.md` defines Games-specific ownership, the `Games` Pool, Game Core strategy, semantic fields such as `release_date`, `genres`, and `play_state`, and database-local completion-record conventions.
-
-The blueprint also contains three draft templates and [`Agents/Vera.md`](app/Blueprints/Games/Agents/Vera.md). These resources implement or operationalize the Games contract; they do not replace it.
-
-After materialization, Data and Views are user-owned while the live manifest, supplied Templates and Agents, and other package resources are Shardbase-managed. Existing live packages are never silently synchronized or overwritten; the upgrade path restores user state into a fresh release checkout.
-
-## Product Boundaries
-
-Shardbase is designed to preserve user-owned knowledge, shared explicit meaning, safe evolution, and replaceable tooling. It is intentionally **not**:
-
-- a proprietary or cloud-owned knowledge platform;
-- an AI runtime or AI-provider integration layer;
-- a synchronization, backup, publishing, or general-purpose search/indexing service;
-- a replacement for a transactional database engine;
-- a universal ontology or maximum-structure system.
-
-Shardbase may manage, validate, package, convert, or export AI-related files under the ownership rules of their surface, but it does not execute models, authenticate with providers, orchestrate agents, or transmit local knowledge to AI services. Any external AI use is a separate user-controlled workflow.
+When supporting documentation conflicts with a higher authority, correct the supporting documentation rather than treating the disagreement as a new rule.
 
 ## Project Status
 
-Shardbase is in the **Foundation** stage. The universal architecture and substantial deterministic validation are already implemented, but Foundation is not complete.
+Shardbase is in the **Foundation** stage. The universal architecture and substantial deterministic structural validation are implemented, but Foundation is not complete.
 
-The remaining work is primarily convergence and proof: finish the structural decision framework and canonical examples, make database semantic constraints machine-readable and deterministically validatable, add deliberate draft promotion with semantic validation, prove the complete Games lifecycle, reconcile governance/status documentation, and complete Foundation sign-off.
+Remaining work includes clearer structural classification guidance, canonical examples and proof, deterministic database-semantic validation, deliberate Inbox draft promotion, complete Games lifecycle proof and second-domain generalization, governance/status reconciliation, and final Foundation sign-off.
 
-See [`app/Docs/Shardbase Foundation Roadmap.md`](app/Docs/Shardbase%20Foundation%20Roadmap.md) for current status only. Architectural requirements belong in the System Specification, not the roadmap.
+See the [Foundation Roadmap](app/Docs/Shardbase%20Foundation%20Roadmap.md) for current status.
+
+## Contributing
+
+Private users should normally follow the ZIP workflow in [Get Started](#get-started). Contributors work from a Git clone and use separate development setup, linting, testing, and branch workflows documented in [CONTRIBUTING.md](CONTRIBUTING.md).
