@@ -420,7 +420,7 @@ Backup/restore tests use only synthetic external instances. They cover a two-com
 
 The [CI workflow](../../.github/workflows/ci.yml) runs on pull requests and pushes to `main`, and supports manual dispatch. Separate jobs run pinned Ruff checks and the complete unittest suite, with a direct `python -B app/Scripts/shardbase.py commands` smoke check on every test environment. Tests cover Python 3.10 and 3.14 on Ubuntu, plus Python 3.14 on Windows. Python 3.10 is the supported minimum; 3.14 is the current stable endpoint selected for this matrix.
 
-Use the local setup, lint, and test commands above to reproduce failures in an external environment. CI keeps caches outside the checkout and disables Python bytecode generation. Required status checks and branch protection remain deferred.
+Use the local setup, lint, and test commands above to reproduce failures in an external environment. CI keeps caches outside the checkout and disables Python bytecode generation. CI also enforces tracked-private/generated-artifact hygiene and runs a separate macOS/Python 3.14 bootstrap smoke job. The expanded workflow passed at `3c9aa505`, including the hygiene job; verification evidence and the outstanding required-check and `main`-protection closure task are tracked in the [Foundation Roadmap](../Docs/Shardbase%20Foundation%20Roadmap.md#2-current-state).
 
 ## Compatibility
 

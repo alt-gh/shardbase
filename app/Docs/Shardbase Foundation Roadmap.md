@@ -56,7 +56,7 @@ current_documentation_status: authority roles consolidated; root README and deta
 - Format-v2 encrypted user-state backup/restore with destination-package reconstruction and legacy-v1 reading.
 - ZIP-first private-instance onboarding through root `bootstrap.py`, cross-platform external runtime/launcher setup, `shardbase doctor`, and guided `shardbase init`; encrypted-backup-based updates are documented in the [tooling guide](../Scripts/README.md#updating-a-private-instance).
 - Top-level `tests/` separated from runtime tooling, root `pyproject.toml`, separate `requirements-dev.txt`, and Ruff lint configuration.
-- Active, green [GitHub Actions CI](../../.github/workflows/ci.yml) at the pre-hygiene reconciliation point: Ruff lint, unit tests and CLI smoke checks on Ubuntu/Python 3.10 and 3.14 and Windows/Python 3.14, plus macOS/Python 3.14 bootstrap smoke coverage. The workflow now also enforces tracked private-state and generated-artifact hygiene on Ubuntu; confirmation of the expanded workflow awaits the next maintainer push.
+- Active, green [GitHub Actions CI](../../.github/workflows/ci.yml), verified for `3c9aa5054b3a30f24675e27c20b2fdec982c2e18` in [run 36933988549](https://github.com/shardbase-md/shardbase/actions/runs/36933988549): tracked private-state and generated-artifact hygiene, Ruff lint, unit tests and CLI smoke checks on Ubuntu/Python 3.10 and 3.14 and Windows/Python 3.14, plus macOS/Python 3.14 bootstrap smoke coverage. All six jobs passed, including the final hygiene enforcement.
 - Weekly [Dependabot](../../.github/dependabot.yml) coverage for Python and GitHub Actions dependencies.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md), [SECURITY.md](../../SECURITY.md), Apache License 2.0 in [LICENSE](../../LICENSE), and existing [ADR practice](ADR/).
 - Reconciled [root README](../../README.md) and [detailed tooling documentation](../Scripts/README.md).
@@ -71,7 +71,9 @@ current_documentation_status: authority roles consolidated; root README and deta
 6. Governance substance exists in the System Specification and supporting contributor/security documents; remaining decision-process closure and formal Foundation sign-off are incomplete.
 7. A second independently designed domain has not yet tested generalization.
 
-Repository hardening: explicit tracked-file CI enforcement now rejects private Knowledge and Obsidian state, Python bytecode/caches, local virtual environments, build/package output, and local backup archives. Required status checks and branch protection remain deferred administrative follow-up.
+Repository professionalization: implementation and expanded CI verification are complete. Explicit tracked-file CI enforcement rejects private Knowledge and Obsidian state, Python bytecode/caches, local virtual environments, build/package output, and local backup archives. Administrative closure remains incomplete: GitHub reported `main` as unprotected with no repository rulesets on 2026-10-01. The connected GitHub integration lacks branch-protection administration access (HTTP 403), and the local `gh` CLI is unavailable.
+
+The remaining closure task is to require pull-request integration and the verified checks `repository-hygiene`, `lint`, `test (ubuntu-latest, 3.10)`, `test (ubuntu-latest, 3.14)`, `test (windows-latest, 3.14)`, and `bootstrap-macos` on `main`, while blocking force pushes and deletion. The intended solo-maintainer configuration requires no reviewer approvals or up-to-date-branch gate and adds no unrelated policies. Verify the effective protection before declaring professionalization complete. This administrative task does not implement or complete any remaining Foundation milestone.
 
 ---
 
@@ -241,7 +243,7 @@ Movies is not required to block every remaining Foundation task, but it should o
 - migration principles: documented in System Specification; generalized tooling incomplete
 - ADR/project decision process: partially complete; ADR practice and contributor guidance exist; closure and Foundation approval remain incomplete
 - supporting contributor/security documentation and Apache-2.0 license: implemented; final governance reconciliation/sign-off remains incomplete
-- repository automation: CI, weekly Dependabot, and explicit tracked-private/generated-artifact CI enforcement implemented; required status checks and branch protection remain deferred
+- repository automation: CI, weekly Dependabot, and explicit tracked-private/generated-artifact CI enforcement implemented and expanded CI verified green at `3c9aa505`; required status checks and `main` protection remain the outstanding professionalization closure task
 
 ### Understandability
 
