@@ -141,11 +141,55 @@ The four severities are `OK` (passed), `INFO` (context or a check that could not
 
 Doctor is observational: it performs no repair, initialization, installation, migration, backup, network access, or persistent diagnostic writes. Knowledge, launchers, runtimes, PATH, and shell profiles are never changed. Output is human-readable; there is no public JSON contract or repair mode.
 
+## Updating a Private Instance
+
+Update a private Shardbase instance by transferring its durable user state into a fresh compatible release. The supported sequence is encrypted backup → fresh release ZIP → bootstrap → restore → doctor → structural validation. This is an isolated-folder workflow: Git knowledge is not required, and Shardbase does not include a network-based self-updater.
+
+1. **Back up the old instance.** Close editors and other writers, then run the [encrypted backup command](#encrypted-backup-and-restore) from the old instance:
+
+   ```sh
+   shardbase backup "/external/path/shardbase-backup.sbbackup"
+   ```
+
+   Keep the encrypted backup outside every Shardbase instance and vault. Format v2 transfers durable user state only: Inbox, each reconstructable database's Data and Views, and `.obsidian/`. It does not transfer the old instance's Shardbase-managed database package.
+
+2. **Keep the old instance intact.** Do not overwrite its folder with files from a newer ZIP. Download the fresh Shardbase release ZIP and extract it into a separate new directory. The old instance remains the recovery source until the replacement has been restored and verified; do not delete it yet. This private-instance update path does not use `git pull`.
+
+3. **Bootstrap the fresh ZIP.** Open a terminal in the new directory and run the platform-appropriate [bootstrap command](#bootstrap-a-private-instance-macoslinuxwindows), for example:
+
+   ```sh
+   python bootstrap.py
+   ```
+
+   Bootstrap prepares or reuses the external runtime, installs or repairs the release's pinned dependencies, and can retarget a recognized Shardbase-managed launcher to this fresh instance. It does not download a framework release, migrate knowledge, initialize or configure Git, or silently change PATH or shell profiles. An update therefore does not necessarily create a new runtime.
+
+4. **Restore the encrypted backup.** If bootstrap opens [guided initialization](#guided-initialization), choose **Restore an encrypted backup**. Otherwise, run the restore directly against the fresh instance:
+
+   ```sh
+   shardbase restore "/external/path/shardbase-backup.sbbackup" \
+     --root "/path/to/new/shardbase"
+   ```
+
+   Restore before first opening the fresh instance in Obsidian when practical because `.obsidian/` is user state and differing destination files are conflict-protected. Do not create replacement databases manually before restore. Format v2 resolves each archived stable `database_id`, obtains the current managed package from the destination release, and places the archived Data and Views into that package; it also restores Inbox and `.obsidian/` under the current contract. Missing, custom, ambiguous, or otherwise unreconstructable package identities fail visibly. Existing differing files are never silently overwritten, and restore does not synchronize managed packages into an old instance in place. See [restoration and version updates](#restoration-and-version-updates) for full conflict and package rules.
+
+5. **Verify the new instance.** After restore completes, run:
+
+   ```sh
+   shardbase doctor --root "/path/to/new/shardbase"
+   shardbase validate --root "/path/to/new/shardbase"
+   ```
+
+   [`doctor`](#instance-health-diagnostics) checks framework, privacy, runtime, launcher, and structural database health within its implemented scope. [`validate`](#read-only-validator) performs read-only structural validation. Passing either check does not prove arbitrary database-semantic validity; any semantic requirements outside the validator's implemented scope still require separate manual or agent review.
+
+6. **Retain the recovery sources until satisfied.** Review the restored knowledge and local configuration. Keep both the old instance and encrypted backup until the new instance has passed the checks and meets your needs, then retire the old folder only when you choose. Shardbase does not delete it automatically.
+
+Format v2 explicitly supports `foundation-4`/`foundation-5` user state into `foundation-5` and `foundation-4`/`foundation-5`/`foundation-6` user state into `foundation-6`. Downgrades and other transitions are not implied. Legacy format v1 retains only its historical full-`app/Knowledge/` transitions: `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4`; it cannot cross the foundation-5 managed-package ownership boundary. See the [backup format contract](BACKUP_FORMAT.md) for the authoritative wire-level details.
+
 ## Encrypted Backup and Restore
 
 These are manual offline CLI commands. New backups use format v2 and contain only durable user state: `app/Knowledge/Inbox/**`, every reconstructable live database's `Data/**` and `Views/**`, and the entire `.obsidian/**` tree. Live `Database.md`, supplied Templates and Agents, other managed package resources, framework files, and unrelated local files are excluded. Nothing is uploaded, scheduled, synchronized, or executed.
 
-For a normal backup and restore into another existing Shardbase checkout:
+For a normal backup and restore into another existing Shardbase instance:
 
 ```sh
 shardbase backup "$HOME/knowledge.sbbackup"
@@ -156,7 +200,7 @@ The first command prompts for a hidden passphrase and confirmation. The second p
 
 With no output argument, `shardbase backup` prompts for a save location. Enter a new filename or an existing folder; choosing a folder generates a unique `.sbbackup` filename there. Press Enter to accept the suggested unique filename in `~/Shardbase Backups/`; that default folder is created if needed. An explicit output argument also accepts either a filename or an existing folder. For a custom filename, its parent directory must already exist. Output must be outside Shardbase instances and identifiable vaults. An existing backup is never replaced, and the command prints the resulting location.
 
-`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose the destination checkout. Format v2 resolves each archived `database_id` against that checkout's installed blueprints, materializes its current package folder, and places archived Data and Views beneath it; the old folder name is not destination truth. Both commands accept `--root`, defaulting to the checkout used for installation.
+`shardbase restore` prompts for the backup file to read when omitted. Use `--root "/path/to/instance"` to choose the destination instance. Format v2 resolves each archived `database_id` against that instance's installed blueprints, materializes its current package folder, and places archived Data and Views beneath it; the old folder name is not destination truth. Both commands accept `--root`, defaulting to the instance used for installation.
 
 ### User State and Git
 
@@ -166,9 +210,9 @@ A small fixed list of generated caches and OS files is excluded; the exact list 
 
 ### Restoration and Version Updates
 
-Restore preserves user-state bytes, logical filenames, directory layout, empty directories, and file modification times. It preserves the owner's executable bit while limiting newly restored files to owner access. Existing byte-identical files are skipped; differing files and file/directory conflicts stop the entire preflight before any durable write. Destination-only content is preserved. `.obsidian/` is never merged by overwriting differences, so restore before first opening a fresh checkout in Obsidian when possible.
+Restore preserves user-state bytes, logical filenames, directory layout, empty directories, and file modification times. It preserves the owner's executable bit while limiting newly restored files to owner access. Existing byte-identical files are skipped; differing files and file/directory conflicts stop the entire preflight before any durable write. Destination-only content is preserved. `.obsidian/` is never merged by overwriting differences, so restore before first opening a fresh release instance in Obsidian when possible.
 
-The intended update workflow is to back up the old instance and restore into a fresh newer checkout. Do not create replacement databases first: restore obtains each managed package from the destination release, then adds archived Data and Views. Every source live database must have exactly one reconstructable installed destination blueprint/package. Custom or missing identities fail visibly rather than producing incomplete databases.
+The intended update workflow is to back up the old instance and restore into a fresh newer release instance. Do not create replacement databases first: restore obtains each managed package from the destination release, then adds archived Data and Views. Every source live database must have exactly one reconstructable installed destination blueprint/package. Custom or missing identities fail visibly rather than producing incomplete databases.
 
 If a destination already has the represented database, restore accepts it only when its managed files exactly match what the current destination release would materialize; Data and Views are ignored in that package comparison and checked separately as user state. A differing package fails rather than being upgraded or overwritten. This explicitly protects pre-foundation-5 live customizations: format v2 does not preserve edits to managed files, and no in-place migration is attempted.
 
