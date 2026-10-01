@@ -20,6 +20,8 @@ python bootstrap.py
 
 Use `python3 bootstrap.py` on macOS/Linux if needed, or `py bootstrap.py` on Windows. Python 3.10+ is required, with no fixed upper version limit. Bootstrap checks its own folder for framework files before preparing anything. A root `.git` file or directory is reported as a Git-managed/development instance; bootstrap never runs Git or checks enclosing repositories.
 
+Private users should normally use this ZIP/bootstrap workflow. Contributors and developers working from a Git clone should follow [`CONTRIBUTING.md`](../../CONTRIBUTING.md); bootstrap does not turn a development checkout into an isolated private ZIP instance.
+
 | Platform | External runtime | External launcher |
 |---|---|---|
 | macOS/Linux | `~/.local/share/shardbase/venv` | `~/.local/bin/shardbase` |
@@ -313,7 +315,9 @@ Capture is universal and template-independent: it does not inspect canonical dat
 
 There is no automated promotion command or filesystem watcher. Historical prepared Inbox notes remain available for deliberate review. Before manually moving an Inbox note, establish ownership, collection, Pool, role, complete lineage, semantic metadata, stable ID, canonical filename, and placement against the System Specification and destination `Database.md`. Preserve a valid prepared ID and recheck destination uniqueness/collisions at the time of the move; fail safely rather than silently changing it. Then run the validator; manual moves do not trigger validation.
 
-Knowledgeable users can also create compliant canonical files manually. The retained internal canonical preparation and commit machinery remains tested as the basis for a future promotion command, but it is not exposed as note-creation flags. Promotion and arbitrary semantic validation remain separate work.
+There is no public direct-canonical note-creation path. Knowledgeable users can still create compliant canonical files manually, but the retained canonical preparation and commit machinery is internal implementation support for future promotion and materialization, not an alternative current CLI workflow.
+
+Retained canonical preparation operates only against a selected live database, never a blueprint. A newly materialized Core defaults to a Core workspace unless that live database's manifest explicitly sets `creation_defaults.core_placement: flat`. Existing valid flat lineages remain flat, and existing valid Core workspaces remain bundled; preparation does not migrate either representation merely to match the current creation preference. Supporting notes inherit the resolved Core's collection, Pool, and physical placement. If lineage cannot be resolved, the material remains in Inbox. Promotion and arbitrary semantic validation remain separate work.
 
 ## Read-Only Validator
 
