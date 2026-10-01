@@ -6,11 +6,11 @@ roadmap_status: active
 foundation_completion_status: incomplete
 architectural_source_of_truth: app/Docs/Shard System Specification.md
 database_local_authority: each live database's root Database.md
-last_reconciled: 2026-09-30
+last_reconciled: 2026-10-01
 
 This roadmap records **what remains to be done and what has been completed**. It intentionally does not restate the product thesis, universal architecture, lifecycle contract, schema rules, migration rules, or agent contract. Those belong in their authoritative documents.
 
-Historical rationale is preserved by Git history and, once introduced, Architecture Decision Records. This file should remain a concise current-state planning surface rather than an append-only design notebook.
+Historical rationale is preserved by Git history and Architecture Decision Records. This file should remain a concise current-state planning surface rather than an append-only design notebook.
 
 ---
 
@@ -31,9 +31,9 @@ The final Foundation sign-off remains a project-owner decision. Passing automate
 current_assessment: late Foundation / convergence and proof
 current_primary_goal: finish the vertical slice from intent to valid canonical knowledge and close remaining Foundation proof/governance gaps
 current_architecture_status: substantially settled
-current_implementation_status: substantial deterministic structural validation, database scaffolding, and universal Inbox-first CLI capture with stable IDs exist; canonical preparation machinery remains tested; canonical semantic validation and draft promotion remain incomplete
+current_implementation_status: substantial deterministic structural validation, database scaffolding, universal Inbox-first CLI capture with stable IDs, external bootstrap/launcher setup, doctor, and guided init are implemented; canonical preparation machinery remains tested; canonical semantic validation and draft promotion remain incomplete
 current_proof_status: Games proving workflow partially complete
-current_documentation_status: authority roles consolidated; ADRs record foundation-3 naming, foundation-4 canonical preparation/placement, foundation-5 user-state ownership/transfer, and foundation-6 Inbox-first capture
+current_documentation_status: authority roles consolidated; root README and detailed tooling guide reconciled with guided private-instance onboarding and encrypted-backup-based updates; contributor/security documentation exists; ADRs record foundation-3 naming, foundation-4 canonical preparation/placement, foundation-5 user-state ownership/transfer, and foundation-6 Inbox-first capture
 
 ### What Already Exists
 
@@ -54,6 +54,12 @@ current_documentation_status: authority roles consolidated; ADRs record foundati
 - Blueprint-based database scaffolding with dynamic selection, external preflight validation, and no overwrite/merge behavior.
 - Read-only structural validator, tests, and sanitized fixtures.
 - Format-v2 encrypted user-state backup/restore with destination-package reconstruction and legacy-v1 reading.
+- ZIP-first private-instance onboarding through root `bootstrap.py`, cross-platform external runtime/launcher setup, `shardbase doctor`, and guided `shardbase init`; encrypted-backup-based updates are documented in the [tooling guide](../Scripts/README.md#updating-a-private-instance).
+- Top-level `tests/` separated from runtime tooling, root `pyproject.toml`, separate `requirements-dev.txt`, and Ruff lint configuration.
+- Active, green [GitHub Actions CI](../../.github/workflows/ci.yml) at reconciliation: Ruff lint, unit tests and CLI smoke checks on Ubuntu/Python 3.10 and 3.14 and Windows/Python 3.14, plus macOS/Python 3.14 bootstrap smoke coverage.
+- Weekly [Dependabot](../../.github/dependabot.yml) coverage for Python and GitHub Actions dependencies.
+- [CONTRIBUTING.md](../../CONTRIBUTING.md), [SECURITY.md](../../SECURITY.md), Apache License 2.0 in [LICENSE](../../LICENSE), and existing [ADR practice](ADR/).
+- Reconciled [root README](../../README.md) and [detailed tooling documentation](../Scripts/README.md).
 
 ### Main Remaining Gaps
 
@@ -62,8 +68,10 @@ current_documentation_status: authority roles consolidated; ADRs record foundati
 3. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
 4. Canonical preparation has structural validation, but a user-facing promotion workflow and generic semantic validation remain unfinished.
 5. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
-6. Governance substance exists in the System Specification, but the roadmap/decision-record surfaces have not yet been closed out and formally signed off.
+6. Governance substance exists in the System Specification and supporting contributor/security documents; remaining decision-process closure and formal Foundation sign-off are incomplete.
 7. A second independently designed domain has not yet tested generalization.
+
+Repository hardening follow-up: explicit CI enforcement against tracked private/generated artifacts remains incomplete and deferred to the final hygiene/professionalization follow-up. Current lint/test/platform coverage does not provide that guard. Required status checks and branch protection remain deferred.
 
 ---
 
@@ -74,7 +82,7 @@ current_documentation_status: authority roles consolidated; ADRs record foundati
 | 1 — Define the Product | Establish product identity, audience, goals, non-goals, design principles, success criteria | **Complete** | None for Foundation unless new evidence exposes a contradiction |
 | 2 — Define Conceptual Language | Canonical vocabulary and decision model | **In progress** | Commit 10 — Structural Decision Framework |
 | 3 — Make Architecture Demonstrable | Canonical examples, walkthroughs, failure cases | **Planned** | Commits 11–15 |
-| 4 — Establish Project Governance | Change/version/migration/ADR/compatibility governance | **Partially implemented** | First ADR is accepted; complete lightweight ADR process guidance without duplicating the System Specification |
+| 4 — Establish Project Governance | Change/version/migration/ADR/compatibility governance | **Partially implemented** | ADR practice and contributor/security documentation exist; complete remaining decision-process closure and Foundation governance approval without duplicating the System Specification |
 | 5 — Create Canonical Implementation Artifacts | Blueprint, Registry, validator, fixtures | **Substantially complete** | Extend proof for semantic validation, attachment reference behavior, fragmentation judgment, and Inbox/promotion boundaries |
 | 6 — Prove Entire Foundation | Real end-to-end proof and sign-off | **In progress** | Complete Games lifecycle, architecture overview/decision record as needed, post-Foundation plan, final review |
 
@@ -125,10 +133,10 @@ These commits should be example-driven and non-normative. They should point to t
 | 16 | `docs: define architectural change policy` | partially represented in System Specification |
 | 17 | `docs: define specification versioning policy` | partially represented in System Specification |
 | 18 | `docs: define migration principles` | partially represented in System Specification |
-| 19 | `docs: add architecture decision records` | **in progress — ADR 0001 accepted** |
+| 19 | `docs: add architecture decision records` | **partially complete — ADR practice and accepted records exist; process closure remains** |
 | 20 | `docs: define compatibility policy` | partially represented in System Specification |
 
-The System Specification already contains the normative change categories, `foundation-N` boundary, manifest-version distinction, migration principles, backward-compatibility expectations, and no-silent-change rules. Remaining governance work should avoid copying those sections into another competing authority. Instead, create lightweight process documentation and ADRs that **apply** the normative rules.
+The System Specification already contains the normative change categories, `foundation-N` boundary, manifest-version distinction, migration principles, backward-compatibility expectations, and no-silent-change rules. Contributor guidance now covers architectural proposals and when to write an ADR. Remaining process closure and approval should apply the normative rules through supporting guidance and ADRs without creating a competing authority.
 
 ### Milestone 5 — Canonical Implementation Artifacts
 
@@ -231,12 +239,14 @@ Movies is not required to block every remaining Foundation task, but it should o
 - user-owned data protections: complete at architectural level
 - breaking-change categories/version boundaries: documented in System Specification
 - migration principles: documented in System Specification; generalized tooling incomplete
-- ADR/project decision process: incomplete
-- supporting governance documentation reconciled with normative authority: incomplete
+- ADR/project decision process: partially complete; ADR practice and contributor guidance exist; closure and Foundation approval remain incomplete
+- supporting contributor/security documentation and Apache-2.0 license: implemented; final governance reconciliation/sign-off remains incomplete
+- repository automation: CI and weekly Dependabot implemented; explicit tracked-private/generated-artifact CI enforcement remains deferred
 
 ### Understandability
 
-- newcomer can understand product without source-code archaeology: improved by documentation consolidation; canonical examples still needed
+- newcomer can understand product without source-code archaeology: root README and detailed tooling guide reconciled; canonical examples still needed
+- private-instance onboarding/tooling discoverability: ZIP-first bootstrap, external runtime/launcher setup, doctor, guided init, and encrypted-backup-based update workflow implemented/documented
 - complete example database: exists as sanitized structural fixture
 - good/bad/ambiguous examples: incomplete
 
