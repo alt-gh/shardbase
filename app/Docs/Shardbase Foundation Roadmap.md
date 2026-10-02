@@ -6,7 +6,7 @@ roadmap_status: active
 foundation_completion_status: incomplete
 architectural_source_of_truth: app/Docs/Shard System Specification.md
 database_local_authority: each live database's root Database.md
-last_reconciled: 2026-10-01
+last_reconciled: 2026-10-02
 
 This roadmap records **what remains to be done and what has been completed**. It intentionally does not restate the product thesis, universal architecture, lifecycle contract, schema rules, migration rules, or agent contract. Those belong in their authoritative documents.
 
@@ -41,6 +41,7 @@ current_documentation_status: authority roles consolidated; root README and deta
 - Private `app/Knowledge/` boundary with user-owned Inbox/Data/Views and managed live database packages.
 - Database manifest and ownership contracts.
 - Pool → Core → Shard → Pebble structural model.
+- Supporting [Structural Decision Framework](Structural%20Decision%20Framework.md) with a reusable classification sequence, concrete-value considerations, and minimum-structure tie-breaker.
 - Common required note fields `aliases`, `id`, and `tags` in addition to structural fields.
 - Portable Core filenames plus local-title + stable opaque-ID supporting filenames; ancestry remains metadata-authoritative.
 - Flat and optional Core-workspace placement model.
@@ -63,13 +64,12 @@ current_documentation_status: authority roles consolidated; root README and deta
 
 ### Main Remaining Gaps
 
-1. Structural classification guidance is still more implicit than the desired Foundation standard; the planned Structural Decision Framework remains unfinished.
-2. The architecture is not yet demonstrated through a deliberate set of good, bad, and ambiguous canonical examples.
-3. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
-4. Canonical preparation has structural validation, but a user-facing promotion workflow and generic semantic validation remain unfinished.
-5. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
-6. Governance substance exists in the System Specification and supporting contributor/security documents; remaining decision-process closure and formal Foundation sign-off are incomplete.
-7. A second independently designed domain has not yet tested generalization.
+1. The architecture is not yet demonstrated through a deliberate set of good, bad, and ambiguous canonical examples.
+2. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
+3. Canonical preparation has structural validation, but a user-facing promotion workflow and generic semantic validation remain unfinished.
+4. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
+5. Governance substance exists in the System Specification and supporting contributor/security documents; remaining decision-process closure and formal Foundation sign-off are incomplete.
+6. A second independently designed domain has not yet tested generalization.
 
 Repository professionalization: implementation and expanded CI verification are complete. Explicit tracked-file CI enforcement rejects private Knowledge and Obsidian state, Python bytecode/caches, local virtual environments, build/package output, and local backup archives. Administrative closure remains incomplete: GitHub reported `main` as unprotected with no repository rulesets on 2026-10-01. The connected GitHub integration lacks branch-protection administration access (HTTP 403), and the local `gh` CLI is unavailable.
 
@@ -82,7 +82,7 @@ The remaining closure task is to require pull-request integration and the verifi
 | Milestone | Goal | Status | Remaining work |
 |---|---|---|---|
 | 1 — Define the Product | Establish product identity, audience, goals, non-goals, design principles, success criteria | **Complete** | None for Foundation unless new evidence exposes a contradiction |
-| 2 — Define Conceptual Language | Canonical vocabulary and decision model | **In progress** | Commit 10 — Structural Decision Framework |
+| 2 — Define Conceptual Language | Canonical vocabulary and decision model | **Complete** | None for Foundation unless new evidence exposes a conceptual-language gap |
 | 3 — Make Architecture Demonstrable | Canonical examples, walkthroughs, failure cases | **Planned** | Commits 11–15 |
 | 4 — Establish Project Governance | Change/version/migration/ADR/compatibility governance | **Partially implemented** | ADR practice and contributor/security documentation exist; complete remaining decision-process closure and Foundation governance approval without duplicating the System Specification |
 | 5 — Create Canonical Implementation Artifacts | Blueprint, Registry, validator, fixtures | **Substantially complete** | Extend proof for semantic validation, attachment reference behavior, fragmentation judgment, and Inbox/promotion boundaries |
@@ -112,9 +112,9 @@ The accepted product contract is summarized where needed by the README and norma
 | 7 | `docs: define structural versus semantic concepts` | complete |
 | 8 | `docs: define knowledge lifecycle model` | complete |
 | 9 | `docs: define database ownership model` | complete |
-| 10 | `docs: define structural decision framework` | **planned** |
+| 10 | `docs: define structural decision framework` | complete |
 
-Commit 10 should turn the already-approved classification principles into an explicit reusable decision sequence for Core vs Shard vs Pebble vs heading vs Ghost Shard, including independent lifecycle/query/navigation/reuse/growth tests and a minimum-structure tie-breaker. It must reference rather than duplicate the normative classification and materialization rules in the System Specification.
+The [Structural Decision Framework](Structural%20Decision%20Framework.md) now provides a reusable Core/Shard/Pebble/heading/Ghost Shard decision sequence, concrete-value tests for independent growth, querying, navigation, reuse/reference, lifecycle, and structural organization, and a minimum-structure tie-breaker. Normative classification and materialization rules remain in the System Specification.
 
 ### Milestone 3 — Demonstrable Architecture
 
@@ -230,9 +230,9 @@ Movies is not required to block every remaining Foundation task, but it should o
 ### Architecture
 
 - universal invariants documented: largely complete
-- canonical vocabulary: largely complete; decision framework still needed
+- canonical vocabulary and decision framework: complete
 - database ownership: complete
-- structural classification: partially complete; needs explicit decision framework/examples
+- structural classification: decision framework complete; broader examples remain incomplete
 - lifecycle behavior: documented; end-to-end proof incomplete
 - lineage behavior: complete within Foundation contract
 
