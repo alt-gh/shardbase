@@ -128,6 +128,7 @@ Backup and restore compatibility, encryption, conflicts, and wire-format behavio
 
 - The [System Specification](app/Docs/Shard%20System%20Specification.md) is the highest framework authority for universal architecture and safety rules.
 - A live database's `Database.md` is the authority for that database's scope, semantic schema, Pool vocabulary, conventions, and resources.
+- The [Structural Decision Framework](app/Docs/Structural%20Decision%20Framework.md) provides supporting guidance for applying structural classification rules.
 - The [tooling guide](app/Scripts/README.md) documents current CLI and validator behavior and limitations.
 - [AGENTS.md](AGENTS.md) defines operating behavior for agents working in this repository.
 - [CONTRIBUTING.md](CONTRIBUTING.md) defines contributor and development workflows.
@@ -140,7 +141,7 @@ When supporting documentation conflicts with a higher authority, correct the sup
 
 Shardbase is in the **Foundation** stage. The universal architecture and substantial deterministic structural validation are implemented, but Foundation is not complete.
 
-Remaining work includes clearer structural classification guidance, canonical examples and proof, deterministic database-semantic validation, deliberate Inbox draft promotion, complete Games lifecycle proof and second-domain generalization, governance/status reconciliation, and final Foundation sign-off.
+Remaining work includes canonical examples and proof, deterministic database-semantic validation, deliberate Inbox draft promotion, complete Games lifecycle proof and second-domain generalization, governance/status reconciliation, and final Foundation sign-off.
 
 See the [Foundation Roadmap](app/Docs/Shardbase%20Foundation%20Roadmap.md) for current status.
 
