@@ -11,6 +11,7 @@ import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,14 @@ class Note:
     path: Path
     metadata: dict[str, Any]
     body: str
+    root_node: yaml.MappingNode | None = None
+
+
+@dataclass(frozen=True)
+class FrontmatterDetails:
+    metadata: dict[str, Any]
+    body: str
+    root_node: yaml.MappingNode
 
 
 @dataclass(frozen=True)
@@ -76,7 +85,7 @@ class UniqueKeyLoader(yaml.SafeLoader):
         return super().construct_mapping(node, deep=deep)
 
 
-def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
+def _parse_frontmatter_details(text: str) -> FrontmatterDetails:
     lines = text.lstrip("\ufeff").splitlines(keepends=True)
     if not lines or lines[0].rstrip("\r\n") != "---":
         raise FrontmatterError("document must begin with YAML frontmatter")
@@ -84,7 +93,12 @@ def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     if end is None:
         raise FrontmatterError("YAML frontmatter closing delimiter is missing")
     try:
-        metadata = yaml.load("".join(lines[1:end]), Loader=UniqueKeyLoader)
+        loader = UniqueKeyLoader("".join(lines[1:end]))
+        try:
+            root_node = loader.get_single_node()
+            metadata = loader.construct_document(root_node) if root_node is not None else None
+        finally:
+            loader.dispose()
     except yaml.YAMLError as error:
         mark = getattr(error, "problem_mark", None)
         location = f" at frontmatter line {mark.line + 1}" if mark else ""
@@ -96,7 +110,12 @@ def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
         raise FrontmatterError("invalid or excessively nested YAML") from None
     if not isinstance(metadata, dict) or any(not isinstance(key, str) for key in metadata):
         raise FrontmatterError("frontmatter must be a mapping with string field names")
-    return metadata, "".join(lines[end + 1:])
+    return FrontmatterDetails(metadata, "".join(lines[end + 1:]), root_node)
+
+
+def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
+    details = _parse_frontmatter_details(text)
+    return details.metadata, details.body
 
 
 def within_boundary(path: Path, root: Path, issues: list[Issue]) -> bool:
@@ -129,11 +148,11 @@ def load_note(path: Path, root: Path, issues: list[Issue], kind: str = "structur
     if not require_frontmatter and (not text.splitlines() or text.splitlines()[0] != "---"):
         return None
     try:
-        metadata, body = parse_frontmatter(text)
+        details = _parse_frontmatter_details(text)
     except FrontmatterError as error:
         issues.append(Issue(path, f"{kind}-frontmatter", str(error)))
         return None
-    return Note(path, metadata, body)
+    return Note(path, details.metadata, details.body, details.root_node)
 
 
 def scalar_choice(value: Any, choices: set[str]) -> bool:
@@ -142,6 +161,130 @@ def scalar_choice(value: Any, choices: set[str]) -> bool:
 
 def nonempty_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
+
+
+def _mapping_value_node(node: yaml.Node | None, key: str) -> yaml.Node | None:
+    if isinstance(node, yaml.MappingNode):
+        for key_node, value_node in reversed(node.value):
+            if key_node.tag == "tag:yaml.org,2002:str" and key_node.value == key:
+                return value_node
+    return None
+
+
+def _exact_date_scalar(node: yaml.Node | None) -> bool:
+    if not isinstance(node, yaml.ScalarNode) or node.tag not in {
+        "tag:yaml.org,2002:str", "tag:yaml.org,2002:timestamp",
+    }:
+        return False
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", node.value):
+        return False
+    try:
+        date.fromisoformat(node.value)
+    except ValueError:
+        return False
+    return True
+
+
+def validate_semantic_contract(manifest: Note, collections: list[str], issues: list[Issue]) -> None:
+    """Validate declarations only; do not apply them to canonical note content."""
+    metadata = manifest.metadata
+
+    def report(code: str, message: str) -> None:
+        issues.append(Issue(manifest.path, code, message))
+
+    if "pool_vocabulary" in metadata:
+        vocabulary = metadata["pool_vocabulary"]
+        if not isinstance(vocabulary, list) or not vocabulary or not all(nonempty_string(v) for v in vocabulary):
+            report("manifest-pool-vocabulary", "pool_vocabulary must be a non-empty list of non-empty strings")
+        elif len(set(vocabulary)) != len(vocabulary):
+            report("manifest-pool-vocabulary", "pool_vocabulary must contain distinct values")
+
+    if "semantic_schema" not in metadata:
+        return
+    schema = metadata["semantic_schema"]
+    if not isinstance(schema, dict):
+        report("semantic-schema", "semantic_schema must be a mapping")
+        return
+    if any(not isinstance(key, str) or key not in {"allow_undeclared_fields", "fields"} for key in schema):
+        report("semantic-schema", "semantic_schema keys must be strings naming fields or allow_undeclared_fields")
+    if "allow_undeclared_fields" in schema and type(schema["allow_undeclared_fields"]) is not bool:
+        report("semantic-schema", "allow_undeclared_fields must be a boolean")
+    fields = schema.get("fields")
+    if not isinstance(fields, dict):
+        report("semantic-schema", "semantic_schema requires a fields mapping")
+        return
+    fields_node = _mapping_value_node(_mapping_value_node(manifest.root_node, "semantic_schema"), "fields")
+    declaration_keys = {"shape", "collections", "types", "required", "allowed_values", "item_pattern", "min_items", "unique"}
+    shapes = {"string", "string_list", "boolean", "integer", "date"}
+    for name, declaration in fields.items():
+        if not nonempty_string(name):
+            report("semantic-field", "semantic field names must be non-empty strings")
+            continue
+        if name in STRUCTURAL_FIELDS + COMMON_NOTE_FIELDS:
+            report("semantic-field", f"'{name}' must not redeclare a universal note field")
+        if not isinstance(declaration, dict):
+            report("semantic-field", f"'{name}' declaration must be a mapping")
+            continue
+        if any(not isinstance(key, str) or key not in declaration_keys for key in declaration):
+            report("semantic-field", f"'{name}' contains unsupported declaration keys")
+        shape = declaration.get("shape")
+        valid_shape = scalar_choice(shape, shapes)
+        if not valid_shape:
+            report("semantic-field", f"'{name}' requires a supported shape")
+        for selector, choices in (("collections", collections), ("types", VALID_TYPES)):
+            if selector not in declaration:
+                continue
+            values = declaration[selector]
+            if not isinstance(values, list) or not values or not all(isinstance(v, str) for v in values):
+                report("semantic-field", f"'{name}' {selector} must be a non-empty list of strings")
+            elif len(set(values)) != len(values) or any(v not in choices for v in values):
+                report("semantic-field", f"'{name}' {selector} must contain distinct declared values")
+        if "required" in declaration and type(declaration["required"]) is not bool:
+            report("semantic-field", f"'{name}' required must be a boolean")
+        for constraint in ("item_pattern", "min_items", "unique"):
+            if constraint not in declaration:
+                continue
+            if shape != "string_list":
+                report("semantic-constraint", f"'{name}' {constraint} is only supported for string_list")
+            value = declaration[constraint]
+            if constraint == "item_pattern":
+                if not isinstance(value, str) or not value:
+                    report("semantic-constraint", f"'{name}' item_pattern must be a non-empty string")
+                else:
+                    try:
+                        re.compile(value)
+                    except (re.error, OverflowError, RecursionError):
+                        report("semantic-constraint", f"'{name}' item_pattern must be a valid Python regular expression")
+            elif constraint == "min_items" and (type(value) is not int or value < 0):
+                report("semantic-constraint", f"'{name}' min_items must be a non-negative integer excluding booleans")
+            elif constraint == "unique" and type(value) is not bool:
+                report("semantic-constraint", f"'{name}' unique must be a boolean")
+        if "allowed_values" not in declaration:
+            continue
+        values = declaration["allowed_values"]
+        if not isinstance(values, list) or not values:
+            report("semantic-constraint", f"'{name}' allowed_values must be a non-empty list")
+            continue
+        if not valid_shape:
+            continue
+        values_node = _mapping_value_node(_mapping_value_node(fields_node, name), "allowed_values")
+        nodes = values_node.value if isinstance(values_node, yaml.SequenceNode) else []
+        if shape in {"string", "string_list"}:
+            compatible = all(nonempty_string(v) for v in values)
+        elif shape == "boolean":
+            compatible = all(type(v) is bool for v in values)
+        elif shape == "integer":
+            compatible = all(type(v) is int for v in values)
+        else:
+            compatible = len(nodes) == len(values) and all(_exact_date_scalar(node) for node in nodes)
+        if not compatible:
+            report("semantic-constraint", f"'{name}' allowed_values must match shape '{shape}'")
+            continue
+        # Dates compare by the exact source scalar, so quoted and unquoted
+        # representations of the same date cannot evade duplicate detection.
+        comparable = [node.value for node in nodes] if shape == "date" else values
+        if len(set(comparable)) != len(comparable):
+            report("semantic-constraint", f"'{name}' allowed_values must contain distinct values")
 
 
 def wikilink_target(value: Any) -> str | None:
@@ -330,6 +473,7 @@ def validate_database(root: Path) -> list[Issue]:
             issues.append(Issue(manifest_path, "manifest-collections", "data_collections must contain unique names"))
         else:
             declared.append(collection)
+    validate_semantic_contract(manifest, collections, issues)
     views = root / "Views"
     if within_boundary(views, root, issues) and not views.is_dir():
         issues.append(Issue(views, "views-missing", "Views/ is required, but may be empty"))
