@@ -79,7 +79,7 @@ class ValidatorTests(unittest.TestCase):
 
     def test_semantic_schema_positive_envelopes(self):
         for schema in ({"fields": {}}, {"fields": {}, "allow_undeclared_fields": True},
-                       {"fields": {}, "allow_undeclared_fields": False}):
+                       {"fields": {"entity_kind": {"shape": "string"}}, "allow_undeclared_fields": False}):
             with self.subTest(schema=schema):
                 self.contract(schema)
                 self.assertEqual(validate_database(self.database), [])
@@ -90,7 +90,7 @@ class ValidatorTests(unittest.TestCase):
             with self.subTest(value=value):
                 self.set_field(manifest, "pool_vocabulary", value)
                 self.assertIn("manifest-pool-vocabulary", self.codes())
-        for value in (["Examples"], ["Example", "example", " Example "]):
+        for value in (["Examples"], ["Examples", "example", " Example "]):
             self.set_field(manifest, "pool_vocabulary", value)
             before = manifest.read_bytes()
             self.assertEqual(validate_database(self.database), [])
@@ -101,11 +101,15 @@ class ValidatorTests(unittest.TestCase):
                        {"fields": {}, "unknown": True}, {"fields": {}, 1: True}):
             with self.subTest(schema=schema):
                 self.contract(schema)
-                self.assertIn("semantic-schema", self.codes())
+                findings = validate_database(self.database)
+                self.assertIn("semantic-schema", {i.code for i in findings})
+                self.assertFalse(any(i.path != self.database / "Database.md" and i.code == "semantic-field" for i in findings))
         for value in (None, "true", "false", 0, 1, [], {}, 1.5):
             with self.subTest(value=value):
                 self.contract({"fields": {}, "allow_undeclared_fields": value})
-                self.assertIn("semantic-schema", self.codes())
+                findings = validate_database(self.database)
+                self.assertIn("semantic-schema", {i.code for i in findings})
+                self.assertFalse(any(i.path != self.database / "Database.md" and i.code == "semantic-field" for i in findings))
 
     def test_invalid_semantic_field_names(self):
         for name in (1, None, "", " \t", "type", "pool", "core", "parent_note", "status", "aliases", "id", "tags"):
@@ -128,6 +132,8 @@ class ValidatorTests(unittest.TestCase):
                 with self.subTest(shape=shape, required=required):
                     self.field_contract(dict(shape=shape, allowed_values=values, collections=["Game"],
                                              types=["core", "shard", "pebble"], required=required))
+                    for note in self.collection.glob("*.md"):
+                        self.set_field(note, "example_field", None)
                     self.assertEqual(validate_database(self.database), [])
         for minimum in (0, 1):
             for unique in (True, False):
@@ -241,16 +247,155 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(details.metadata["exact"].isoformat(), "2026-10-03")
         self.assertEqual(details.metadata["timestamp"].isoformat(), "2026-01-03T12:00:00")
 
-    def test_semantic_contract_does_not_enforce_note_values(self):
-        self.set_field(self.database / "Database.md", "pool_vocabulary", ["Other"])
-        self.contract({"allow_undeclared_fields": False, "fields": {
-            "required_field": dict(shape="integer", required=True),
-            "optional_field": dict(shape="string_list", collections=["Game"], types=["pebble"],
-                                   allowed_values=["one"], item_pattern="one", min_items=2, unique=True),
-        }})
-        self.set_field(self.collection / "Example.md", "optional_field", [1, 1])
-        self.set_field(self.collection / "Example.md", "undeclared_field", {})
+    def test_semantic_applicability_does_not_enforce_values_or_constraints(self):
+        fields = {
+            "text": dict(shape="string", allowed_values=["one"]),
+            "items": dict(shape="string_list", allowed_values=["one"], item_pattern="one", min_items=2, unique=True),
+            "flag": dict(shape="boolean"),
+            "number": dict(shape="integer", required=True, types=["core"]),
+            "event_date": dict(shape="date"),
+        }
+        self.contract({"fields": fields})
+        core = self.collection / "Example.md"
+        for name, value in dict(text={}, items=[1, 1], flag="true", number=None, event_date="2026-1-3").items():
+            self.set_field(core, name, value)
         self.assertEqual(validate_database(self.database), [])
+        # Correct shapes with deliberately violated constraints also remain uninterpreted.
+        self.set_field(core, "text", "other")
+        self.set_field(core, "items", ["other", "other"])
+        self.assertEqual(validate_database(self.database), [])
+        self.set_field(core, "items", [])
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_pool_membership_is_exact(self):
+        self.set_field(self.database / "Database.md", "pool_vocabulary", ["Examples"])
+        core = self.collection / "Example.md"
+        for pool in ("Examples", "Other", "examples", " Examples", "Examples "):
+            with self.subTest(pool=pool):
+                self.set_field(core, "pool", pool)
+                before = {path: path.read_bytes() for path in self.database.rglob("*.md")}
+                findings = [i for i in validate_database(self.database) if i.code == "semantic-pool-vocabulary"]
+                self.assertEqual(before, {path: path.read_bytes() for path in before})
+                self.assertEqual([i.path for i in findings], [] if pool == "Examples" else [core])
+        for pool in (None, [], 1, "", " "):
+            with self.subTest(pool=pool):
+                self.set_field(core, "pool", pool)
+                self.assertIn("structural-pool", self.codes())
+                self.assertNotIn("semantic-pool-vocabulary", self.codes())
+
+    def test_pool_declaration_gating_and_independent_lineage(self):
+        shard = self.collection / "Weapons - 5f6g7h8j9k.md"
+        self.set_field(shard, "pool", "Other")
+        self.assertNotIn("semantic-pool-vocabulary", self.codes())
+        self.set_field(self.database / "Database.md", "pool_vocabulary", ["Examples"])
+        self.assertTrue({"semantic-pool-vocabulary", "lineage-pool"} <= self.codes())
+        for value in (None, [], ["Examples", "Examples"], [1], "Examples"):
+            with self.subTest(value=value):
+                self.set_field(self.database / "Database.md", "pool_vocabulary", value)
+                self.assertTrue({"manifest-pool-vocabulary", "lineage-pool"} <= self.codes())
+                self.assertNotIn("semantic-pool-vocabulary", self.codes())
+
+    def test_field_applicability_selector_matrix(self):
+        other = self.database / "Data" / "Other"
+        (other / "Attachments").mkdir(parents=True)
+        self.set_field(self.database / "Database.md", "data_collections", ["Game", "Other"])
+        other_core = self.create_note("Second.md", "Second", directory=other, note_id="123456789a")
+        core = self.collection / "Example.md"
+        shard = self.collection / "Weapons - 5f6g7h8j9k.md"
+        for note in (core, shard, other_core):
+            self.set_field(note, "example_field", "value")
+        for selectors, expected in (
+            ({}, set()),
+            ({"collections": ["Game"]}, {other_core}),
+            ({"types": ["core"]}, {shard}),
+            ({"collections": ["Game"], "types": ["core"]}, {shard, other_core}),
+            ({"collections": ["Other"], "types": ["pebble"]}, {core, shard, other_core}),
+        ):
+            for closed in (False, True):
+                with self.subTest(selectors=selectors, closed=closed):
+                    self.contract({"allow_undeclared_fields": not closed, "fields": {
+                        "entity_kind": {"shape": "string"},
+                        "example_field": dict(shape="string", **selectors),
+                    }})
+                    findings = validate_database(self.database)
+                    self.assertEqual({i.path for i in findings}, expected)
+                    self.assertTrue(all(i.code == "semantic-field" and "does not apply" in i.message for i in findings))
+
+    def test_workspace_collection_comes_from_physical_placement(self):
+        workspace = self.bundle()
+        shard = workspace / "Weapons - 5f6g7h8j9k.md"
+        self.field_contract(dict(shape="string", collections=["Game"], types=["shard"]))
+        self.set_field(shard, "example_field", "value")
+        self.assertEqual(validate_database(self.database), [])
+        self.set_field(self.database / "Database.md", "data_collections", ["Game", "Other"])
+        (self.database / "Data" / "Other" / "Attachments").mkdir(parents=True)
+        self.field_contract(dict(shape="string", collections=["Other"], types=["shard"]))
+        findings = validate_database(self.database)
+        self.assertEqual([(i.path, i.code) for i in findings], [(shard, "semantic-field")])
+
+    def test_invalid_structural_type_skips_applicability_and_requiredness(self):
+        core = self.collection / "Example.md"
+        self.contract({"fields": {
+            "present": dict(shape="string", types=["shard"]),
+            "missing": dict(shape="string", required=True),
+        }})
+        self.set_field(core, "present", "value")
+        for value in (None, [], "invalid"):
+            with self.subTest(value=value):
+                self.set_field(core, "type", value)
+                findings = [i for i in validate_database(self.database) if i.path == core]
+                self.assertIn("structural-type", {i.code for i in findings})
+                self.assertNotIn("semantic-field", {i.code for i in findings})
+
+    def test_required_field_presence_and_optional_omission(self):
+        self.field_contract(dict(shape="string", required=True, collections=["Game"], types=["core"]))
+        core = self.collection / "Example.md"
+        findings = validate_database(self.database)
+        self.assertEqual([(i.path, i.code) for i in findings], [(core, "semantic-field")])
+        for value in ("value", None):
+            self.set_field(core, "example_field", value)
+            self.assertEqual(validate_database(self.database), [])
+        self.field_contract(dict(shape="string", required=False), name="optional")
+        self.assertEqual(validate_database(self.database), [])
+        self.field_contract(dict(shape="string"), name="optional")
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_closed_schema_and_open_defaults(self):
+        core = self.collection / "Example.md"
+        fields = {"entity_kind": {"shape": "string"}}
+        # The fixture has all eight universal fields on every structural type.
+        self.contract({"fields": fields, "allow_undeclared_fields": False})
+        self.assertEqual(validate_database(self.database), [])
+        self.set_field(core, "unknown", {})
+        findings = validate_database(self.database)
+        self.assertEqual([(i.path, i.code) for i in findings], [(core, "semantic-field")])
+        for schema in ({"fields": fields, "allow_undeclared_fields": True}, {"fields": fields}):
+            self.contract(schema)
+            self.assertEqual(validate_database(self.database), [])
+
+    def test_invalid_schema_gates_all_note_schema_rules_independently_of_pool(self):
+        core = self.collection / "Example.md"
+        self.set_field(core, "unknown", {})
+        self.set_field(core, "present", "value")
+        self.set_field(core, "pool", "Other")
+        self.set_field(self.database / "Database.md", "pool_vocabulary", ["Examples"])
+        for invalid in ({"shape": "object"}, {"shape": "string", "types": ["wrong"]},
+                        {"shape": "string", "required": "true"}, {"shape": "string", "min_items": 1}):
+            with self.subTest(invalid=invalid):
+                self.contract({"allow_undeclared_fields": False, "fields": {
+                    "missing": dict(shape="string", required=True),
+                    "present": dict(shape="string", types=["shard"]),
+                    "invalid": invalid,
+                }})
+                findings = validate_database(self.database)
+                self.assertTrue(any(i.path == self.database / "Database.md" for i in findings))
+                self.assertFalse(any(i.path != self.database / "Database.md" and i.code == "semantic-field" for i in findings))
+                self.assertIn("semantic-pool-vocabulary", {i.code for i in findings})
+        self.set_field(self.database / "Database.md", "pool_vocabulary", None)
+        self.field_contract(dict(shape="string", required=True, types=["core"]))
+        findings = validate_database(self.database)
+        self.assertTrue(any(i.path == core and i.code == "semantic-field" for i in findings))
+        self.assertNotIn("semantic-pool-vocabulary", {i.code for i in findings})
 
     def test_unsupported_manifest_gates_semantic_contract_validation(self):
         self.set_field(self.database / "Database.md", "manifest_version", 2)

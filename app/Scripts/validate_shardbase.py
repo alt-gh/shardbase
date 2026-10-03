@@ -41,6 +41,12 @@ class Note:
 
 
 @dataclass(frozen=True)
+class SemanticContract:
+    pool_vocabulary: tuple[str, ...] | None = None
+    semantic_schema: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
 class FrontmatterDetails:
     metadata: dict[str, Any]
     body: str
@@ -185,9 +191,10 @@ def _exact_date_scalar(node: yaml.Node | None) -> bool:
     return True
 
 
-def validate_semantic_contract(manifest: Note, collections: list[str], issues: list[Issue]) -> None:
-    """Validate declarations only; do not apply them to canonical note content."""
+def validate_semantic_contract(manifest: Note, collections: list[str], issues: list[Issue]) -> SemanticContract:
+    """Report contract defects and expose only independently validated components."""
     metadata = manifest.metadata
+    pool_vocabulary = None
 
     def report(code: str, message: str) -> None:
         issues.append(Issue(manifest.path, code, message))
@@ -198,13 +205,16 @@ def validate_semantic_contract(manifest: Note, collections: list[str], issues: l
             report("manifest-pool-vocabulary", "pool_vocabulary must be a non-empty list of non-empty strings")
         elif len(set(vocabulary)) != len(vocabulary):
             report("manifest-pool-vocabulary", "pool_vocabulary must contain distinct values")
+        else:
+            pool_vocabulary = tuple(vocabulary)
 
+    schema_issue_start = len(issues)
     if "semantic_schema" not in metadata:
-        return
+        return SemanticContract(pool_vocabulary)
     schema = metadata["semantic_schema"]
     if not isinstance(schema, dict):
         report("semantic-schema", "semantic_schema must be a mapping")
-        return
+        return SemanticContract(pool_vocabulary)
     if any(not isinstance(key, str) or key not in {"allow_undeclared_fields", "fields"} for key in schema):
         report("semantic-schema", "semantic_schema keys must be strings naming fields or allow_undeclared_fields")
     if "allow_undeclared_fields" in schema and type(schema["allow_undeclared_fields"]) is not bool:
@@ -212,7 +222,7 @@ def validate_semantic_contract(manifest: Note, collections: list[str], issues: l
     fields = schema.get("fields")
     if not isinstance(fields, dict):
         report("semantic-schema", "semantic_schema requires a fields mapping")
-        return
+        return SemanticContract(pool_vocabulary)
     fields_node = _mapping_value_node(_mapping_value_node(manifest.root_node, "semantic_schema"), "fields")
     declaration_keys = {"shape", "collections", "types", "required", "allowed_values", "item_pattern", "min_items", "unique"}
     shapes = {"string", "string_list", "boolean", "integer", "date"}
@@ -285,6 +295,46 @@ def validate_semantic_contract(manifest: Note, collections: list[str], issues: l
         comparable = [node.value for node in nodes] if shape == "date" else values
         if len(set(comparable)) != len(comparable):
             report("semantic-constraint", f"'{name}' allowed_values must contain distinct values")
+
+    return SemanticContract(pool_vocabulary, schema if len(issues) == schema_issue_start else None)
+
+
+def note_collection(note: Note, data_root: Path) -> str:
+    """Use canonical physical placement, including notes in Core workspaces."""
+    return note.path.relative_to(data_root).parts[0]
+
+
+def semantic_field_applies(declaration: dict[str, Any], collection: str, note_type: str) -> bool:
+    return (
+        ("collections" not in declaration or collection in declaration["collections"])
+        and ("types" not in declaration or note_type in declaration["types"])
+    )
+
+
+def validate_note_semantic_applicability(
+    note: Note, collection: str, contract: SemanticContract, issues: list[Issue],
+) -> None:
+    metadata = note.metadata
+    pool = metadata.get("pool")
+    if contract.pool_vocabulary is not None and nonempty_string(pool) and pool not in contract.pool_vocabulary:
+        issues.append(Issue(note.path, "semantic-pool-vocabulary", "pool must exactly match a declared Pool value"))
+    schema = contract.semantic_schema
+    if schema is None:
+        return
+    fields = schema["fields"]
+    if not schema.get("allow_undeclared_fields", True):
+        allowed = set(STRUCTURAL_FIELDS + COMMON_NOTE_FIELDS) | fields.keys()
+        for name in sorted(metadata.keys() - allowed):
+            issues.append(Issue(note.path, "semantic-field", f"'{name}' is not a declared note field"))
+    note_type = metadata.get("type")
+    if not scalar_choice(note_type, VALID_TYPES):
+        return
+    for name, declaration in fields.items():
+        applies = semantic_field_applies(declaration, collection, note_type)
+        if name in metadata and not applies:
+            issues.append(Issue(note.path, "semantic-field", f"'{name}' does not apply to this collection and structural type"))
+        elif applies and declaration.get("required", False) and name not in metadata:
+            issues.append(Issue(note.path, "semantic-field", f"missing required semantic field '{name}'"))
 
 
 def wikilink_target(value: Any) -> str | None:
@@ -473,7 +523,7 @@ def validate_database(root: Path) -> list[Issue]:
             issues.append(Issue(manifest_path, "manifest-collections", "data_collections must contain unique names"))
         else:
             declared.append(collection)
-    validate_semantic_contract(manifest, collections, issues)
+    contract = validate_semantic_contract(manifest, collections, issues)
     views = root / "Views"
     if within_boundary(views, root, issues) and not views.is_dir():
         issues.append(Issue(views, "views-missing", "Views/ is required, but may be empty"))
@@ -536,6 +586,7 @@ def validate_database(root: Path) -> list[Issue]:
     for note in notes:
         metadata = note.metadata
         note_type = metadata.get("type")
+        validate_note_semantic_applicability(note, note_collection(note, data_root), contract, issues)
         core, parent = cores[note.path], parents[note.path]
         for field in STRUCTURAL_FIELDS:
             if field not in metadata:

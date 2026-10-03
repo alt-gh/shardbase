@@ -338,6 +338,7 @@ The validator currently checks:
 - UTF-8 YAML frontmatter using a safe PyYAML loader, including duplicate-key/malformed/unsupported-tag diagnostics;
 - manifest field/value/shape requirements, optional creation preferences, and required manifest body headings;
 - optional `pool_vocabulary` and `semantic_schema` declarations, including selectors, shape/constraint compatibility, allowed-value types, exact date scalar representations, and regex compilation;
+- exact declared Pool membership, semantic field applicability by physical collection and structural type, required field presence, and undeclared-field policy, using only validated declarations;
 - declared data collections, root `Attachments/`, and `Views/`;
 - traversal, absolute-path, containment, and relevant symlink boundaries before scanning;
 - structural discovery at collection roots and one Core-workspace level;
@@ -369,10 +370,9 @@ For the normative portable normalization, ID contract, and filename algorithm, u
 
 The validator does **not** currently determine or enforce:
 
-- application of declared Pool vocabularies or semantic schemas to canonical note values, including requiredness, shapes, bounded values, applicability, and undeclared fields;
+- primitive semantic value shapes, `allowed_values`, `item_pattern`, `min_items`, `unique`, and exact note-level date value enforcement;
 - database Pool vocabulary from prose;
-- database semantic schema fields, shapes, bounded values, or applicability from `Database.md`;
-- declared database Pool vocabulary;
+- database semantic rules inferred from `Database.md` prose;
 - whether a note genuinely earns materialization versus remaining a heading;
 - duplicate/overlapping semantic content beyond deterministic structural collisions;
 - attachment references, missing attachments, or attachment-orphan audits;
@@ -382,7 +382,7 @@ The validator does **not** currently determine or enforce:
 - migrations;
 - canonical draft promotion. Canonical preparation and commit primitives retain these structural checks for future promotion, but no public promotion command exists.
 
-A successful run therefore means the implemented structural checks passed. It is not proof of complete database-semantic validity or Foundation completion.
+A successful run therefore means the implemented structural and semantic declaration/applicability checks passed. It is not proof of complete database-semantic validity or Foundation completion.
 
 ## Results
 
