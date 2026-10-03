@@ -6,7 +6,7 @@ roadmap_status: active
 foundation_completion_status: incomplete
 architectural_source_of_truth: app/Docs/Shard System Specification.md
 database_local_authority: each live database's root Database.md
-last_reconciled: 2026-10-02
+last_reconciled: 2026-10-03
 
 This roadmap records **what remains to be done and what has been completed**. It intentionally does not restate the product thesis, universal architecture, lifecycle contract, schema rules, migration rules, or agent contract. Those belong in their authoritative documents.
 
@@ -31,15 +31,16 @@ The final Foundation sign-off remains a project-owner decision. Passing automate
 current_assessment: late Foundation / convergence and proof
 current_primary_goal: finish the vertical slice from intent to valid canonical knowledge and close remaining Foundation proof/governance gaps
 current_architecture_status: substantially settled
-current_implementation_status: substantial deterministic structural validation, database scaffolding, universal Inbox-first CLI capture with stable IDs, external bootstrap/launcher setup, doctor, and guided init are implemented; canonical preparation machinery remains tested; canonical semantic validation and draft promotion remain incomplete
+current_implementation_status: substantial deterministic structural validation, database scaffolding, universal Inbox-first CLI capture with stable IDs, external bootstrap/launcher setup, doctor, and guided init are implemented; canonical preparation machinery remains tested; the minimal machine-readable database semantic contract is defined; generic semantic enforcement and draft promotion remain incomplete
 current_proof_status: Games proving workflow partially complete
 current_documentation_status: authority roles consolidated; root README and detailed tooling guide reconciled with guided private-instance onboarding and encrypted-backup-based updates; contributor/security documentation exists; ADRs record foundation-3 naming, foundation-4 canonical preparation/placement, foundation-5 user-state ownership/transfer, and foundation-6 Inbox-first capture
 
 ### What Already Exists
 
-- Universal System Specification at `foundation-6`, preserving foundation-3 naming, existing flat/workspace state, and manifest version 1.
+- Universal System Specification at `foundation-7`, preserving foundation-3 naming, existing flat/workspace state, and manifest version 1.
 - Private `app/Knowledge/` boundary with user-owned Inbox/Data/Views and managed live database packages.
 - Database manifest and ownership contracts.
+- Minimal machine-readable database-local semantic contract defined in `Database.md`, with Games Pool vocabulary and all nine existing semantic fields declared; enforcement remains incomplete.
 - Pool → Core → Shard → Pebble structural model.
 - Supporting [Structural Decision Framework](Structural%20Decision%20Framework.md) with a reusable classification sequence, concrete-value considerations, and minimum-structure tie-breaker.
 - Common required note fields `aliases`, `id`, and `tags` in addition to structural fields.
@@ -65,7 +66,7 @@ current_documentation_status: authority roles consolidated; root README and deta
 ### Main Remaining Gaps
 
 1. The architecture is not yet demonstrated through a deliberate set of good, bad, and ambiguous canonical examples.
-2. Database semantic schemas are authoritative prose but are not yet machine-readable enough for deterministic generic validation.
+2. The minimal machine-readable database semantic contract is defined; generic consumption and enforcement of declared Pool vocabulary and semantic fields remain unimplemented.
 3. Canonical preparation has structural validation, but a user-facing promotion workflow and generic semantic validation remain unfinished.
 4. The Games proof has not yet completed query/navigation, growth/materialization, and archive lifecycle steps.
 5. Governance substance exists in the System Specification and supporting contributor/security documents; remaining decision-process closure and formal Foundation sign-off are incomplete.
@@ -155,7 +156,11 @@ The System Specification already contains the normative change categories, `foun
 
 Current validator scope includes manifest discovery/shape, safe path boundaries, structural/common metadata, foundation-3 note-ID format/uniqueness, same-database lineage, Pool consistency, archive ancestry, Core workspaces, portable Core/supporting filenames and collisions, and supported Markdown heading checks.
 
-Not yet generic/deterministic: database semantic schema validation, Pool-vocabulary interpretation from database contracts, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical draft promotion.
+Contract definition complete: `schema: define minimal database semantic validation contract` establishes the optional declarations at foundation-7 and encodes the existing Games deterministic rules.
+
+Next implementation: `validate: enforce database semantic schema` remains incomplete, followed by Inbox promotion. Format-v2 backup/restore compatibility is extended explicitly to foundation-7 so the specification increment preserves the existing user-state transfer workflow; downgrade and unknown-version transitions remain unsupported.
+
+Not yet implemented generically: database semantic schema enforcement, declared Pool-vocabulary enforcement, materialization/fragmentation judgment, attachment reference/orphan auditing, arbitrary database-local resources, historical specification-version migration, and canonical draft promotion.
 
 Manual encrypted user-state backup and restore are implemented with format-v2 destination-package reconstruction, complete Obsidian configuration transfer, synthetic compatibility vectors, and preservation/failure tests. The legacy format-v1 reader retains its historical full-Knowledge semantics. Historical schema migration and custom-database packaging remain deferred. See the [tooling guide](../Scripts/README.md#encrypted-backup-and-restore).
 
@@ -176,7 +181,7 @@ Commit 30 already has evidence for initial Games ownership, Pool/Core classifica
 - growth proof showing both retained-heading and materialized-note decisions;
 - archive/restore behavior;
 - Inbox-first capture has synthetic CLI proof, including stable IDs and template-independent metadata; canonical preparation retains direct primitive-level proof, while promotion of Inbox drafts remains future work;
-- generic semantic validation evidence once implemented.
+- machine-readable contract definition is complete; generic semantic enforcement evidence remains outstanding.
 
 ---
 
@@ -258,7 +263,8 @@ Movies is not required to block every remaining Foundation task, but it should o
 - Registry discovery: complete
 - deterministic universal structural validation: implemented within documented scope
 - representative structural fixtures: complete within implemented scope
-- deterministic database-semantic validation: incomplete
+- minimal machine-readable database semantic contract definition: complete
+- deterministic database-semantic validation/enforcement: incomplete
 - Inbox-first CLI capture: implemented with stable-ID and safety proof
 - canonical preparation/commit primitives: retained with structural validation and synthetic proof; user-facing promotion and semantic validation remain incomplete
 - attachment reference/orphan validation: incomplete

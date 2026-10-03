@@ -4,7 +4,7 @@ This document describes the **current implementation** in `app/Scripts/`: how to
 
 It does not define Shardbase architecture. Universal requirements come from [`../Docs/Shard System Specification.md`](../Docs/Shard%20System%20Specification.md); database-specific requirements come from the target database's root `Database.md`.
 
-Current tooling targets System Specification `foundation-6`, retaining foundation-3 naming and `manifest_version: 1` within the implementation scope described below.
+Current tooling targets System Specification `foundation-7`, retaining foundation-3 naming and `manifest_version: 1` within the implementation scope described below.
 
 ## Runtime Setup
 
@@ -184,7 +184,7 @@ Update a private Shardbase instance by transferring its durable user state into 
 
 6. **Retain the recovery sources until satisfied.** Review the restored knowledge and local configuration. Keep both the old instance and encrypted backup until the new instance has passed the checks and meets your needs, then retire the old folder only when you choose. Shardbase does not delete it automatically.
 
-Format v2 explicitly supports `foundation-4`/`foundation-5` user state into `foundation-5` and `foundation-4`/`foundation-5`/`foundation-6` user state into `foundation-6`. Downgrades and other transitions are not implied. Legacy format v1 retains only its historical full-`app/Knowledge/` transitions: `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4`; it cannot cross the foundation-5 managed-package ownership boundary. See the [backup format contract](BACKUP_FORMAT.md) for the authoritative wire-level details.
+Format v2 explicitly supports `foundation-4`/`foundation-5` user state into `foundation-5`, `foundation-4`/`foundation-5`/`foundation-6` user state into `foundation-6`, and `foundation-4`/`foundation-5`/`foundation-6`/`foundation-7` user state into `foundation-7`. Downgrades and other transitions are not implied. Legacy format v1 retains only its historical full-`app/Knowledge/` transitions: `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4`; it cannot cross the foundation-5 managed-package ownership boundary. See the [backup format contract](BACKUP_FORMAT.md) for the authoritative wire-level details.
 
 ## Encrypted Backup and Restore
 
@@ -217,7 +217,7 @@ The intended update workflow is to back up the old instance and restore into a f
 
 If a destination already has the represented database, restore accepts it only when its managed files exactly match what the current destination release would materialize; Data and Views are ignored in that package comparison and checked separately as user state. A differing package fails rather than being upgraded or overwritten. This explicitly protects pre-foundation-5 live customizations: format v2 does not preserve edits to managed files, and no in-place migration is attempted.
 
-Format v2 supports user-state transfer from `foundation-4`, `foundation-5`, or `foundation-6` into `foundation-6`, while retaining the recorded foundation-4/5 transfers into foundation-5. This is the explicit ownership-boundary upgrade path: it leaves the old instance untouched and does not preserve its managed-file customizations. The reader retains format-v1 full-`app/Knowledge/` semantics and its fixed compatibility vector for `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4`; v1 is never reinterpreted or silently crossed into the foundation-5 managed-package ownership boundary.
+Format v2 supports user-state transfer from `foundation-4`, `foundation-5`, `foundation-6`, or `foundation-7` into `foundation-7`, while retaining the recorded foundation-4/5 transfers into foundation-5 and foundation-4/5/6 transfers into foundation-6. This is the explicit ownership-boundary upgrade path: it leaves the old instance untouched and does not preserve its managed-file customizations. The reader retains format-v1 full-`app/Knowledge/` semantics and its fixed compatibility vector for `foundation-3` → `foundation-3`/`foundation-4` and `foundation-4` → `foundation-4`; v1 is never reinterpreted or silently crossed into the foundation-5 managed-package ownership boundary.
 
 ### Verification, Password Input, and Failures
 
@@ -371,6 +371,8 @@ The validator does **not** currently determine or enforce:
 
 - application of declared Pool vocabularies or semantic schemas to canonical note values, including requiredness, shapes, bounded values, applicability, and undeclared fields;
 - database Pool vocabulary from prose;
+- database semantic schema fields, shapes, bounded values, or applicability from `Database.md`;
+- declared database Pool vocabulary;
 - whether a note genuinely earns materialization versus remaining a heading;
 - duplicate/overlapping semantic content beyond deterministic structural collisions;
 - attachment references, missing attachments, or attachment-orphan audits;
@@ -425,11 +427,11 @@ Use the local setup, lint, and test commands above to reproduce failures in an e
 
 ## Compatibility
 
-The preferred spelling is `shardbase create new`; `shardbase new` remains equivalent. Both routes create only in Inbox. Existing Inbox files, blank IDs in historical/editor-created drafts, canonical notes, and flat lineages stay untouched. The specification is now foundation-6; foundation-3 naming and `manifest_version: 1` are retained.
+The preferred spelling is `shardbase create new`; `shardbase new` remains equivalent. Both routes create only in Inbox. Existing Inbox files, blank IDs in historical/editor-created drafts, canonical notes, and flat lineages stay untouched. The specification is now foundation-7; foundation-3 naming and `manifest_version: 1` are retained.
 
-The validator checks the current `foundation-6` canonical structural contract in its documented scope. Inbox captures remain outside canonical database validation. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
+The validator checks the current `foundation-7` canonical structural contract in its documented scope. Inbox captures remain outside canonical database validation. `manifest_version: 1` identifies only the manifest schema and does not identify the System Specification version under which a database was authored.
 
-The validator does not migrate older state. For the recorded `foundation-1` through `foundation-6` compatibility boundaries and preservation-oriented transitions, use the System Specification.
+The validator does not migrate older state. For the recorded `foundation-1` through `foundation-7` compatibility boundaries and preservation-oriented transitions, use the System Specification.
 
 ## Blueprint Scaffolding
 

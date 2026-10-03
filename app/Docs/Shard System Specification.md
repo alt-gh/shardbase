@@ -1,10 +1,10 @@
 # Shard — System Specification
 
-Specification version: `foundation-6` (2026-09-30)
+Specification version: `foundation-7` (2026-10-03)
 
-Editorial revision: 2026-09-30
+Editorial revision: 2026-10-03
 
-Foundation-6 change note: CLI note creation is Inbox-first and database-independent. Every CLI-created capture receives the complete universal YAML key set and a stable ID, while database ownership, Pool, lineage, semantic metadata, and canonical placement remain unresolved until deliberate promotion. Direct canonical CLI note creation is removed; existing Inbox and canonical data remain unchanged, retained canonical preparation rules still govern future materialization, and `manifest_version: 1` remains unchanged.
+Foundation-7 change note: Optional `pool_vocabulary` and `semantic_schema` declarations make the deterministic subset of database-local contracts machine-readable in `Database.md`. Prose retains authority for domain meaning and judgment. The Games blueprint declares its existing deterministic rules; generic enforcement remains unimplemented. This universal capability extension retains `manifest_version: 1` and requires no existing canonical user-state migration.
 
 ## 1. Purpose and Authority
 
@@ -168,6 +168,8 @@ This preference affects newly materialized Cores only. It does not redefine cano
 
 Each declared collection requires its root `Attachments/` directory. `Views/` is required and may be empty.
 
+Optional deterministic database-local declarations (compatible with `manifest_version: 1`) are `pool_vocabulary` and `semantic_schema`, defined in Section 4.4. They remain in `Database.md` frontmatter rather than a separate schema file. Omission preserves a valid structural database and does not authorize tooling to infer a machine-readable contract from prose.
+
 ### 4.2 Required Manifest Body
 
 Every `Database.md` contains:
@@ -213,6 +215,69 @@ Cross-database semantic relationships are permitted. They do not transfer owners
 
 A portable database should retain coherent owned meaning when its current managed package is combined with its user-owned Data and Views. User-state backup is not a standalone custom-database package format.
 
+### 4.4 Machine-Readable Database-Local Contract
+
+`Database.md` prose remains authoritative for domain meaning, scope, conventions, relationships, and judgment calls. Its optional machine-readable declarations express only the deterministic subset that generic tooling may enforce. The declarations must agree with the prose; a disagreement is a contract defect to report rather than resolve by guessing. The prose `Schema` section remains required.
+
+Tooling consumes explicit YAML declarations only. It must not infer deterministic constraints from apparently parseable prose, templates, examples, or domain knowledge. Materialization worthiness, independent value of a supporting note, factual classification, relationship accuracy, research adequacy, and judgment-dependent completion-record interpretation remain outside this schema.
+
+#### Pool Vocabulary
+
+`pool_vocabulary`, when present, is a non-empty YAML list of unique, non-empty strings. Each canonical structural note's universal `pool` value must exactly match one declared value in its owning database. Matching is case-sensitive and does not trim or normalize values. Omission leaves the prose-defined vocabulary authoritative but unavailable for generic vocabulary enforcement.
+
+This declaration constrains database-local values of universal structural metadata. Pool remains structural, and lineage Pool consistency remains required independently of this declaration.
+
+#### Semantic Schema Structure
+
+`semantic_schema`, when present, is a YAML mapping with only these keys:
+
+- `allow_undeclared_fields`: optional actual YAML boolean, defaulting to `true` when omitted.
+- `fields`: required YAML mapping from non-empty semantic field names to field-declaration mappings; an empty mapping is valid for a database with no declared semantic fields.
+
+A field declaration requires `shape` and may contain only `collections`, `types`, `required`, `allowed_values`, `item_pattern`, `min_items`, and `unique` in addition to `shape`. Unsupported keys, shapes, or incompatible constraint declarations are invalid contracts, not invitations to infer new behavior. Universal `type`, `pool`, `core`, `parent_note`, `status`, `aliases`, `id`, and `tags` must not be redeclared in `fields`; this specification governs them.
+
+The vocabulary is deliberately limited to the shapes and constraints below. It supplies no nested object schemas, inheritance, references, unions, conditional expressions, or custom validator hooks.
+
+#### Applicability and Requiredness
+
+- `collections`, when present, is a non-empty YAML list of unique names from the manifest's `data_collections`. It selects the declared data collections in which the field applies.
+- `types`, when present, is a non-empty YAML list of unique universal structural types: `core`, `shard`, or `pebble`. It selects the structural roles in which the field applies.
+- Omission of a selector means all declared collections or all universal structural types, respectively. When both selectors are present, both must match. Collection selection does not establish structural lineage.
+- `required` is an optional actual YAML boolean, defaulting to `false`. A required field must be present wherever its applicability conditions match. `required: false` permits omission.
+- A declared field present outside its applicability is invalid, regardless of requiredness or `allow_undeclared_fields`.
+- Every present applicable field must satisfy its shape and constraints. A blank/null value is present and does not satisfy any supported shape; optionality permits omission rather than bypassing value validation.
+
+#### Primitive Shapes
+
+| `shape` | Valid semantic value |
+|---|---|
+| `string` | YAML scalar string, non-empty after trimming |
+| `string_list` | YAML list whose every item is a string non-empty after trimming; an empty list is valid unless constrained by `min_items` |
+| `boolean` | Actual YAML boolean, not a string or integer representation |
+| `integer` | Actual YAML integer; a boolean must not satisfy this shape |
+| `date` | Exact valid calendar date in `YYYY-MM-DD` form, with four-digit year `0001`–`9999`, two-digit month, and two-digit day; no partial dates, timestamps, or guessed precision |
+
+Date validity is independent of parser coercion: quoted and unquoted YAML date scalars in that exact form represent the same valid date. A parser-created date object does not authorize alternative source formats or timestamps. Tooling must preserve enough source information to check the declared representation rather than accept a value merely because a parser coerced it. Other shapes require the YAML types above rather than coercion from strings or other scalar types.
+
+#### Deterministic Constraints
+
+All declared constraints apply together; omission adds no constraint beyond the shape.
+
+| Declaration | Meaning |
+|---|---|
+| `allowed_values` | Non-empty YAML list of distinct values matching the declared scalar shape, or string items for `string_list`. A scalar must equal one listed value; each list item must equal one listed value. Comparisons respect the shape's type and are exact, with no case folding, trimming, or normalization. Date values use the exact date representation defined above. |
+| `item_pattern` | Non-empty YAML string containing a valid Python-compatible regular expression, only for `string_list`. Every item's complete original string must match, without implicit flags or normalization. |
+| `min_items` | Non-negative actual YAML integer, excluding booleans, only for `string_list`. The list must contain at least this many items. |
+| `unique` | Actual YAML boolean, only for `string_list`. When `true`, all items must be distinct by exact case-sensitive string equality; `false` imposes no uniqueness constraint. |
+
+String non-emptiness checks do not rewrite values. Constraint declarations must use YAML lists, strings, booleans, and integers as specified, avoiding implicit scalar types that change their intended meaning.
+
+#### Undeclared Semantic Fields
+
+When `allow_undeclared_fields: false`, canonical structural note frontmatter may contain only the eight universal note fields and database-local fields declared in `semantic_schema.fields`. Any additional undeclared field is invalid. When `true`, undeclared database-local fields are permitted without schema-defined shape or constraints; universal rules and the database's prose contract still apply.
+
+This setting governs canonical note fields, not manifest fields in `Database.md`, resources, or pre-structural Inbox captures. Templates provide defaults and cannot authorize undeclared semantic fields. No separate namespace or prefix convention is introduced.
+
 ## 5. Structural Model
 
 Shardbase uses:
@@ -223,7 +288,7 @@ Shardbase uses:
 
 A Pool is the broadest logical grouping inside a database. It is represented by `pool` metadata rather than by a required folder or Pool note.
 
-A database defines its permitted Pool vocabulary in `Database.md`. One Core lineage uses one canonical Pool value shared by the Core and all structural descendants.
+A database defines its permitted Pool vocabulary in `Database.md`; optional `pool_vocabulary` makes it deterministically consumable under Section 4.4. One Core lineage uses one canonical Pool value shared by the Core and all structural descendants.
 
 ### 5.2 Core
 
@@ -302,7 +367,7 @@ A note's `id` remains unchanged when its title, filename, placement, structural 
 
 ### 6.3 Semantic Metadata
 
-Database-specific semantic metadata is additional to the universal fields and is defined only by the owning `Database.md`.
+Database-specific semantic metadata is additional to the universal fields and is defined only by the owning `Database.md`. Its optional `semantic_schema` expresses deterministic constraints under Section 4.4 without replacing the prose contract.
 
 Semantic metadata may inform classification but never substitutes for structural metadata. Folder placement, data-collection membership, tags, links, backlinks, categories, series, organizations, and other domain relationships are not structural lineage.
 
@@ -602,6 +667,8 @@ During Foundation, versions use `foundation-N`.
 
 `manifest_version` changes only when the database-manifest contract itself changes in a way compatible readers, validators, creators, or migrations need to distinguish. A System Specification change does not automatically change `manifest_version`, and database-local semantic schema changes do not use it as a generic version.
 
+Optional `pool_vocabulary` and `semantic_schema` declarations retain `manifest_version: 1`: existing manifests without them remain valid structural contracts. This universal capability extension is not a required incompatible manifest-format transition. Database-local semantic schema changes do not use `manifest_version` as a generic database schema version.
+
 ### 14.4 Migration Principles
 
 A migration is required when existing durable state cannot remain correctly conformant, correctly interpreted, or safely operated unchanged under an approved contract.
@@ -697,6 +764,14 @@ No existing Inbox or canonical files are migrated or rewritten. Historical and e
 
 Format v2 accepts foundation-4, foundation-5, and foundation-6 sources for restore into foundation-6, and retains the recorded foundation-4/foundation-5 transitions into foundation-5. It does not add downgrade support or reinterpret the format-v1 ownership boundary.
 
+### 15.7 `foundation-7`
+
+`foundation-7` adds the optional machine-readable `pool_vocabulary` and `semantic_schema` declarations in `Database.md` under Section 4.4. Independently designed databases share the declaration vocabulary while retaining local authority over fields, permitted values, and domain meaning. The Games blueprint encodes its existing deterministic contract as the proving package.
+
+This is a universal architectural extension, not a required incompatible manifest-format transition. `manifest_version` remains integer `1`; existing databases without the declarations remain valid structural databases. Database-local semantic schema changes do not use the manifest version as a generic schema version.
+
+No existing canonical user-state migration is required or performed. Canonical notes, Inbox captures, naming, lineage, placement, ownership, and backup formats remain unchanged. Updating the supplied Games blueprint does not update an existing live package. Generic semantic enforcement and Inbox promotion remain subsequent work. Backup format v2 explicitly accepts foundation-4, foundation-5, foundation-6, and foundation-7 sources for restore into foundation-7, retaining the recorded transfers into foundation-5 and foundation-6. This compatibility extension changes neither the archive format nor user-state meaning; it adds no downgrade, unknown-version, or legacy-v1 ownership-boundary transition support.
+
 ## 16. Validation Protocol
 
 A deterministic audit should validate the following within the capabilities documented by the implementation.
@@ -706,6 +781,7 @@ A deterministic audit should validate the following within the capabilities docu
 - database root is a direct child of `app/Knowledge/Databases/`;
 - root `Database.md` exists;
 - required manifest fields, values, shapes, and body sections exist;
+- optional `pool_vocabulary` and `semantic_schema` declarations satisfy Section 4.4 when supported by the implementation;
 - `data_collections` is non-empty and unique;
 - every declared collection exists with root `Attachments/`;
 - `Views/` exists;
@@ -719,7 +795,9 @@ A deterministic audit should validate the following within the capabilities docu
 - structural values and common-field shapes satisfy this specification;
 - canonical note IDs match the foundation-3 opaque-token format and are unique within the database;
 - structural and semantic meanings are not conflated;
-- database-local semantic constraints are validated when an implementation can consume the authoritative `Database.md` contract deterministically.
+- canonical `pool` values match the owning database's declared `pool_vocabulary` when vocabulary enforcement is implemented;
+- database-local field applicability, requiredness, shapes, constraints, and undeclared-field policy are validated from explicit `semantic_schema` declarations when semantic enforcement is implemented;
+- absent machine-readable declarations and judgment-dependent prose are reported as validation limits rather than inferred into deterministic rules.
 
 ### 16.3 Lineage and Placement
 
