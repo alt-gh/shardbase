@@ -167,11 +167,46 @@ class TransferTests(unittest.TestCase):
             self.data.read_bytes(),
         )
 
+    def test_v2_user_state_transfers_into_foundation_7_preserve_source_and_content(self):
+        for source_spec in ("foundation-4", "foundation-5", "foundation-6", "foundation-7"):
+            with self.subTest(source_spec=source_spec):
+                self.write(self.source, transfer.SPEC_PATH, f"Specification version: `{source_spec}`\n".encode())
+                before = self.tree(self.source)
+                self.output = self.base / f"{source_spec}.sbbackup"
+                target = self.make_instance(f"target-{source_spec}", "Game Library", spec="foundation-7")
+                manifest = self.create()
+                self.assertEqual(manifest["specification"], source_spec)
+                result = restore(target, self.output, PASSWORD)
+                self.assertEqual(result["format_version"], 2)
+                self.assertEqual(result["databases_materialized"], 1)
+                self.assertEqual(self.tree(self.source), before)
+                self.assertEqual(self.read(target, "app/Knowledge/Inbox/Example note.md"), self.note.read_bytes())
+                destination = target / "app/Knowledge/Databases/Game Library"
+                self.assertEqual(self.read(destination, "Data/Game/Example.md"), self.data.read_bytes())
+                self.assertEqual(self.read(destination, "Views/My View.md"), self.view.read_bytes())
+                self.assertEqual(self.read(target, ".obsidian/plugins/example/data.json"), self.obsidian.read_bytes())
+                self.assertNotIn(b"Source-only contract edit", self.read(destination, "Database.md"))
+                self.assertNotIn(b"Source-only managed edit", self.read(destination, "Agents/Vera.md"))
+                self.assertTrue((destination / "Data/Game/Empty").is_dir())
+
+    def test_foundation_7_downgrades_and_unknown_destinations_are_rejected_without_writes(self):
+        self.write(self.source, transfer.SPEC_PATH, b"Specification version: `foundation-7`\n")
+        self.create()
+        for target_spec in ("foundation-5", "foundation-6", "foundation-8"):
+            with self.subTest(target_spec=target_spec):
+                self.write(self.target, transfer.SPEC_PATH, f"Specification version: `{target_spec}`\n".encode())
+                before = self.tree(self.target)
+                with self.assertRaisesRegex(BackupError, "Unsupported specification transition"):
+                    restore(self.target, self.output, PASSWORD)
+                self.assertEqual(self.tree(self.target), before)
+
     def test_v2_writer_rejects_unrecorded_source_specification(self):
-        self.write(self.source, transfer.SPEC_PATH, b"Specification version: `foundation-3`\n")
-        with self.assertRaisesRegex(BackupError, "supports foundation-4"):
-            self.create()
-        self.assertFalse(self.output.exists())
+        for spec in ("foundation-3", "foundation-8"):
+            with self.subTest(spec=spec):
+                self.write(self.source, transfer.SPEC_PATH, f"Specification version: `{spec}`\n".encode())
+                with self.assertRaisesRegex(BackupError, "supports foundation-4"):
+                    self.create()
+                self.assertFalse(self.output.exists())
 
     def test_repeat_restore_and_exact_existing_package_are_idempotent(self):
         create_database(self.target, "games")

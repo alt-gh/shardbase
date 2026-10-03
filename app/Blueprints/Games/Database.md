@@ -5,6 +5,65 @@ database_name: Games
 data_collections:
   - Game
 database_status: active
+pool_vocabulary:
+  - Games
+semantic_schema:
+  allow_undeclared_fields: false
+  fields:
+    game_categories:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+      min_items: 1
+      unique: true
+      item_pattern: '^[a-z0-9]+(?:_[a-z0-9]+)*$'
+    release_date:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: date
+    developers:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+    designers:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+    publishers:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+    platforms:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+    genres:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+    series:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string_list
+    play_state:
+      collections: [Game]
+      types: [core]
+      required: false
+      shape: string
+      allowed_values:
+        - not_started
+        - playing
+        - paused
+        - completed
+        - stopped
 creation_defaults:
   core_placement: workspace
 ---
@@ -68,6 +127,8 @@ Supporting knowledge should remain ordinary Markdown inside the Game Core until 
 ## Schema
 
 Universal structural/common note fields keep the meanings and shapes defined by the System Specification and are not repeated here. Games adds the following semantic fields.
+
+The frontmatter declarations encode the deterministic subset of this schema using the [System Specification vocabulary](../../Docs/Shard%20System%20Specification.md), Section 4.4. The prose below retains domain meaning and judgment-dependent qualifications, including when an attribution or digital platform is meaningful. Generic semantic enforcement remains unimplemented.
 
 Unless stated otherwise, these fields apply to Game Cores only and are optional. Omission means the database does not currently assert that fact.
 
