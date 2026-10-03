@@ -12,7 +12,14 @@ from unittest.mock import patch
 
 import yaml
 from _support import FIXTURES, GAMES_BLUEPRINT, SCRIPTS
-from validate_shardbase import Note, discover_databases, main, validate_database
+from validate_shardbase import (
+    Note,
+    _parse_frontmatter_details,
+    discover_databases,
+    main,
+    parse_frontmatter,
+    validate_database,
+)
 
 VALID_DATABASE = FIXTURES / "valid-database"
 
@@ -63,6 +70,193 @@ class ValidatorTests(unittest.TestCase):
 
     def test_valid_database_passes(self):
         self.assertEqual(validate_database(self.database), [])
+
+    def contract(self, schema):
+        self.set_field(self.database / "Database.md", "semantic_schema", schema)
+
+    def field_contract(self, declaration, name="example_field"):
+        self.contract({"fields": {name: declaration}})
+
+    def test_semantic_schema_positive_envelopes(self):
+        for schema in ({"fields": {}}, {"fields": {}, "allow_undeclared_fields": True},
+                       {"fields": {}, "allow_undeclared_fields": False}):
+            with self.subTest(schema=schema):
+                self.contract(schema)
+                self.assertEqual(validate_database(self.database), [])
+
+    def test_pool_vocabulary_declarations(self):
+        manifest = self.database / "Database.md"
+        for value in (None, {}, "Examples", [], [""], [" \t"], [1], [False], [["Examples"]], ["Examples", "Examples"]):
+            with self.subTest(value=value):
+                self.set_field(manifest, "pool_vocabulary", value)
+                self.assertIn("manifest-pool-vocabulary", self.codes())
+        for value in (["Examples"], ["Example", "example", " Example "]):
+            self.set_field(manifest, "pool_vocabulary", value)
+            before = manifest.read_bytes()
+            self.assertEqual(validate_database(self.database), [])
+            self.assertEqual(manifest.read_bytes(), before)
+
+    def test_invalid_semantic_schema_envelopes(self):
+        for schema in (None, [], "schema", {}, {"fields": []}, {"fields": None},
+                       {"fields": {}, "unknown": True}, {"fields": {}, 1: True}):
+            with self.subTest(schema=schema):
+                self.contract(schema)
+                self.assertIn("semantic-schema", self.codes())
+        for value in (None, "true", "false", 0, 1, [], {}, 1.5):
+            with self.subTest(value=value):
+                self.contract({"fields": {}, "allow_undeclared_fields": value})
+                self.assertIn("semantic-schema", self.codes())
+
+    def test_invalid_semantic_field_names(self):
+        for name in (1, None, "", " \t", "type", "pool", "core", "parent_note", "status", "aliases", "id", "tags"):
+            with self.subTest(name=name):
+                self.field_contract({"shape": "string"}, name)
+                self.assertIn("semantic-field", self.codes())
+
+    def test_invalid_semantic_field_declarations(self):
+        for declaration in (None, [], "string", {}, {"shape": "object"}, {"shape": []},
+                            {"shape": None}, {"shape": "string", "extension": True}, {"shape": "string", 1: True}):
+            with self.subTest(declaration=declaration):
+                self.field_contract(declaration)
+                self.assertIn("semantic-field", self.codes())
+
+    def test_valid_semantic_shapes_selectors_and_constraints(self):
+        for shape, values in (("string", ["One", "one", " One "]),
+                              ("string_list", ["One", "one"]), ("boolean", [True, False]),
+                              ("integer", [-1, 0, 1]), ("date", ["0001-01-01", "2024-02-29", "9999-12-31"])):
+            for required in (True, False):
+                with self.subTest(shape=shape, required=required):
+                    self.field_contract(dict(shape=shape, allowed_values=values, collections=["Game"],
+                                             types=["core", "shard", "pebble"], required=required))
+                    self.assertEqual(validate_database(self.database), [])
+        for minimum in (0, 1):
+            for unique in (True, False):
+                self.field_contract(dict(shape="string_list", item_pattern=r"^[a-z]+$", min_items=minimum, unique=unique))
+                self.assertEqual(validate_database(self.database), [])
+        # A whitespace regex is valid; non-emptiness does not trim patterns.
+        self.field_contract(dict(shape="string_list", item_pattern=" "))
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_invalid_semantic_selectors(self):
+        for selector, invalid in (
+            ("collections", (None, "Game", [], [1], [False], [{}], ["Game", "Game"], ["Other"], [""])),
+            ("types", (None, "core", [], [1], [False], [{}], ["core", "core"], ["pool"], ["Core"])),
+        ):
+            for value in invalid:
+                with self.subTest(selector=selector, value=value):
+                    self.field_contract({"shape": "string", selector: value})
+                    self.assertIn("semantic-field", self.codes())
+
+    def test_collections_selectors_use_manifest_not_filesystem(self):
+        (self.database / "Data/Other").mkdir()
+        self.field_contract(dict(shape="string", collections=["Other"]))
+        self.assertIn("semantic-field", self.codes())
+        self.set_field(self.database / "Database.md", "data_collections", ["Game", "Other"])
+        self.assertNotIn("semantic-field", self.codes())
+        self.set_field(self.database / "Database.md", "data_collections", [None])
+        self.assertTrue({"manifest-collections", "semantic-field"} <= self.codes())
+
+    def test_required_is_strict_boolean(self):
+        for value in ("true", "false", 0, 1, None, [], {}, 1.5):
+            with self.subTest(value=value):
+                self.field_contract(dict(shape="string", required=value))
+                self.assertIn("semantic-field", self.codes())
+
+    def test_list_constraints_reject_other_shapes(self):
+        for shape in ("string", "boolean", "integer", "date"):
+            for constraint, value in (("item_pattern", "x"), ("min_items", 0), ("unique", False)):
+                with self.subTest(shape=shape, constraint=constraint):
+                    self.field_contract({"shape": shape, constraint: value})
+                    self.assertIn("semantic-constraint", self.codes())
+
+    def test_invalid_list_constraint_values(self):
+        for constraint, invalid in (
+            ("item_pattern", (None, 1, False, [], {}, "", "[", r"(?z)x", "x{999999999999999999999999999999}")),
+            ("min_items", (-1, True, False, 1.0, "1", None, [], {})),
+            ("unique", (0, 1, "true", "false", None, [], {}, 1.0)),
+        ):
+            for value in invalid:
+                with self.subTest(constraint=constraint, value=value):
+                    self.field_contract({"shape": "string_list", constraint: value})
+                    self.assertIn("semantic-constraint", self.codes())
+
+    def test_invalid_allowed_values(self):
+        for shape, invalid in (
+            ("string", ([1], [False], [None], [[]], [{}], [""], [" \t"], ["x", "x"])),
+            ("string_list", ([1], [False], [None], [["x"]], [{}], [""], [" "], ["x", "x"])),
+            ("boolean", ([0], [1], ["true"], [None], [[]], [{}], [True, True])),
+            ("integer", ([True], [False], [1.0], ["1"], [None], [[]], [{}], [1, 1])),
+            ("date", ([1], [False], [None], [[]], [{}], ["2026-10-03", "2026-10-03"])),
+        ):
+            for values in (None, "x", {}, [], *invalid):
+                with self.subTest(shape=shape, values=values):
+                    self.field_contract(dict(shape=shape, allowed_values=values))
+                    self.assertIn("semantic-constraint", self.codes())
+        for shape in ("boolean", "integer"):
+            self.field_contract(dict(shape=shape, allowed_values=[True, 1]))
+            issues = validate_database(self.database)
+            self.assertTrue(any("must match shape" in issue.message for issue in issues))
+            self.assertFalse(any("distinct" in issue.message for issue in issues))
+
+    def date_contract_source(self, values):
+        manifest = self.database / "Database.md"
+        original = manifest.read_text()
+        # Keep raw scalar spelling rather than round-tripping through safe_dump.
+        manifest.write_text(original.replace("---\n", "---\nsemantic_schema:\n  fields:\n    event_date:\n      shape: date\n      allowed_values: [" + values + "]\n", 1))
+        return manifest, original
+
+    def test_date_allowed_values_exact_source(self):
+        for scalar in ('"2026-10-03"', "2026-10-03", "'0001-01-01'", "0001-01-01", "9999-12-31", "2024-02-29"):
+            with self.subTest(scalar=scalar):
+                manifest, original = self.date_contract_source(scalar)
+                try:
+                    self.assertEqual(validate_database(self.database), [])
+                finally:
+                    manifest.write_text(original)
+        for scalar in ("2026-1-03", "2026-10-3", "2026-10", "2026-10-03T12:00:00", "2026-02-30",
+                       "0000-01-01", "10000-01-01", "2026-1-3", "2026-10-03 12:00:00Z"):
+            for quoted in (False, True):
+                with self.subTest(scalar=scalar, quoted=quoted):
+                    manifest, original = self.date_contract_source(f'"{scalar}"' if quoted else scalar)
+                    try:
+                        # Impossible unquoted timestamps fail safe YAML construction.
+                        self.assertTrue({"manifest-frontmatter", "semantic-constraint"} & self.codes())
+                    finally:
+                        manifest.write_text(original)
+        for values in ('2026-10-03, "2026-10-03"', '!!str 2026-10-03, 2026-10-03'):
+            manifest, original = self.date_contract_source(values)
+            try:
+                self.assertIn("semantic-constraint", self.codes())
+            finally:
+                manifest.write_text(original)
+
+    def test_frontmatter_details_preserve_source_and_public_api(self):
+        source = '---\nexact: 2026-10-03\nquoted: "2026-10-03"\ntimestamp: 2026-1-3T12:00:00\n---\n# Example\n'
+        details = _parse_frontmatter_details(source)
+        self.assertEqual(parse_frontmatter(source), (details.metadata, details.body))
+        nodes = {key.value: value for key, value in details.root_node.value}
+        self.assertEqual(nodes["exact"].value, "2026-10-03")
+        self.assertEqual(nodes["quoted"].value, "2026-10-03")
+        self.assertEqual(nodes["timestamp"].value, "2026-1-3T12:00:00")
+        self.assertEqual(details.metadata["exact"].isoformat(), "2026-10-03")
+        self.assertEqual(details.metadata["timestamp"].isoformat(), "2026-01-03T12:00:00")
+
+    def test_semantic_contract_does_not_enforce_note_values(self):
+        self.set_field(self.database / "Database.md", "pool_vocabulary", ["Other"])
+        self.contract({"allow_undeclared_fields": False, "fields": {
+            "required_field": dict(shape="integer", required=True),
+            "optional_field": dict(shape="string_list", collections=["Game"], types=["pebble"],
+                                   allowed_values=["one"], item_pattern="one", min_items=2, unique=True),
+        }})
+        self.set_field(self.collection / "Example.md", "optional_field", [1, 1])
+        self.set_field(self.collection / "Example.md", "undeclared_field", {})
+        self.assertEqual(validate_database(self.database), [])
+
+    def test_unsupported_manifest_gates_semantic_contract_validation(self):
+        self.set_field(self.database / "Database.md", "manifest_version", 2)
+        self.contract(None)
+        with patch("validate_shardbase.validate_semantic_contract", side_effect=AssertionError("unsupported manifest")):
+            self.assertIn("manifest-version", self.codes())
 
     def test_common_fields_required_on_every_structural_type_without_rewriting(self):
         for path in sorted(self.collection.glob("*.md")):

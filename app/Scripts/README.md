@@ -337,6 +337,7 @@ The validator currently checks:
 - discovery of direct database roots, including incomplete roots missing `Database.md`;
 - UTF-8 YAML frontmatter using a safe PyYAML loader, including duplicate-key/malformed/unsupported-tag diagnostics;
 - manifest field/value/shape requirements, optional creation preferences, and required manifest body headings;
+- optional `pool_vocabulary` and `semantic_schema` declarations, including selectors, shape/constraint compatibility, allowed-value types, exact date scalar representations, and regex compilation;
 - declared data collections, root `Attachments/`, and `Views/`;
 - traversal, absolute-path, containment, and relevant symlink boundaries before scanning;
 - structural discovery at collection roots and one Core-workspace level;
@@ -368,6 +369,8 @@ For the normative portable normalization, ID contract, and filename algorithm, u
 
 The validator does **not** currently determine or enforce:
 
+- application of declared Pool vocabularies or semantic schemas to canonical note values, including requiredness, shapes, bounded values, applicability, and undeclared fields;
+- database Pool vocabulary from prose;
 - database semantic schema fields, shapes, bounded values, or applicability from `Database.md`;
 - declared database Pool vocabulary;
 - whether a note genuinely earns materialization versus remaining a heading;
