@@ -338,7 +338,8 @@ class DatabasePreparationTests(unittest.TestCase):
         self.assertEqual(before, self.snapshot(self.root))
 
     def test_supporting_inheritance_overrides_template_defaults(self):
-        self.edit_metadata(self.database / "Database.md", data_collections=["Game", "Other"])
+        self.edit_metadata(self.database / "Database.md", data_collections=["Game", "Other"],
+                           pool_vocabulary=["Games", "Selected Pool"])
         (self.database / "Data/Other/Attachments").mkdir(parents=True)
         core = self.created_path(self.create("Root", collection="Other", pool="Selected Pool"))
         for kind in ("shard", "pebble"):
